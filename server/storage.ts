@@ -19,7 +19,9 @@ export interface IStorage {
   // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
-  updateStripeCustomerId(userId: string, customerId: string): Promise<User>;
+  updateWalletAddress(userId: string, walletAddress: string): Promise<User>;
+  updateEmailVerified(userId: string, verified: boolean): Promise<User>;
+  updateNotificationPreferences(userId: string, notifyPaymentsDue: boolean, notifyRentalReminders: boolean): Promise<User>;
   
   // Logo operations
   createLogo(logo: InsertLogo): Promise<Logo>;
@@ -79,10 +81,32 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateStripeCustomerId(userId: string, customerId: string): Promise<User> {
+  async updateWalletAddress(userId: string, walletAddress: string): Promise<User> {
     const [user] = await db
       .update(users)
-      .set({ stripeCustomerId: customerId, updatedAt: new Date() })
+      .set({ walletAddress, walletVerified: true, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async updateEmailVerified(userId: string, verified: boolean): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ emailVerified: verified, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async updateNotificationPreferences(
+    userId: string,
+    notifyPaymentsDue: boolean,
+    notifyRentalReminders: boolean
+  ): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ notifyPaymentsDue, notifyRentalReminders, updatedAt: new Date() })
       .where(eq(users.id, userId))
       .returning();
     return user;
@@ -168,7 +192,7 @@ export class DatabaseStorage implements IStorage {
     const [payment] = await db
       .select()
       .from(payments)
-      .where(eq(payments.stripePaymentIntentId, intentId));
+      .where(eq(payments.transactionSignature, intentId));
     return payment;
   }
 

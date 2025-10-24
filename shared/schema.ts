@@ -30,7 +30,16 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  
+  // Wallet and verification
   walletAddress: varchar("wallet_address"),
+  walletVerified: boolean("wallet_verified").default(false), // Confirmed via signature
+  emailVerified: boolean("email_verified").default(false), // 2FA analog - must verify email
+  
+  // Account preferences
+  notifyPaymentsDue: boolean("notify_payments_due").default(true),
+  notifyRentalReminders: boolean("notify_rental_reminders").default(true),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

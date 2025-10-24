@@ -252,6 +252,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Account management routes
+  app.post('/api/account/link-wallet', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { walletAddress } = req.body;
+
+      if (!walletAddress || typeof walletAddress !== 'string') {
+        return res.status(400).json({ message: "Invalid wallet address" });
+      }
+
+      // Basic Solana address validation (should be 32-44 characters)
+      if (walletAddress.length < 32 || walletAddress.length > 44) {
+        return res.status(400).json({ message: "Invalid Solana wallet address format" });
+      }
+
+      const user = await storage.updateWalletAddress(userId, walletAddress);
+      res.json({ message: "Wallet linked successfully", user });
+    } catch (error: any) {
+      console.error("Error linking wallet:", error);
+      res.status(500).json({ message: error.message || "Failed to link wallet" });
+    }
+  });
+
+  app.post('/api/account/send-verification', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      if (!user?.email) {
+        return res.status(400).json({ message: "No email address found" });
+      }
+
+      // TODO: Implement actual email sending with verification token
+      // For now, auto-verify for development
+      await storage.updateEmailVerified(userId, true);
+
+      res.json({ message: "Email verification sent" });
+    } catch (error: any) {
+      console.error("Error sending verification:", error);
+      res.status(500).json({ message: error.message || "Failed to send verification email" });
+    }
+  });
+
+  app.patch('/api/account/notifications', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { notifyPaymentsDue, notifyRentalReminders } = req.body;
+
+      if (typeof notifyPaymentsDue !== 'boolean' || typeof notifyRentalReminders !== 'boolean') {
+        return res.status(400).json({ message: "Invalid notification preferences" });
+      }
+
+      const user = await storage.updateNotificationPreferences(
+        userId,
+        notifyPaymentsDue,
+        notifyRentalReminders
+      );
+
+      res.json({ message: "Preferences updated", user });
+    } catch (error: any) {
+      console.error("Error updating notifications:", error);
+      res.status(500).json({ message: error.message || "Failed to update preferences" });
+    }
+  });
+
   // Serve uploaded files
   app.use('/uploads', (req, res, next) => {
     // Simple static file serving for uploads

@@ -74,6 +74,9 @@ export default function Dashboard() {
             <span className="text-xl font-semibold">LogoGuard</span>
           </div>
           <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" asChild data-testid="link-account-settings">
+              <Link href="/account">Account</Link>
+            </Button>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <span className="text-sm font-medium">
