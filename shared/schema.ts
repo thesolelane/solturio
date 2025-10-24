@@ -219,3 +219,57 @@ export const insertAuthorizedUsageSchema = createInsertSchema(authorizedUsages).
 
 export type InsertAuthorizedUsage = z.infer<typeof insertAuthorizedUsageSchema>;
 export type AuthorizedUsage = typeof authorizedUsages.$inferSelect;
+
+// Quiz questions for IP education
+export const quizQuestions = pgTable("quiz_questions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  category: varchar("category", { length: 100 }).notNull(), // Trademark Basics, Copyright Law, IP Symbols, etc
+  difficulty: varchar("difficulty", { length: 20 }).notNull(), // easy, medium, hard
+  points: integer("points").notNull(), // 100, 200, 300, 400, 500
+  
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  explanation: text("explanation"), // Detailed explanation with source
+  sourceUrl: text("source_url"), // Link to official source (USPTO, Copyright.gov)
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type QuizQuestion = typeof quizQuestions.$inferSelect;
+
+// User quiz attempts
+export const quizAttempts = pgTable("quiz_attempts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  questionId: varchar("question_id").notNull().references(() => quizQuestions.id),
+  
+  userAnswer: text("user_answer").notNull(),
+  isCorrect: boolean("is_correct").notNull(),
+  pointsEarned: integer("points_earned").notNull(),
+  cathReward: varchar("cath_reward"), // Amount of $CATH earned (as string for precision)
+  
+  timeToAnswer: integer("time_to_answer"), // Time in seconds
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type QuizAttempt = typeof quizAttempts.$inferSelect;
+
+// User quiz stats and leaderboard
+export const quizStats = pgTable("quiz_stats", {
+  userId: varchar("user_id").primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  
+  totalQuestions: integer("total_questions").default(0).notNull(),
+  correctAnswers: integer("correct_answers").default(0).notNull(),
+  totalPoints: integer("total_points").default(0).notNull(),
+  totalCathEarned: varchar("total_cath_earned").default('0'), // Total $CATH earned from quizzes
+  
+  streak: integer("streak").default(0), // Current correct answer streak
+  longestStreak: integer("longest_streak").default(0),
+  
+  lastQuizAt: timestamp("last_quiz_at"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type QuizStats = typeof quizStats.$inferSelect;
