@@ -1,9 +1,14 @@
+import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Copyright, Verified, AlertCircle } from "lucide-react";
 
 export default function KnowledgeBase() {
+  useEffect(() => {
+    document.title = "IP Knowledge Base - LogoGuard";
+  }, []);
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
       <div className="mb-8">

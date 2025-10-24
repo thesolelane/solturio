@@ -13,6 +13,11 @@ export default function Dashboard() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Dashboard - LogoGuard";
+  }, []);
+
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {

@@ -89,6 +89,11 @@ export default function Checkout() {
   const params = new URLSearchParams(location.split('?')[1] || '');
   const collectionId = params.get('collectionId');
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Checkout - LogoGuard";
+  }, []);
+
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       toast({

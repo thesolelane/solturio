@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExternalLink, Shield, FileText, DollarSign, Clock, CheckCircle2 } from "lucide-react";
 
 export default function IPGuide() {
+  useEffect(() => {
+    document.title = "IP Protection Guide - LogoGuard";
+  }, []);
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
       <div className="mb-8">

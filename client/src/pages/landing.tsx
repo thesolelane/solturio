@@ -1,8 +1,13 @@
+import { useEffect } from "react";
 import { Shield, Lock, Clock, CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export default function Landing() {
+  useEffect(() => {
+    document.title = "LogoGuard - Protect Your Brand on Blockchain";
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}

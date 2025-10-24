@@ -1,9 +1,14 @@
+import { useEffect } from "react";
 import { Link } from "wouter";
 import { Shield, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export default function NotFound() {
+  useEffect(() => {
+    document.title = "Page Not Found - LogoGuard";
+  }, []);
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6">
       <Card className="p-12 text-center max-w-md">

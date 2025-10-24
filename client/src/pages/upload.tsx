@@ -32,6 +32,11 @@ export default function Upload() {
   const [isDragging, setIsDragging] = useState(false);
   const queryClient = useQueryClient();
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Upload Logo - LogoGuard";
+  }, []);
+
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {

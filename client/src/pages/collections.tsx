@@ -14,6 +14,11 @@ export default function Collections() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // Set page title
+  useEffect(() => {
+    document.title = "My Collections - LogoGuard";
+  }, []);
+
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       toast({

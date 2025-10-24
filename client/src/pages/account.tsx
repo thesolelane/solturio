@@ -19,6 +19,11 @@ export default function AccountPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [walletInput, setWalletInput] = useState("");
 
+  // Set page title
+  useEffect(() => {
+    document.title = "Account Settings - LogoGuard";
+  }, []);
+
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
