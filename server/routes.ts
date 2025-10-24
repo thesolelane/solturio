@@ -13,7 +13,7 @@ import fs from "fs/promises";
 // Stripe is optional in development - only required for payment endpoints
 const stripe = process.env.STRIPE_SECRET_KEY 
   ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2024-12-18.acacia",
+      apiVersion: "2025-09-30.clover",
     })
   : null;
 
@@ -77,22 +77,8 @@ async function extractImageMetadata(buffer: Buffer, mimetype: string) {
   }
 }
 
-// Pricing tiers
-const PRICING_TIERS: Record<string, { max: number; price: number }> = {
-  starter: { max: 5, price: 4900 }, // $49
-  professional: { max: 20, price: 9900 }, // $99
-  enterprise: { max: Infinity, price: 29900 }, // $299
-};
-
-function calculatePrice(logoCount: number): { tier: string; amount: number } {
-  if (logoCount <= 5) {
-    return { tier: 'starter', amount: PRICING_TIERS.starter.price };
-  } else if (logoCount <= 20) {
-    return { tier: 'professional', amount: PRICING_TIERS.professional.price };
-  } else {
-    return { tier: 'enterprise', amount: PRICING_TIERS.enterprise.price };
-  }
-}
+// Import pricing configuration
+import { PRICING, isEligibleForFreeUpload, getRemainingFreeUploads } from "@shared/pricing";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication
@@ -236,73 +222,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create payment intent
-  app.get('/api/payment/create-intent/:collectionId', isAuthenticated, async (req: any, res) => {
+  // Get pricing and free upload status
+  app.get('/api/pricing/status', isAuthenticated, async (req: any, res) => {
     try {
-      if (!stripe) {
-        return res.status(503).json({ 
-          message: "Payment processing is not configured. Stripe API keys are missing." 
-        });
-      }
-
       const userId = req.user.claims.sub;
-      const collection = await storage.getCollection(req.params.collectionId);
+      const logos = await storage.getLogosByUserId(userId);
+      const logoCount = logos.length;
 
-      if (!collection || collection.userId !== userId) {
-        return res.status(404).json({ message: "Collection not found" });
-      }
-
-      const logos = await storage.getLogosByCollectionId(collection.id);
-      const { tier, amount } = calculatePrice(logos.length);
-
-      // Get or create Stripe customer
-      let user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      if (!user.stripeCustomerId) {
-        const customer = await stripe.customers.create({
-          email: user.email || undefined,
-          metadata: {
-            userId: user.id,
-          },
-        });
-        user = await storage.updateStripeCustomerId(userId, customer.id);
-      }
-
-      // Create payment intent
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount,
-        currency: "usd",
-        customer: user.stripeCustomerId,
-        metadata: {
-          collectionId: collection.id,
-          logoCount: logos.length.toString(),
-          tier,
-        },
-      });
-
-      // Save payment record
-      await storage.createPayment({
-        userId,
-        collectionId: collection.id,
-        stripePaymentIntentId: paymentIntent.id,
-        stripeCustomerId: user.stripeCustomerId,
-        amount,
-        currency: 'usd',
-        status: 'pending',
-        logoCount: logos.length,
-        pricingTier: tier,
-      });
+      const freeUploadsRemaining = getRemainingFreeUploads(logoCount);
+      const isEligible = isEligibleForFreeUpload(logoCount);
 
       res.json({
-        clientSecret: paymentIntent.client_secret,
-        amount,
+        logoCount,
+        freeUploadsRemaining,
+        isEligibleForFreeUpload: isEligible,
+        freeUploadLimit: PRICING.FREE_UPLOADS_LIMIT,
+        pricing: {
+          minting: PRICING.MINTING_FEE,
+          monthlyRental: PRICING.MONTHLY_RENTAL,
+        },
+        promotion: {
+          active: true,
+          message: `Launch Special: First ${PRICING.FREE_UPLOADS_LIMIT} uploads free for small communities!`,
+        },
       });
     } catch (error: any) {
-      console.error("Error creating payment intent:", error);
-      res.status(500).json({ message: error.message || "Failed to create payment intent" });
+      console.error("Error fetching pricing status:", error);
+      res.status(500).json({ message: error.message || "Failed to fetch pricing status" });
     }
   });
 

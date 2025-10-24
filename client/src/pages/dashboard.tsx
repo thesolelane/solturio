@@ -2,9 +2,10 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
-import { Shield, Upload, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Shield, Upload, Image as ImageIcon, Loader2, Gift, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import type { Logo, Collection } from "@shared/schema";
 import { Link } from "wouter";
 
@@ -37,6 +38,17 @@ export default function Dashboard() {
 
   const { data: recentCollections = [], isLoading: collectionsLoading } = useQuery<Collection[]>({
     queryKey: ["/api/collections"],
+    enabled: isAuthenticated,
+  });
+
+  const { data: pricingStatus } = useQuery<{
+    logoCount: number;
+    freeUploadsRemaining: number;
+    isEligibleForFreeUpload: boolean;
+    freeUploadLimit: number;
+    promotion: { active: boolean; message: string };
+  }>({
+    queryKey: ["/api/pricing/status"],
     enabled: isAuthenticated,
   });
 
@@ -89,6 +101,43 @@ export default function Dashboard() {
             Protect your brand assets on the blockchain
           </p>
         </div>
+
+        {/* Launch Promotion Banner */}
+        {pricingStatus?.isEligibleForFreeUpload && (
+          <Card className="p-6 mb-8 bg-gradient-to-r from-primary/10 via-primary/5 to-background border-primary/20" data-testid="promotion-banner">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Gift className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-lg font-semibold">Launch Special</h3>
+                  <Badge variant="secondary" className="gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    Limited Time
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground mb-3">
+                  {pricingStatus.promotion.message}
+                </p>
+                <div className="flex items-center gap-4">
+                  <div>
+                    <span className="text-2xl font-bold text-primary" data-testid="text-free-uploads-remaining">
+                      {pricingStatus.freeUploadsRemaining}
+                    </span>
+                    <span className="text-sm text-muted-foreground ml-2">free uploads remaining</span>
+                  </div>
+                  <Button asChild data-testid="button-upload-now">
+                    <Link href="/upload">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload Now
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -145,8 +194,8 @@ export default function Dashboard() {
         <div className="mb-12">
           <h2 className="text-2xl font-semibold mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="p-6 hover-elevate cursor-pointer" asChild>
-              <Link href="/upload" data-testid="link-upload-logos">
+            <Link href="/upload" data-testid="link-upload-logos">
+              <Card className="p-6 hover-elevate cursor-pointer">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
                     <Upload className="w-6 h-6 text-primary" />
@@ -158,11 +207,11 @@ export default function Dashboard() {
                     </p>
                   </div>
                 </div>
-              </Link>
-            </Card>
+              </Card>
+            </Link>
 
-            <Card className="p-6 hover-elevate cursor-pointer" asChild>
-              <Link href="/collections" data-testid="link-view-collections">
+            <Link href="/collections" data-testid="link-view-collections">
+              <Card className="p-6 hover-elevate cursor-pointer">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
                     <Shield className="w-6 h-6 text-primary" />
@@ -174,8 +223,8 @@ export default function Dashboard() {
                     </p>
                   </div>
                 </div>
-              </Link>
-            </Card>
+              </Card>
+            </Link>
           </div>
         </div>
 
