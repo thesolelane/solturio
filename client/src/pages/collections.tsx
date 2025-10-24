@@ -147,7 +147,7 @@ export default function Collections() {
                   <div>
                     <Label className="text-xs text-muted-foreground">Created</Label>
                     <p className="text-sm font-medium">
-                      {new Date(collection.createdAt).toLocaleDateString()}
+                      {collection.createdAt ? new Date(collection.createdAt).toLocaleDateString() : 'N/A'}
                     </p>
                   </div>
                   {collection.mintedAt && (
@@ -210,11 +210,13 @@ export default function Collections() {
                           className="aspect-square bg-muted rounded-md overflow-hidden"
                           title={logo.fileName}
                         >
-                          <img
-                            src={logo.filePath}
-                            alt={logo.fileName}
-                            className="w-full h-full object-contain"
-                          />
+                          {logo.filePath && (
+                            <img
+                              src={logo.filePath}
+                              alt={logo.fileName}
+                              className="w-full h-full object-contain"
+                            />
+                          )}
                         </div>
                       ))}
                     </div>

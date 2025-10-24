@@ -15,19 +15,16 @@ import NotFound from "@/pages/not-found";
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
+  // Show landing page when not authenticated, otherwise show dashboard
+  const HomePage = isLoading || !isAuthenticated ? Landing : Dashboard;
+
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
-        <>
-          <Route path="/" component={Dashboard} />
-          <Route path="/upload" component={Upload} />
-          <Route path="/checkout" component={Checkout} />
-          <Route path="/collections" component={Collections} />
-          <Route path="/account" component={AccountPage} />
-        </>
-      )}
+      <Route path="/" component={HomePage} />
+      <Route path="/upload" component={Upload} />
+      <Route path="/checkout" component={Checkout} />
+      <Route path="/collections" component={Collections} />
+      <Route path="/account" component={AccountPage} />
       <Route component={NotFound} />
     </Switch>
   );
