@@ -36,6 +36,11 @@ export const users = pgTable("users", {
   walletVerified: boolean("wallet_verified").default(false), // Confirmed via signature
   emailVerified: boolean("email_verified").default(false), // 2FA analog - must verify email
   
+  // Social media handles (for community engagement)
+  twitterHandle: varchar("twitter_handle"),
+  telegramHandle: varchar("telegram_handle"),
+  discordHandle: varchar("discord_handle"),
+  
   // Account preferences
   notifyPaymentsDue: boolean("notify_payments_due").default(true),
   notifyRentalReminders: boolean("notify_rental_reminders").default(true),

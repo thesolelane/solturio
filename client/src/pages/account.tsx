@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Shield, Wallet, Mail, Bell, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Shield, Wallet, Mail, Bell, CheckCircle2, AlertCircle, Loader2, Twitter, Send, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,11 @@ export default function AccountPage() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [walletInput, setWalletInput] = useState("");
+  const [socialHandles, setSocialHandles] = useState({
+    twitterHandle: "",
+    telegramHandle: "",
+    discordHandle: "",
+  });
 
   // Set page title
   useEffect(() => {
@@ -109,6 +114,37 @@ export default function AccountPage() {
       });
     },
   });
+
+  // Update social handles mutation
+  const updateSocialHandlesMutation = useMutation({
+    mutationFn: async (data: { twitterHandle?: string; telegramHandle?: string; discordHandle?: string }) => {
+      const response = await fetch("/api/account/social-handles", {
+        method: "PATCH",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) throw new Error(await response.text());
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({
+        title: "Social Handles Updated",
+        description: "Your social media handles have been saved.",
+      });
+    },
+  });
+
+  // Sync social handles state from user data
+  useEffect(() => {
+    if (user) {
+      setSocialHandles({
+        twitterHandle: user.twitterHandle || "",
+        telegramHandle: user.telegramHandle || "",
+        discordHandle: user.discordHandle || "",
+      });
+    }
+  }, [user]);
 
   if (authLoading) {
     return (
@@ -322,7 +358,7 @@ export default function AccountPage() {
         </Card>
 
         {/* Notification Preferences */}
-        <Card className="p-6">
+        <Card className="p-6 mb-6">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
               <Bell className="w-6 h-6 text-primary" />
@@ -365,6 +401,99 @@ export default function AccountPage() {
                     data-testid="switch-notify-rentals"
                   />
                 </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Social Media Handles */}
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Social Media Handles</h3>
+          <p className="text-sm text-muted-foreground mb-6">
+            Connect with the community and let us reach you on your preferred platforms
+          </p>
+          <div className="space-y-4">
+            {/* Twitter */}
+            <div>
+              <Label htmlFor="twitter-handle" className="flex items-center gap-2 mb-2">
+                <Twitter className="w-4 h-4" />
+                Twitter / X
+              </Label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+                  <Input
+                    id="twitter-handle"
+                    placeholder="username"
+                    value={socialHandles.twitterHandle}
+                    onChange={(e) => setSocialHandles({ ...socialHandles, twitterHandle: e.target.value })}
+                    className="pl-7"
+                    data-testid="input-twitter"
+                  />
+                </div>
+                <Button
+                  onClick={() => updateSocialHandlesMutation.mutate({ twitterHandle: socialHandles.twitterHandle })}
+                  disabled={updateSocialHandlesMutation.isPending}
+                  data-testid="button-save-twitter"
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Telegram */}
+            <div>
+              <Label htmlFor="telegram-handle" className="flex items-center gap-2 mb-2">
+                <Send className="w-4 h-4" />
+                Telegram
+              </Label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+                  <Input
+                    id="telegram-handle"
+                    placeholder="username"
+                    value={socialHandles.telegramHandle}
+                    onChange={(e) => setSocialHandles({ ...socialHandles, telegramHandle: e.target.value })}
+                    className="pl-7"
+                    data-testid="input-telegram"
+                  />
+                </div>
+                <Button
+                  onClick={() => updateSocialHandlesMutation.mutate({ telegramHandle: socialHandles.telegramHandle })}
+                  disabled={updateSocialHandlesMutation.isPending}
+                  data-testid="button-save-telegram"
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Discord */}
+            <div>
+              <Label htmlFor="discord-handle" className="flex items-center gap-2 mb-2">
+                <MessageSquare className="w-4 h-4" />
+                Discord
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="discord-handle"
+                  placeholder="username#0000 or just username"
+                  value={socialHandles.discordHandle}
+                  onChange={(e) => setSocialHandles({ ...socialHandles, discordHandle: e.target.value })}
+                  data-testid="input-discord"
+                />
+                <Button
+                  onClick={() => updateSocialHandlesMutation.mutate({ discordHandle: socialHandles.discordHandle })}
+                  disabled={updateSocialHandlesMutation.isPending}
+                  data-testid="button-save-discord"
+                >
+                  Save
+                </Button>
               </div>
             </div>
           </div>

@@ -22,6 +22,7 @@ export interface IStorage {
   updateWalletAddress(userId: string, walletAddress: string): Promise<User>;
   updateEmailVerified(userId: string, verified: boolean): Promise<User>;
   updateNotificationPreferences(userId: string, notifyPaymentsDue: boolean, notifyRentalReminders: boolean): Promise<User>;
+  updateSocialHandles(userId: string, handles: { twitterHandle?: string; telegramHandle?: string; discordHandle?: string }): Promise<User>;
   
   // Logo operations
   createLogo(logo: InsertLogo): Promise<Logo>;
@@ -107,6 +108,18 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .update(users)
       .set({ notifyPaymentsDue, notifyRentalReminders, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async updateSocialHandles(
+    userId: string,
+    handles: { twitterHandle?: string; telegramHandle?: string; discordHandle?: string }
+  ): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ ...handles, updatedAt: new Date() })
       .where(eq(users.id, userId))
       .returning();
     return user;

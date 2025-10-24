@@ -317,6 +317,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch('/api/account/social-handles', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { twitterHandle, telegramHandle, discordHandle } = req.body;
+
+      // Basic validation - remove @ symbols if included
+      const cleanHandles: any = {};
+      if (twitterHandle !== undefined) {
+        cleanHandles.twitterHandle = twitterHandle ? twitterHandle.replace(/^@/, '') : null;
+      }
+      if (telegramHandle !== undefined) {
+        cleanHandles.telegramHandle = telegramHandle ? telegramHandle.replace(/^@/, '') : null;
+      }
+      if (discordHandle !== undefined) {
+        cleanHandles.discordHandle = discordHandle || null;
+      }
+
+      const user = await storage.updateSocialHandles(userId, cleanHandles);
+
+      res.json({ message: "Social handles updated", user });
+    } catch (error: any) {
+      console.error("Error updating social handles:", error);
+      res.status(500).json({ message: error.message || "Failed to update social handles" });
+    }
+  });
+
   // Serve uploaded files
   app.use('/uploads', (req, res, next) => {
     // Simple static file serving for uploads
