@@ -1,4 +1,4 @@
-// LogoGuard Pricing Configuration
+// Centurio Pricing Configuration
 // Updated: October 2024 - Launch Promotion
 
 export const PRICING = {

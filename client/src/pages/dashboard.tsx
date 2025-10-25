@@ -15,7 +15,7 @@ export default function Dashboard() {
 
   // Set page title
   useEffect(() => {
-    document.title = "Dashboard - LogoGuard";
+    document.title = "Dashboard - Centurio";
   }, []);
 
   // Redirect to login if not authenticated
@@ -76,7 +76,7 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Shield className="w-8 h-8 text-primary" />
-            <span className="text-xl font-semibold">LogoGuard</span>
+            <span className="text-xl font-semibold">Centurio</span>
           </div>
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" asChild data-testid="link-account-settings">

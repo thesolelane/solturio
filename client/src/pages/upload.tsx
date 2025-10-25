@@ -34,7 +34,7 @@ export default function Upload() {
 
   // Set page title
   useEffect(() => {
-    document.title = "Upload Logo - LogoGuard";
+    document.title = "Upload Logo - Centurio";
   }, []);
 
   // Redirect if not authenticated
@@ -218,7 +218,7 @@ export default function Upload() {
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 hover-elevate">
             <Shield className="w-8 h-8 text-primary" />
-            <span className="text-xl font-semibold">LogoGuard</span>
+            <span className="text-xl font-semibold">Centurio</span>
           </Link>
           <Button variant="outline" size="sm" asChild>
             <Link href="/">Dashboard</Link>

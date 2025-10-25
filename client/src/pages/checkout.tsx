@@ -91,7 +91,7 @@ export default function Checkout() {
 
   // Set page title
   useEffect(() => {
-    document.title = "Checkout - LogoGuard";
+    document.title = "Checkout - Centurio";
   }, []);
 
   useEffect(() => {
@@ -164,7 +164,7 @@ export default function Checkout() {
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 hover-elevate">
             <Shield className="w-8 h-8 text-primary" />
-            <span className="text-xl font-semibold">LogoGuard</span>
+            <span className="text-xl font-semibold">Centurio</span>
           </Link>
           <div className="text-sm text-muted-foreground">
             Step 2 of 3: Payment

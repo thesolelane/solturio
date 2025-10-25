@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 
 export default function Landing() {
   useEffect(() => {
-    document.title = "LogoGuard - Protect Your Brand on Blockchain";
+    document.title = "Centurio - Protect Your Brand on Blockchain";
   }, []);
 
   return (
@@ -15,7 +15,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Shield className="w-8 h-8 text-primary" />
-            <span className="text-xl font-semibold">LogoGuard</span>
+            <span className="text-xl font-semibold">Centurio</span>
           </div>
           <Button asChild data-testid="button-login">
             <a href="/api/login">Sign In</a>
@@ -45,7 +45,7 @@ export default function Landing() {
       <section className="py-12 px-6 lg:px-8 bg-card">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl font-semibold text-center mb-12">
-            Why LogoGuard?
+            Why Centurio?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="p-6">
@@ -122,7 +122,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t py-8 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center text-sm text-muted-foreground">
-          <p>&copy; 2025 LogoGuard. Powered by Solana & Metaplex.</p>
+          <p>&copy; 2025 Centurio. Powered by Solana & Metaplex.</p>
         </div>
       </footer>
     </div>

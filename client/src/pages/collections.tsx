@@ -16,7 +16,7 @@ export default function Collections() {
 
   // Set page title
   useEffect(() => {
-    document.title = "My Collections - LogoGuard";
+    document.title = "My Collections - Centurio";
   }, []);
 
   useEffect(() => {
@@ -66,7 +66,7 @@ export default function Collections() {
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 hover-elevate">
             <Shield className="w-8 h-8 text-primary" />
-            <span className="text-xl font-semibold">LogoGuard</span>
+            <span className="text-xl font-semibold">Centurio</span>
           </Link>
           <Button variant="outline" size="sm" asChild>
             <Link href="/">Dashboard</Link>
