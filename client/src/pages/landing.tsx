@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 
 export default function Landing() {
   useEffect(() => {
-    document.title = "Centurio - Protect Your Brand on Blockchain";
+    document.title = "Centurio - Plant Your Standard on Chain";
   }, []);
 
   return (
@@ -27,7 +27,7 @@ export default function Landing() {
       <section className="py-16 lg:py-24 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl lg:text-5xl font-semibold mb-6">
-            Protect Your Brand on the Blockchain
+            Plant Your Standard on Chain
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             Create immutable, timestamped proof of ownership for your logos and trademarks. 
