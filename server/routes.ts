@@ -7,6 +7,7 @@ import Stripe from "stripe";
 import multer from "multer";
 import sharp from "sharp";
 import { randomUUID } from "crypto";
+import { createHash } from "crypto";
 import path from "path";
 import fs from "fs/promises";
 
@@ -37,9 +38,12 @@ const upload = multer({
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 fs.mkdir(UPLOAD_DIR, { recursive: true }).catch(console.error);
 
-// Helper to extract color palette from image
+// Helper to extract color palette and metadata from image
 async function extractImageMetadata(buffer: Buffer, mimetype: string) {
   try {
+    // Calculate SHA-256 hash
+    const fileHash = createHash('sha256').update(buffer).digest('hex');
+
     if (mimetype === 'image/svg+xml') {
       // SVG doesn't have pixel dimensions, return defaults
       return {
@@ -48,22 +52,58 @@ async function extractImageMetadata(buffer: Buffer, mimetype: string) {
         format: 'SVG',
         colorPalette: [],
         dominantColor: null,
+        fileHash,
       };
     }
 
     const image = sharp(buffer);
     const metadata = await image.metadata();
     
-    // Get dominant colors
+    // Get dominant color
     const stats = await image.stats();
     const dominantColor = `#${Math.round(stats.dominant.r).toString(16).padStart(2, '0')}${Math.round(stats.dominant.g).toString(16).padStart(2, '0')}${Math.round(stats.dominant.b).toString(16).padStart(2, '0')}`;
+
+    // Extract color palette by resizing and getting pixels
+    let colorPalette = [dominantColor];
+    try {
+      const resized = await image
+        .resize(100, 100, { fit: 'inside' })
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+
+      const pixels = resized.data;
+      const colorMap = new Map<string, number>();
+
+      // Sample every 10th pixel to get color distribution
+      for (let i = 0; i < pixels.length; i += 30) {
+        if (i + 2 < pixels.length) {
+          const r = pixels[i];
+          const g = pixels[i + 1];
+          const b = pixels[i + 2];
+          const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+          colorMap.set(hex, (colorMap.get(hex) || 0) + 1);
+        }
+      }
+
+      // Get top 5 colors by frequency
+      const sortedColors = Array.from(colorMap.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([color]) => color);
+
+      colorPalette = sortedColors.length > 0 ? sortedColors : [dominantColor];
+    } catch (paletteError) {
+      // If palette extraction fails, just use dominant color
+      console.warn('Could not extract full color palette:', paletteError);
+    }
 
     return {
       width: metadata.width || 0,
       height: metadata.height || 0,
       format: metadata.format?.toUpperCase() || 'UNKNOWN',
-      colorPalette: [dominantColor],
+      colorPalette,
       dominantColor,
+      fileHash,
     };
   } catch (error) {
     console.error('Error extracting image metadata:', error);
@@ -73,6 +113,7 @@ async function extractImageMetadata(buffer: Buffer, mimetype: string) {
       format: 'UNKNOWN',
       colorPalette: [],
       dominantColor: null,
+      fileHash: createHash('sha256').update(buffer).digest('hex'),
     };
   }
 }
@@ -148,6 +189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           filePath: `/uploads/${fileName}`,
           fileSize: file.size,
           mimeType: file.mimetype,
+          fileHash: metadata.fileHash,
           width: metadata.width,
           height: metadata.height,
           format: metadata.format,
@@ -167,6 +209,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error uploading logos:", error);
       res.status(500).json({ message: error.message || "Failed to upload logos" });
+    }
+  });
+
+  // Get logos
+  app.get('/api/logos', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const logos = await storage.getLogosByUserId(userId);
+      res.json(logos);
+    } catch (error) {
+      console.error("Error fetching logos:", error);
+      res.status(500).json({ message: "Failed to fetch logos" });
     }
   });
 
