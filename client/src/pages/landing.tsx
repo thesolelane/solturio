@@ -18,7 +18,7 @@ export default function Landing() {
             <span className="text-xl font-semibold">Centurio</span>
           </div>
           <Button asChild data-testid="button-login">
-            <a href="/api/login">Sign In</a>
+            <a href="/api/login">Sign Up / Sign In</a>
           </Button>
         </div>
       </header>
@@ -35,7 +35,7 @@ export default function Landing() {
           </p>
           <Button size="lg" className="gap-2" asChild data-testid="button-get-started">
             <a href="/api/login">
-              Get Started <ArrowRight className="w-4 h-4" />
+              Get Started Free <ArrowRight className="w-4 h-4" />
             </a>
           </Button>
         </div>
