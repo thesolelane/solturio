@@ -11,6 +11,8 @@ import { createHash } from "crypto";
 import path from "path";
 import fs from "fs/promises";
 import { generateSolanaWallet, formatPrivateKeyForPhantom } from "./solana-wallet";
+import { uploadToIPFS, uploadJSONToIPFS, generateLogoMetadata } from "./ipfs";
+import { generatePriorArtCertificate, generateDMCATakedownNotice, generateCeaseAndDesistLetter } from "./legal-documents";
 
 // Stripe is optional in development - only required for payment endpoints
 const stripe = process.env.STRIPE_SECRET_KEY 
@@ -401,6 +403,199 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Upload logo to IPFS (for permanent storage)
+  app.post('/api/logos/:id/ipfs', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const logoId = req.params.id;
+      
+      const logo = await storage.getLogoById(logoId);
+      if (!logo) {
+        return res.status(404).json({ message: "Logo not found" });
+      }
+      
+      if (logo.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
+      // If already on IPFS, return existing hash
+      if (logo.ipfsHash) {
+        return res.json({
+          ipfsHash: logo.ipfsHash,
+          ipfsMetadataHash: logo.ipfsMetadataHash,
+          gatewayUrl: `https://ipfs.io/ipfs/${logo.ipfsHash}`,
+          message: "Already uploaded to IPFS",
+        });
+      }
+      
+      // For URL-based images, we need to fetch and upload
+      if (logo.imageUrl && !req.body.imageBuffer) {
+        return res.status(400).json({ 
+          message: "Please provide image data for IPFS upload",
+        });
+      }
+      
+      // Upload image to IPFS (requires image buffer from frontend)
+      if (req.body.imageBuffer) {
+        const imageBuffer = Buffer.from(req.body.imageBuffer, 'base64');
+        const ipfsResult = await uploadToIPFS(imageBuffer, logo.fileName, {
+          name: logo.fileName,
+          keyvalues: {
+            userId,
+            logoId,
+            companyName: req.body.companyName,
+          },
+        });
+        
+        // Generate and upload metadata
+        const metadata = generateLogoMetadata({
+          fileName: logo.fileName,
+          description: logo.description,
+          ownershipDescription: logo.ownershipDescription,
+          userId,
+          timestamp: logo.createdAt,
+          copyrightStatus: logo.copyrightStatus,
+          trademarkStatus: logo.trademarkStatus,
+          patentStatus: logo.patentStatus,
+        });
+        metadata.image = `ipfs://${ipfsResult.ipfsHash}`;
+        
+        const metadataResult = await uploadJSONToIPFS(metadata, {
+          name: `${logo.fileName} Metadata`,
+        });
+        
+        // Update logo with IPFS hashes
+        await storage.updateLogoIPFS(logoId, ipfsResult.ipfsHash, metadataResult.ipfsHash);
+        
+        res.json({
+          ipfsHash: ipfsResult.ipfsHash,
+          ipfsMetadataHash: metadataResult.ipfsHash,
+          gatewayUrl: ipfsResult.gatewayUrl,
+          metadataUrl: metadataResult.gatewayUrl,
+          message: "Successfully uploaded to IPFS",
+        });
+      } else {
+        res.status(400).json({ message: "Image data required for IPFS upload" });
+      }
+    } catch (error: any) {
+      console.error("Error uploading to IPFS:", error);
+      res.status(500).json({ message: error.message || "Failed to upload to IPFS" });
+    }
+  });
+  
+  // Generate Prior Art Certificate
+  app.get('/api/logos/:id/certificate', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const logoId = req.params.id;
+      
+      const logo = await storage.getLogoById(logoId);
+      if (!logo) {
+        return res.status(404).json({ message: "Logo not found" });
+      }
+      
+      if (logo.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const collection = logo.collectionId ? 
+        await storage.getCollection(logo.collectionId) : null;
+      
+      const registration = {
+        id: logo.id,
+        fileName: logo.fileName,
+        fileHash: logo.fileHash,
+        ipfsHash: logo.ipfsHash,
+        userId,
+        userEmail: user.email || 'Not provided',
+        companyName: collection?.companyName || 'Not specified',
+        description: logo.description,
+        ownershipDescription: logo.ownershipDescription,
+        intendedUse: logo.intendedUse,
+        registrationDate: logo.createdAt,
+        copyrightStatus: logo.copyrightStatus,
+        copyrightApplicationNumber: logo.copyrightApplicationNumber,
+        trademarkStatus: logo.trademarkStatus,
+        trademarkApplicationNumber: logo.trademarkApplicationNumber,
+        patentStatus: logo.patentStatus,
+        patentApplicationNumber: logo.patentApplicationNumber,
+        transactionHash: logo.transactionHash,
+        blockNumber: undefined, // Will be set when minted
+      };
+      
+      const certificatePdf = await generatePriorArtCertificate(registration);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="certificate-${logo.id}.pdf"`);
+      res.send(certificatePdf);
+    } catch (error: any) {
+      console.error("Error generating certificate:", error);
+      res.status(500).json({ message: error.message || "Failed to generate certificate" });
+    }
+  });
+  
+  // Generate DMCA Takedown Notice
+  app.post('/api/logos/:id/dmca', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const logoId = req.params.id;
+      
+      const logo = await storage.getLogoById(logoId);
+      if (!logo) {
+        return res.status(404).json({ message: "Logo not found" });
+      }
+      
+      if (logo.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
+      const user = await storage.getUser(userId);
+      const collection = logo.collectionId ? 
+        await storage.getCollection(logo.collectionId) : null;
+      
+      const registration = {
+        id: logo.id,
+        fileName: logo.fileName,
+        fileHash: logo.fileHash,
+        ipfsHash: logo.ipfsHash,
+        userId,
+        userEmail: user?.email || 'Not provided',
+        companyName: collection?.companyName || req.body.companyName || 'Not specified',
+        description: logo.description,
+        ownershipDescription: logo.ownershipDescription,
+        intendedUse: logo.intendedUse,
+        registrationDate: logo.createdAt,
+        copyrightStatus: logo.copyrightStatus,
+        copyrightApplicationNumber: logo.copyrightApplicationNumber,
+        trademarkStatus: logo.trademarkStatus,
+        trademarkApplicationNumber: logo.trademarkApplicationNumber,
+        patentStatus: logo.patentStatus,
+        patentApplicationNumber: logo.patentApplicationNumber,
+        transactionHash: logo.transactionHash,
+        blockNumber: undefined,
+      };
+      
+      const dmcaPdf = await generateDMCATakedownNotice(registration, {
+        infringingSite: req.body.infringingSite || 'Unknown Site',
+        infringementUrl: req.body.infringementUrl || '',
+        infringementDescription: req.body.infringementDescription || 'Unauthorized use of copyrighted material',
+        contactEmail: req.body.contactEmail,
+      });
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="dmca-${logo.id}.pdf"`);
+      res.send(dmcaPdf);
+    } catch (error: any) {
+      console.error("Error generating DMCA notice:", error);
+      res.status(500).json({ message: error.message || "Failed to generate DMCA notice" });
+    }
+  });
+  
   // Get pricing and free upload status
   app.get('/api/pricing/status', isAuthenticated, async (req: any, res) => {
     try {

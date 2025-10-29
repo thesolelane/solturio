@@ -35,6 +35,8 @@ export interface IStorage {
     transactionHash: string;
     mintedAt: Date;
   }): Promise<Logo>;
+  getLogoById(logoId: string): Promise<Logo | undefined>;
+  updateLogoIPFS(logoId: string, ipfsHash: string, ipfsMetadataHash?: string): Promise<Logo>;
   
   // Collection operations
   createCollection(collection: InsertCollection): Promise<Collection>;
@@ -172,6 +174,24 @@ export class DatabaseStorage implements IStorage {
     const [updated] = await db
       .update(logos)
       .set({ ...data, updatedAt: new Date() })
+      .where(eq(logos.id, logoId))
+      .returning();
+    return updated;
+  }
+
+  async getLogoById(logoId: string): Promise<Logo | undefined> {
+    const [logo] = await db.select().from(logos).where(eq(logos.id, logoId));
+    return logo;
+  }
+
+  async updateLogoIPFS(logoId: string, ipfsHash: string, ipfsMetadataHash?: string): Promise<Logo> {
+    const [updated] = await db
+      .update(logos)
+      .set({ 
+        ipfsHash, 
+        ipfsMetadataHash,
+        updatedAt: new Date() 
+      })
       .where(eq(logos.id, logoId))
       .returning();
     return updated;

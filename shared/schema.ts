@@ -80,6 +80,10 @@ export const logos = pgTable("logos", {
   mimeType: varchar("mime_type").notNull(),
   fileHash: varchar("file_hash").notNull(), // SHA-256 hash for verification
   
+  // IPFS storage (for permanent decentralized storage)
+  ipfsHash: varchar("ipfs_hash", { length: 100 }), // IPFS CID for image file
+  ipfsMetadataHash: varchar("ipfs_metadata_hash", { length: 100 }), // IPFS hash for metadata JSON
+  
   // Auto-extracted metadata
   width: integer("width").notNull(),
   height: integer("height").notNull(),
