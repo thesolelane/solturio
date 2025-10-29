@@ -40,6 +40,7 @@ export interface IStorage {
   }): Promise<Logo>;
   getLogoById(logoId: string): Promise<Logo | undefined>;
   updateLogoIPFS(logoId: string, ipfsHash: string, ipfsMetadataHash?: string): Promise<Logo>;
+  getLogosByFileHash(fileHash: string): Promise<Logo[]>;
   
   // Collection operations
   createCollection(collection: InsertCollection): Promise<Collection>;
@@ -206,6 +207,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(logos.id, logoId))
       .returning();
     return updated;
+  }
+
+  async getLogosByFileHash(fileHash: string): Promise<Logo[]> {
+    return await db
+      .select()
+      .from(logos)
+      .where(eq(logos.fileHash, fileHash))
+      .orderBy(logos.createdAt);
   }
 
   // Collection operations

@@ -921,6 +921,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Note: No file serving endpoint - files are stored in user's .centurio.sol wallet
 
+  // DEX Verification API endpoints
+  app.post("/api/dex/verify", async (req, res) => {
+    try {
+      const { tokenAddress, chainId, logoUrl, logoHash } = req.body;
+      const { verifyTokenLogo } = await import("./dex-verification");
+      
+      const result = await verifyTokenLogo({
+        tokenAddress,
+        chainId,
+        logoUrl,
+        logoHash,
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("DEX verification error:", error);
+      res.status(500).json({ error: "Verification failed" });
+    }
+  });
+
+  // Report copycat/fraud endpoint
+  app.post("/api/dex/report-copycat", async (req, res) => {
+    try {
+      const { originalLogoId, fraudulentTokenAddress, dexPlatform, evidenceUrl, reporterEmail } = req.body;
+      const { reportCopycat } = await import("./dex-verification");
+      
+      const result = await reportCopycat({
+        originalLogoId,
+        fraudulentTokenAddress,
+        dexPlatform,
+        evidenceUrl,
+        reporterEmail,
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Report submission error:", error);
+      res.status(500).json({ error: "Failed to submit report" });
+    }
+  });
+
+  // Get verification by file hash
+  app.get("/api/verify/hash/:hash", async (req, res) => {
+    try {
+      const { hash } = req.params;
+      const logos = await storage.getLogosByFileHash(hash);
+      
+      if (logos.length === 0) {
+        return res.status(404).json({
+          verified: false,
+          message: "No registered logo found with this hash",
+        });
+      }
+
+      // Get the original (first) registration
+      const original = logos[0];
+      const collection = original.collectionId ? 
+        await storage.getCollection(original.collectionId) : null;
+
+      res.json({
+        verified: true,
+        original: {
+          id: original.id,
+          registrationDate: original.createdAt,
+          companyName: collection?.companyName || "Unknown",
+          ipfsHash: original.ipfsHash,
+          transactionHash: original.transactionHash,
+        },
+        totalRegistrations: logos.length,
+        possibleCopies: logos.length - 1,
+      });
+    } catch (error) {
+      console.error("Hash verification error:", error);
+      res.status(500).json({ error: "Verification failed" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
