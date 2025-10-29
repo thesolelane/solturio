@@ -57,6 +57,11 @@ export default function Dashboard() {
     enabled: isAuthenticated,
   });
 
+  const { data: logos = [], isLoading: logosLoading } = useQuery<Logo[]>({
+    queryKey: ["/api/logos"],
+    enabled: isAuthenticated,
+  });
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -235,6 +240,122 @@ export default function Dashboard() {
             </Link>
           </div>
         </div>
+
+        {/* Recently Uploaded Logos */}
+        {logos.length > 0 && (
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-semibold">Recently Uploaded Logos</h2>
+              {logos.length > 6 && (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/collections">View All</Link>
+                </Button>
+              )}
+            </div>
+
+            {logosLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {logos.slice(0, 6).map((logo) => (
+                  <Card key={logo.id} className="overflow-hidden" data-testid={`logo-card-${logo.id}`}>
+                    <div className="aspect-square bg-muted flex items-center justify-center p-8">
+                      {logo.filePath ? (
+                        <img
+                          src={logo.filePath}
+                          alt={logo.fileName}
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <ImageIcon className="w-16 h-16 text-muted-foreground/30" />
+                      )}
+                    </div>
+                    <div className="p-4 space-y-3">
+                      <div>
+                        <h3 className="font-semibold mb-1 truncate" title={logo.fileName}>
+                          {logo.fileName}
+                        </h3>
+                        {logo.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {logo.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Metadata */}
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-muted-foreground block">Dimensions</span>
+                          <span className="font-medium">{logo.width} × {logo.height}px</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground block">Format</span>
+                          <span className="font-medium">{logo.format}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground block">Size</span>
+                          <span className="font-medium">{(logo.fileSize / 1024).toFixed(1)}KB</span>
+                        </div>
+                        {logo.dominantColor && (
+                          <div>
+                            <span className="text-muted-foreground block">Dominant Color</span>
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-4 h-4 rounded border"
+                                style={{ backgroundColor: logo.dominantColor }}
+                              />
+                              <span className="font-mono text-xs">{logo.dominantColor}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Color Palette */}
+                      {logo.colorPalette && logo.colorPalette.length > 0 && (
+                        <div>
+                          <span className="text-xs text-muted-foreground block mb-2">Color Palette</span>
+                          <div className="flex gap-1">
+                            {logo.colorPalette.slice(0, 5).map((color, i) => (
+                              <div
+                                key={i}
+                                className="w-8 h-8 rounded border"
+                                style={{ backgroundColor: color }}
+                                title={color}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Hash */}
+                      {logo.fileHash && (
+                        <div>
+                          <span className="text-xs text-muted-foreground block mb-1">SHA-256</span>
+                          <code className="text-xs font-mono bg-muted px-2 py-1 rounded block truncate" title={logo.fileHash}>
+                            {logo.fileHash.slice(0, 16)}...
+                          </code>
+                        </div>
+                      )}
+
+                      {/* NFT Status */}
+                      {logo.nftAddress ? (
+                        <Badge variant="default" className="w-full justify-center">
+                          Minted as NFT
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="w-full justify-center">
+                          Pending Mint
+                        </Badge>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Recent Collections */}
         <div>
