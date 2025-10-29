@@ -174,10 +174,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Logo upload endpoint
+  // Logo metadata registration endpoint (NO file storage - files stored in user's .centurio.sol wallet)
   app.post('/api/logos/upload', isAuthenticated, upload.array('logos', 50), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
       const files = req.files as Express.Multer.File[];
 
       if (!files || files.length === 0) {
@@ -192,26 +193,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'draft',
       });
 
-      // Process each file
-      const uploadedLogos = [];
+      // Process each file - extract metadata only, no storage
+      const registeredLogos = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const description = req.body[`description_${i}`] || '';
+        const ownershipDescription = req.body[`ownership_${i}`] || '';
+        const intendedUse = req.body[`intended_use_${i}`] || '';
+        const copyrightStatus = req.body[`copyright_status_${i}`] || null;
+        const copyrightAppNumber = req.body[`copyright_app_${i}`] || null;
+        const trademarkStatus = req.body[`trademark_status_${i}`] || null;
+        const trademarkAppNumber = req.body[`trademark_app_${i}`] || null;
+        const patentStatus = req.body[`patent_status_${i}`] || null;
+        const patentAppNumber = req.body[`patent_app_${i}`] || null;
 
-        // Extract metadata
+        // Extract metadata from image
         const metadata = await extractImageMetadata(file.buffer, file.mimetype);
 
-        // Save file
-        const fileName = `${randomUUID()}-${file.originalname}`;
-        const filePath = path.join(UPLOAD_DIR, fileName);
-        await fs.writeFile(filePath, file.buffer);
+        // Generate storage path for user's .centurio.sol wallet
+        const userWalletDomain = user?.solanaPublicKey ? 
+          `${user.solanaPublicKey.slice(0, 8).toLowerCase()}.centurio.sol` : 
+          'pending.centurio.sol';
+        const storagePath = `${userWalletDomain}/logos/${randomUUID()}-${file.originalname}`;
 
-        // Create logo record
+        // Create logo metadata record (NO file storage)
         const logo = await storage.createLogo({
           userId,
           collectionId: collection.id,
           fileName: file.originalname,
-          filePath: `/uploads/${fileName}`,
+          userWalletStoragePath: storagePath,
           fileSize: file.size,
           mimeType: file.mimetype,
           fileHash: metadata.fileHash,
@@ -220,20 +230,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
           format: metadata.format,
           colorPalette: metadata.colorPalette,
           dominantColor: metadata.dominantColor,
-          description: description.slice(0, 200),
+          description,
+          ownershipDescription,
+          intendedUse,
+          copyrightStatus,
+          copyrightApplicationNumber: copyrightAppNumber,
+          copyrightFilingDate: copyrightStatus === 'pending' || copyrightStatus === 'registered' ? new Date() : null,
+          trademarkStatus,
+          trademarkApplicationNumber: trademarkAppNumber,
+          trademarkFilingDate: trademarkStatus === 'pending' || trademarkStatus === 'registered' ? new Date() : null,
+          patentStatus,
+          patentApplicationNumber: patentAppNumber,
+          patentFilingDate: patentStatus === 'pending' || patentStatus === 'registered' ? new Date() : null,
           tags: [],
         });
 
-        uploadedLogos.push(logo);
+        registeredLogos.push({
+          ...logo,
+          instructions: `Store this file in your wallet at: ${storagePath}`,
+          fileDataUrl: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`, // Temporary for user to save
+        });
       }
 
       res.json({
         collectionId: collection.id,
-        logos: uploadedLogos,
+        logos: registeredLogos,
+        message: "Logo metadata registered. Please store the image files in your .centurio.sol wallet.",
+        walletDomain: registeredLogos[0]?.instructions.split('/')[0] || 'pending.centurio.sol',
       });
     } catch (error: any) {
-      console.error("Error uploading logos:", error);
-      res.status(500).json({ message: error.message || "Failed to upload logos" });
+      console.error("Error registering logo metadata:", error);
+      res.status(500).json({ message: error.message || "Failed to register logo metadata" });
     }
   });
 
@@ -510,16 +537,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve uploaded files
-  app.use('/uploads', (req, res, next) => {
-    // Simple static file serving for uploads
-    const filePath = path.join(UPLOAD_DIR, path.basename(req.path));
-    res.sendFile(filePath, (err) => {
-      if (err) {
-        res.status(404).send('File not found');
-      }
-    });
-  });
+  // Note: No file serving endpoint - files are stored in user's .centurio.sol wallet
 
   const httpServer = createServer(app);
   return httpServer;

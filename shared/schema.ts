@@ -66,20 +66,18 @@ export const upsertUserSchema = createInsertSchema(users).pick({
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-// Logo storage with auto-extracted metadata
+// Logo metadata storage (NO file storage - images in user's .centurio.sol wallet)
 export const logos = pgTable("logos", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   collectionId: varchar("collection_id").references(() => collections.id, { onDelete: 'set null' }),
   
-  // File information
+  // File metadata only (actual files in user's XXXXXXX.centurio.sol wallet)
   fileName: text("file_name").notNull(),
-  filePath: text("file_path"), // Temporary local path during upload
-  imageRegistryId: varchar("image_registry_id"), // ID in ireg.cooperanth.sol
-  imageRegistryUrl: text("image_registry_url"), // Full URL to image in registry
+  userWalletStoragePath: text("user_wallet_storage_path"), // Path in user's .centurio.sol wallet
   fileSize: integer("file_size").notNull(), // in bytes
   mimeType: varchar("mime_type").notNull(),
-  fileHash: varchar("file_hash"), // SHA-256 hash for verification
+  fileHash: varchar("file_hash").notNull(), // SHA-256 hash for verification
   
   // Auto-extracted metadata
   width: integer("width").notNull(),
@@ -88,19 +86,33 @@ export const logos = pgTable("logos", {
   colorPalette: text("color_palette").array(), // Array of hex color codes
   dominantColor: varchar("dominant_color"),
   
+  // Ownership claim data (timestamped)
+  ownershipClaimedAt: timestamp("ownership_claimed_at").notNull().defaultNow(),
+  ownershipDescription: text("ownership_description"), // Complete description of ownership and use
+  intendedUse: text("intended_use"), // How the logo will be used
+  
+  // IP Protection metadata
+  copyrightStatus: varchar("copyright_status", { length: 50 }), // pre_filing, pending, registered
+  copyrightApplicationNumber: varchar("copyright_application_number"),
+  copyrightFilingDate: timestamp("copyright_filing_date"),
+  
+  trademarkStatus: varchar("trademark_status", { length: 50 }), // pre_filing, pending, registered  
+  trademarkApplicationNumber: varchar("trademark_application_number"),
+  trademarkFilingDate: timestamp("trademark_filing_date"),
+  
+  patentStatus: varchar("patent_status", { length: 50 }), // pre_filing, pending, registered
+  patentApplicationNumber: varchar("patent_application_number"),
+  patentFilingDate: timestamp("patent_filing_date"),
+  
   // User-provided metadata
-  description: varchar("description", { length: 200 }),
+  description: text("description"), // Extended to text for complete descriptions
   tags: text("tags").array(),
   
-  // NFT data (populated after minting)
+  // NFT data (JSON metadata only - no image storage)
   nftAddress: varchar("nft_address"),
   mintedAt: timestamp("minted_at"),
   transactionHash: varchar("transaction_hash"),
-  blockchainMetadataUri: text("blockchain_metadata_uri"), // URI to on-chain JSON
-  
-  // Monthly rental tracking
-  lastRentalPayment: timestamp("last_rental_payment"),
-  rentalPaidUntil: timestamp("rental_paid_until"),
+  blockchainMetadataJson: jsonb("blockchain_metadata_json"), // Complete JSON stored on-chain
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -110,9 +122,18 @@ export const insertLogoSchema = createInsertSchema(logos).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  ownershipClaimedAt: true,
   nftAddress: true,
   mintedAt: true,
   transactionHash: true,
+  blockchainMetadataJson: true,
+}).extend({
+  fileHash: z.string().min(1, "File hash is required"),
+  ownershipDescription: z.string().optional(),
+  intendedUse: z.string().optional(),
+  copyrightStatus: z.enum(['pre_filing', 'pending', 'registered', 'none']).optional(),
+  trademarkStatus: z.enum(['pre_filing', 'pending', 'registered', 'none']).optional(),
+  patentStatus: z.enum(['pre_filing', 'pending', 'registered', 'none']).optional(),
 });
 
 export type InsertLogo = z.infer<typeof insertLogoSchema>;
