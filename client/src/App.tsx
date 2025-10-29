@@ -13,6 +13,7 @@ import AccountPage from "@/pages/account";
 import AuthorizedUsage from "@/pages/authorized-usage";
 import DexProtection from "@/pages/dex-protection";
 import DexIntroduction from "@/pages/dex-introduction";
+import ContractVerification from "@/pages/contract-verification";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -32,6 +33,7 @@ function Router() {
       <Route path="/authorized-usage" component={AuthorizedUsage} />
       <Route path="/dex-protection" component={DexProtection} />
       <Route path="/dex-intro" component={DexIntroduction} />
+      <Route path="/contract-verification" component={ContractVerification} />
       <Route component={NotFound} />
     </Switch>
   );

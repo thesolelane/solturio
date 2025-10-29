@@ -310,7 +310,7 @@ else if (result.verified) showVerifiedBadge();`}</code>
             </div>
             <div className="text-center">
               <Zap className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-              <p className="font-semibold">< 100ms Response</p>
+              <p className="font-semibold">Under 100ms Response</p>
               <p className="text-xs text-muted-foreground">Won't slow down your platform</p>
             </div>
             <div className="text-center">

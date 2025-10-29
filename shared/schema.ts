@@ -229,6 +229,32 @@ export const insertPaymentSchema = createInsertSchema(payments).omit({
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 export type Payment = typeof payments.$inferSelect;
 
+// Contract Bindings table - ties logos to contract addresses with verification levels
+export const contractBindings = pgTable("contract_bindings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  logoId: varchar("logo_id").notNull().references(() => logos.id, { onDelete: 'cascade' }),
+  contractAddress: varchar("contract_address").notNull(),
+  chainId: integer("chain_id").notNull().default(1),
+  verificationLevel: varchar("verification_level").notNull().default('standard'), // gold, silver, standard
+  prelaunchRegistration: boolean("prelaunch_registration").notNull().default(false),
+  deploymentDate: timestamp("deployment_date"),
+  deploymentTxHash: varchar("deployment_tx_hash"),
+  ipfsProofUrl: varchar("ipfs_proof_url"),
+  bindingDate: timestamp("binding_date").notNull().default(sql`now()`),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+  updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
+});
+
+export const insertContractBindingSchema = createInsertSchema(contractBindings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  bindingDate: true,
+});
+
+export type InsertContractBinding = z.infer<typeof insertContractBindingSchema>;
+export type ContractBinding = typeof contractBindings.$inferSelect;
+
 // Authorized usage tracking
 export const authorizedUsages = pgTable("authorized_usages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
