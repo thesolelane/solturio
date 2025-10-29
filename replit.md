@@ -8,6 +8,26 @@ Centurio is a fully decentralized web application that enables users to protect 
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Updates (October 2025)
+
+### Authorized Usage Tracking
+- Users can pre-register where logos will be used (social media, DEXs, websites)
+- Creates verifiable record of legitimate usage locations
+- Strengthens IP protection claims with documented authorized uses
+
+### DEX Anti-Copycat System  
+- Real-time verification API for DEX platforms
+- Detects stolen logos by file hash comparison
+- Automated DMCA takedown system for copycats
+- Pre-registration workflow: Register on Centurio FIRST → Get IPFS/blockchain proof → Use verified URLs on DEXs
+- Creates undeniable chain of ownership that predates copycat tokens
+
+### DEX Platform Integration
+- Free verification API (<100ms response time)
+- Simple 3-line integration for platforms
+- Partnership proposal and documentation for DEX outreach
+- Target platforms: DexScreener, DexTools, Birdeye, Raydium, Jupiter
+
 ## System Architecture
 
 ### Frontend Architecture

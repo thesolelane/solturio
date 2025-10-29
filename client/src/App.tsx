@@ -12,6 +12,7 @@ import Collections from "@/pages/collections";
 import AccountPage from "@/pages/account";
 import AuthorizedUsage from "@/pages/authorized-usage";
 import DexProtection from "@/pages/dex-protection";
+import DexIntroduction from "@/pages/dex-introduction";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/account" component={AccountPage} />
       <Route path="/authorized-usage" component={AuthorizedUsage} />
       <Route path="/dex-protection" component={DexProtection} />
+      <Route path="/dex-intro" component={DexIntroduction} />
       <Route component={NotFound} />
     </Switch>
   );
