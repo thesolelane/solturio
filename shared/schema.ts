@@ -72,8 +72,9 @@ export const logos = pgTable("logos", {
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   collectionId: varchar("collection_id").references(() => collections.id, { onDelete: 'set null' }),
   
-  // File metadata only (actual files in user's XXXXXXX.centurio.sol wallet)
+  // File metadata only (actual files in user's XXXXXXX.centurio.sol wallet or external URL)
   fileName: text("file_name").notNull(),
+  imageUrl: text("image_url"), // URL where image is hosted (user's wallet, IPFS, etc.)
   userWalletStoragePath: text("user_wallet_storage_path"), // Path in user's .centurio.sol wallet
   fileSize: integer("file_size").notNull(), // in bytes
   mimeType: varchar("mime_type").notNull(),

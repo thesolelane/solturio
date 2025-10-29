@@ -181,8 +181,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(userId);
       const files = req.files as Express.Multer.File[];
 
-      if (!files || files.length === 0) {
-        return res.status(400).json({ message: "No files uploaded" });
+      // Check for both files and URLs
+      const hasFiles = files && files.length > 0;
+      const imageUrls: string[] = [];
+      for (let i = 0; i < 50; i++) {
+        if (req.body[`imageUrl_${i}`]) {
+          imageUrls.push(req.body[`imageUrl_${i}`]);
+        }
+      }
+      const hasUrls = imageUrls.length > 0;
+
+      if (!hasFiles && !hasUrls) {
+        return res.status(400).json({ message: "No files or URLs provided" });
       }
 
       // Create a new collection
@@ -193,70 +203,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'draft',
       });
 
-      // Process each file - extract metadata only, no storage
       const registeredLogos = [];
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const description = req.body[`description_${i}`] || '';
-        const ownershipDescription = req.body[`ownership_${i}`] || '';
-        const intendedUse = req.body[`intended_use_${i}`] || '';
-        const copyrightStatus = req.body[`copyright_status_${i}`] || null;
-        const copyrightAppNumber = req.body[`copyright_app_${i}`] || null;
-        const trademarkStatus = req.body[`trademark_status_${i}`] || null;
-        const trademarkAppNumber = req.body[`trademark_app_${i}`] || null;
-        const patentStatus = req.body[`patent_status_${i}`] || null;
-        const patentAppNumber = req.body[`patent_app_${i}`] || null;
+      
+      // Process uploaded files
+      if (hasFiles) {
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const description = req.body[`description_${i}`] || '';
+          const ownershipDescription = req.body[`ownership_${i}`] || '';
+          const intendedUse = req.body[`intended_use_${i}`] || '';
+          const copyrightStatus = req.body[`copyright_status_${i}`] || null;
+          const copyrightAppNumber = req.body[`copyright_app_${i}`] || null;
+          const trademarkStatus = req.body[`trademark_status_${i}`] || null;
+          const trademarkAppNumber = req.body[`trademark_app_${i}`] || null;
+          const patentStatus = req.body[`patent_status_${i}`] || null;
+          const patentAppNumber = req.body[`patent_app_${i}`] || null;
 
-        // Extract metadata from image
-        const metadata = await extractImageMetadata(file.buffer, file.mimetype);
+          // Extract metadata from image
+          const metadata = await extractImageMetadata(file.buffer, file.mimetype);
 
-        // Generate storage path for user's .centurio.sol wallet
-        const userWalletDomain = user?.solanaPublicKey ? 
-          `${user.solanaPublicKey.slice(0, 8).toLowerCase()}.centurio.sol` : 
-          'pending.centurio.sol';
-        const storagePath = `${userWalletDomain}/logos/${randomUUID()}-${file.originalname}`;
+          // Generate storage path for user's .centurio.sol wallet
+          const userWalletDomain = user?.solanaPublicKey ? 
+            `${user.solanaPublicKey.slice(0, 8).toLowerCase()}.centurio.sol` : 
+            'pending.centurio.sol';
+          const storagePath = `${userWalletDomain}/logos/${randomUUID()}-${file.originalname}`;
 
-        // Create logo metadata record (NO file storage)
-        const logo = await storage.createLogo({
-          userId,
-          collectionId: collection.id,
-          fileName: file.originalname,
-          userWalletStoragePath: storagePath,
-          fileSize: file.size,
-          mimeType: file.mimetype,
-          fileHash: metadata.fileHash,
-          width: metadata.width,
-          height: metadata.height,
-          format: metadata.format,
-          colorPalette: metadata.colorPalette,
-          dominantColor: metadata.dominantColor,
-          description,
-          ownershipDescription,
-          intendedUse,
-          copyrightStatus,
-          copyrightApplicationNumber: copyrightAppNumber,
-          copyrightFilingDate: copyrightStatus === 'pending' || copyrightStatus === 'registered' ? new Date() : null,
-          trademarkStatus,
-          trademarkApplicationNumber: trademarkAppNumber,
-          trademarkFilingDate: trademarkStatus === 'pending' || trademarkStatus === 'registered' ? new Date() : null,
-          patentStatus,
-          patentApplicationNumber: patentAppNumber,
-          patentFilingDate: patentStatus === 'pending' || patentStatus === 'registered' ? new Date() : null,
-          tags: [],
-        });
+          // Create logo metadata record (NO file storage)
+          const logo = await storage.createLogo({
+            userId,
+            collectionId: collection.id,
+            fileName: file.originalname,
+            userWalletStoragePath: storagePath,
+            fileSize: file.size,
+            mimeType: file.mimetype,
+            fileHash: metadata.fileHash,
+            width: metadata.width,
+            height: metadata.height,
+            format: metadata.format,
+            colorPalette: metadata.colorPalette,
+            dominantColor: metadata.dominantColor,
+            description,
+            ownershipDescription,
+            intendedUse,
+            copyrightStatus,
+            copyrightApplicationNumber: copyrightAppNumber,
+            copyrightFilingDate: copyrightStatus === 'pending' || copyrightStatus === 'registered' ? new Date() : null,
+            trademarkStatus,
+            trademarkApplicationNumber: trademarkAppNumber,
+            trademarkFilingDate: trademarkStatus === 'pending' || trademarkStatus === 'registered' ? new Date() : null,
+            patentStatus,
+            patentApplicationNumber: patentAppNumber,
+            patentFilingDate: patentStatus === 'pending' || patentStatus === 'registered' ? new Date() : null,
+            tags: [],
+          });
 
-        registeredLogos.push({
-          ...logo,
-          instructions: `Store this file in your wallet at: ${storagePath}`,
-          fileDataUrl: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`, // Temporary for user to save
-        });
+          registeredLogos.push({
+            ...logo,
+            instructions: `Store this file in your wallet at: ${storagePath}`,
+            fileDataUrl: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`, // Temporary for user to save
+          });
+        }
+      }
+
+      // Process URL-based registrations
+      if (hasUrls) {
+        for (let i = 0; i < imageUrls.length; i++) {
+          const imageUrl = imageUrls[i];
+          const index = files?.length || 0 + i; // Adjust index for URL items
+          const description = req.body[`description_${index}`] || '';
+          const ownershipDescription = req.body[`ownership_${index}`] || '';
+          const intendedUse = req.body[`intended_use_${index}`] || '';
+          const copyrightStatus = req.body[`copyright_status_${index}`] || null;
+          const copyrightAppNumber = req.body[`copyright_app_${index}`] || null;
+          const trademarkStatus = req.body[`trademark_status_${index}`] || null;
+          const trademarkAppNumber = req.body[`trademark_app_${index}`] || null;
+          const patentStatus = req.body[`patent_status_${index}`] || null;
+          const patentAppNumber = req.body[`patent_app_${index}`] || null;
+
+          const fileName = imageUrl.split('/').pop() || 'image.png';
+          const format = fileName.split('.').pop()?.toUpperCase() || 'PNG';
+
+          // Create logo metadata record for URL-based image
+          const logo = await storage.createLogo({
+            userId,
+            collectionId: collection.id,
+            fileName,
+            imageUrl, // Store the URL
+            userWalletStoragePath: imageUrl, // URL is the storage path
+            fileSize: 0, // Unknown for URLs
+            mimeType: `image/${format.toLowerCase()}`,
+            fileHash: crypto.createHash('sha256').update(imageUrl).digest('hex'), // Hash of URL
+            width: 0, // Will need to be determined by fetching
+            height: 0,
+            format,
+            colorPalette: [],
+            dominantColor: null,
+            description,
+            ownershipDescription,
+            intendedUse,
+            copyrightStatus,
+            copyrightApplicationNumber: copyrightAppNumber,
+            copyrightFilingDate: copyrightStatus === 'pending' || copyrightStatus === 'registered' ? new Date() : null,
+            trademarkStatus,
+            trademarkApplicationNumber: trademarkAppNumber,
+            trademarkFilingDate: trademarkStatus === 'pending' || trademarkStatus === 'registered' ? new Date() : null,
+            patentStatus,
+            patentApplicationNumber: patentAppNumber,
+            patentFilingDate: patentStatus === 'pending' || patentStatus === 'registered' ? new Date() : null,
+            tags: [],
+          });
+
+          registeredLogos.push({
+            ...logo,
+            imageUrl,
+            message: `Image URL registered: ${imageUrl}`,
+          });
+        }
       }
 
       res.json({
         collectionId: collection.id,
         logos: registeredLogos,
-        message: "Logo metadata registered. Please store the image files in your .centurio.sol wallet.",
-        walletDomain: registeredLogos[0]?.instructions.split('/')[0] || 'pending.centurio.sol',
+        message: hasFiles ? 
+          "Logo metadata registered. Please store the image files in your .centurio.sol wallet." :
+          "Logo URLs registered successfully.",
+        walletDomain: user?.solanaPublicKey ? 
+          `${user.solanaPublicKey.slice(0, 8).toLowerCase()}.centurio.sol` : 
+          'pending.centurio.sol',
       });
     } catch (error: any) {
       console.error("Error registering logo metadata:", error);

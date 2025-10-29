@@ -13,7 +13,8 @@ import { Link, useLocation } from "wouter";
 import { isUnauthorizedError } from "@/lib/authUtils";
 
 interface UploadedLogo {
-  file: File;
+  file?: File; // Optional for URL-based logos
+  imageUrl?: string; // URL where image is hosted
   preview: string;
   description: string;
   ownershipDescription: string;
@@ -39,6 +40,7 @@ export default function Upload() {
   const [logos, setLogos] = useState<UploadedLogo[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [companyName, setCompanyName] = useState('');
+  const [imageUrlInput, setImageUrlInput] = useState('');
   const queryClient = useQueryClient();
 
   // Set page title
@@ -176,8 +178,21 @@ export default function Upload() {
       const formData = new FormData();
       formData.append('companyName', companyName.trim());
       logos.forEach((logo, index) => {
-        formData.append('logos', logo.file);
+        if (logo.file) {
+          formData.append('logos', logo.file);
+        } else if (logo.imageUrl) {
+          // For URL-based logos, send the URL as a separate field
+          formData.append(`imageUrl_${index}`, logo.imageUrl);
+        }
         formData.append(`description_${index}`, logo.description);
+        formData.append(`ownership_${index}`, logo.ownershipDescription);
+        formData.append(`intended_use_${index}`, logo.intendedUse);
+        formData.append(`copyright_status_${index}`, logo.copyrightStatus);
+        formData.append(`copyright_app_${index}`, logo.copyrightAppNumber);
+        formData.append(`trademark_status_${index}`, logo.trademarkStatus);
+        formData.append(`trademark_app_${index}`, logo.trademarkAppNumber);
+        formData.append(`patent_status_${index}`, logo.patentStatus);
+        formData.append(`patent_app_${index}`, logo.patentAppNumber);
       });
 
       const response = await fetch('/api/logos/upload', {
@@ -327,6 +342,63 @@ export default function Upload() {
           </div>
         </Card>
 
+        {/* Or provide URL section */}
+        <Card className="p-6 mb-8">
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Or Provide Image URL</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              If your logo is already hosted online (e.g., in your .centurio.sol wallet or IPFS), provide the URL
+            </p>
+            <div className="flex gap-2">
+              <Input
+                type="url"
+                placeholder="https://your-wallet.centurio.sol/logo.png"
+                className="flex-1"
+                value={imageUrlInput}
+                onChange={(e) => setImageUrlInput(e.target.value)}
+                data-testid="input-image-url"
+              />
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (imageUrlInput) {
+                    // Add URL-based logo registration
+                    const fileName = imageUrlInput.split('/').pop() || 'image.png';
+                    setLogos(prev => [...prev, {
+                      imageUrl: imageUrlInput,
+                      preview: imageUrlInput,
+                      description: '',
+                      ownershipDescription: '',
+                      intendedUse: '',
+                      copyrightStatus: 'none',
+                      copyrightAppNumber: '',
+                      trademarkStatus: 'none',
+                      trademarkAppNumber: '',
+                      patentStatus: 'none',
+                      patentAppNumber: '',
+                      metadata: {
+                        width: 0, // Will be determined by backend
+                        height: 0,
+                        format: fileName.split('.').pop()?.toUpperCase() || 'PNG',
+                        size: 0,
+                      }
+                    }]);
+                    
+                    toast({
+                      title: "URL Added",
+                      description: `Added ${fileName} from URL`,
+                    });
+                    setImageUrlInput('');
+                  }
+                }}
+                data-testid="button-add-url"
+              >
+                Add URL
+              </Button>
+            </div>
+          </div>
+        </Card>
+
         {/* Uploaded Logos Grid */}
         {logos.length > 0 && (
           <>
@@ -350,13 +422,13 @@ export default function Upload() {
                     <div className="aspect-square mb-3 bg-muted rounded-md flex items-center justify-center overflow-hidden">
                       <img
                         src={logo.preview}
-                        alt={logo.file.name}
+                        alt={logo.file?.name || 'Logo'}
                         className="w-full h-full object-contain"
                       />
                     </div>
                     
-                    <p className="text-sm font-medium truncate mb-2" title={logo.file.name}>
-                      {logo.file.name}
+                    <p className="text-sm font-medium truncate mb-2" title={logo.file?.name || logo.imageUrl}>
+                      {logo.file?.name || (logo.imageUrl && logo.imageUrl.split('/').pop()) || 'Image'}
                     </p>
                     
                     {logo.metadata && (
