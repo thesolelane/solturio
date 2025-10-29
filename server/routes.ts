@@ -596,6 +596,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Authorized usage endpoints
+  
+  // Create authorized usage for a logo
+  app.post('/api/logos/:id/authorized-usage', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const logoId = req.params.id;
+      
+      // Verify logo ownership
+      const logo = await storage.getLogoById(logoId);
+      if (!logo) {
+        return res.status(404).json({ message: "Logo not found" });
+      }
+      if (logo.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
+      const usage = await storage.createAuthorizedUsage({
+        logoId,
+        userId,
+        platform: req.body.platform,
+        platformName: req.body.platformName,
+        usageType: req.body.usageType,
+        url: req.body.url,
+        description: req.body.description,
+        isActive: true,
+      });
+      
+      res.json(usage);
+    } catch (error: any) {
+      console.error("Error creating authorized usage:", error);
+      res.status(500).json({ message: error.message || "Failed to create authorized usage" });
+    }
+  });
+  
+  // Get authorized usages for a logo
+  app.get('/api/logos/:id/authorized-usage', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const logoId = req.params.id;
+      
+      // Verify logo ownership
+      const logo = await storage.getLogoById(logoId);
+      if (!logo) {
+        return res.status(404).json({ message: "Logo not found" });
+      }
+      if (logo.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
+      const usages = await storage.getAuthorizedUsagesByLogoId(logoId);
+      res.json(usages);
+    } catch (error: any) {
+      console.error("Error fetching authorized usages:", error);
+      res.status(500).json({ message: error.message || "Failed to fetch authorized usages" });
+    }
+  });
+  
+  // Get all authorized usages for current user
+  app.get('/api/authorized-usages', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const usages = await storage.getAuthorizedUsagesByUserId(userId);
+      res.json(usages);
+    } catch (error: any) {
+      console.error("Error fetching user authorized usages:", error);
+      res.status(500).json({ message: error.message || "Failed to fetch authorized usages" });
+    }
+  });
+  
+  // Update authorized usage
+  app.patch('/api/authorized-usage/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const usageId = req.params.id;
+      
+      // Verify ownership through userId
+      const usages = await storage.getAuthorizedUsagesByUserId(userId);
+      const usage = usages.find(u => u.id === usageId);
+      
+      if (!usage) {
+        return res.status(404).json({ message: "Authorized usage not found or forbidden" });
+      }
+      
+      const updated = await storage.updateAuthorizedUsage(usageId, req.body);
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Error updating authorized usage:", error);
+      res.status(500).json({ message: error.message || "Failed to update authorized usage" });
+    }
+  });
+  
+  // Delete authorized usage
+  app.delete('/api/authorized-usage/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const usageId = req.params.id;
+      
+      // Verify ownership through userId
+      const usages = await storage.getAuthorizedUsagesByUserId(userId);
+      const usage = usages.find(u => u.id === usageId);
+      
+      if (!usage) {
+        return res.status(404).json({ message: "Authorized usage not found or forbidden" });
+      }
+      
+      await storage.deleteAuthorizedUsage(usageId);
+      res.json({ message: "Authorized usage deleted successfully" });
+    } catch (error: any) {
+      console.error("Error deleting authorized usage:", error);
+      res.status(500).json({ message: error.message || "Failed to delete authorized usage" });
+    }
+  });
+  
   // Get pricing and free upload status
   app.get('/api/pricing/status', isAuthenticated, async (req: any, res) => {
     try {

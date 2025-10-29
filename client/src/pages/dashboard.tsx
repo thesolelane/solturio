@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
-import { Shield, Upload, Image as ImageIcon, Loader2, Gift, Sparkles, AlertCircle, Key } from "lucide-react";
+import { Shield, Upload, Image as ImageIcon, Loader2, Gift, Sparkles, AlertCircle, Key, ExternalLink, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -261,6 +261,38 @@ export default function Dashboard() {
                     <h3 className="font-semibold mb-1">View Collections</h3>
                     <p className="text-sm text-muted-foreground">
                       Access your minted NFT records
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+
+            <Link href="/authorized-usage" data-testid="link-authorized-usage">
+              <Card className="p-6 hover-elevate cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-blue-600/10 flex items-center justify-center">
+                    <ExternalLink className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-1">Authorized Usage</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Track official logo placements
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+
+            <Link href="/account" data-testid="link-account">
+              <Card className="p-6 hover-elevate cursor-pointer">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-purple-600/10 flex items-center justify-center">
+                    <User className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-1">Account Settings</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Manage your profile and wallet
                     </p>
                   </div>
                 </div>

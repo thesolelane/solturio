@@ -3,6 +3,7 @@ import {
   logos,
   collections,
   payments,
+  authorizedUsages,
   type User,
   type UpsertUser,
   type Logo,
@@ -11,6 +12,8 @@ import {
   type InsertCollection,
   type Payment,
   type InsertPayment,
+  type AuthorizedUsage,
+  type InsertAuthorizedUsage,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
@@ -62,6 +65,14 @@ export interface IStorage {
     mintedCollections: number;
     pendingLogos: number;
   }>;
+  
+  // Authorized usage operations
+  createAuthorizedUsage(usage: InsertAuthorizedUsage): Promise<AuthorizedUsage>;
+  getAuthorizedUsagesByLogoId(logoId: string): Promise<AuthorizedUsage[]>;
+  getAuthorizedUsagesByUserId(userId: string): Promise<AuthorizedUsage[]>;
+  updateAuthorizedUsage(id: string, data: Partial<AuthorizedUsage>): Promise<AuthorizedUsage>;
+  deleteAuthorizedUsage(id: string): Promise<void>;
+  verifyAuthorizedUsage(id: string, verifiedAt: Date): Promise<AuthorizedUsage>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -277,6 +288,50 @@ export class DatabaseStorage implements IStorage {
       mintedCollections: userCollections.filter(c => c.status === 'minted').length,
       pendingLogos: userLogos.filter(l => !l.nftAddress).length,
     };
+  }
+  
+  // Authorized usage operations
+  async createAuthorizedUsage(usage: InsertAuthorizedUsage): Promise<AuthorizedUsage> {
+    const [created] = await db.insert(authorizedUsages).values(usage).returning();
+    return created;
+  }
+  
+  async getAuthorizedUsagesByLogoId(logoId: string): Promise<AuthorizedUsage[]> {
+    return db
+      .select()
+      .from(authorizedUsages)
+      .where(eq(authorizedUsages.logoId, logoId))
+      .orderBy(desc(authorizedUsages.createdAt));
+  }
+  
+  async getAuthorizedUsagesByUserId(userId: string): Promise<AuthorizedUsage[]> {
+    return db
+      .select()
+      .from(authorizedUsages)
+      .where(eq(authorizedUsages.userId, userId))
+      .orderBy(desc(authorizedUsages.createdAt));
+  }
+  
+  async updateAuthorizedUsage(id: string, data: Partial<AuthorizedUsage>): Promise<AuthorizedUsage> {
+    const [updated] = await db
+      .update(authorizedUsages)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(authorizedUsages.id, id))
+      .returning();
+    return updated;
+  }
+  
+  async deleteAuthorizedUsage(id: string): Promise<void> {
+    await db.delete(authorizedUsages).where(eq(authorizedUsages.id, id));
+  }
+  
+  async verifyAuthorizedUsage(id: string, verifiedAt: Date): Promise<AuthorizedUsage> {
+    const [updated] = await db
+      .update(authorizedUsages)
+      .set({ isVerified: true, verifiedAt, updatedAt: new Date() })
+      .where(eq(authorizedUsages.id, id))
+      .returning();
+    return updated;
   }
 }
 

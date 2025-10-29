@@ -10,6 +10,7 @@ import Upload from "@/pages/upload";
 import Checkout from "@/pages/checkout";
 import Collections from "@/pages/collections";
 import AccountPage from "@/pages/account";
+import AuthorizedUsage from "@/pages/authorized-usage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/checkout" component={Checkout} />
       <Route path="/collections" component={Collections} />
       <Route path="/account" component={AccountPage} />
+      <Route path="/authorized-usage" component={AuthorizedUsage} />
       <Route component={NotFound} />
     </Switch>
   );
