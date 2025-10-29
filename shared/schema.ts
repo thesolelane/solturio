@@ -36,6 +36,12 @@ export const users = pgTable("users", {
   walletVerified: boolean("wallet_verified").default(false), // Confirmed via signature
   emailVerified: boolean("email_verified").default(false), // 2FA analog - must verify email
   
+  // Centurio-generated Solana wallet (created after email verification)
+  solanaPublicKey: varchar("solana_public_key"), // Public key (wallet address)
+  solanaEncryptedPrivateKey: text("solana_encrypted_private_key"), // Encrypted private key
+  solanaWalletCreatedAt: timestamp("solana_wallet_created_at"), // When wallet was generated
+  hasExportedPrivateKey: boolean("has_exported_private_key").default(false), // Track if user exported key
+  
   // Social media handles (for community engagement)
   twitterHandle: varchar("twitter_handle"),
   telegramHandle: varchar("telegram_handle"),
