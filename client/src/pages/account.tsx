@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Shield, Wallet, Mail, Bell, CheckCircle2, AlertCircle, Loader2, Twitter, Send, MessageSquare } from "lucide-react";
+import { Shield, Wallet, Mail, Bell, CheckCircle2, AlertCircle, Loader2, Twitter, Send, MessageSquare, Key, Copy, Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,19 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { User } from "@shared/schema";
 import { Link } from "wouter";
@@ -23,6 +36,8 @@ export default function AccountPage() {
     telegramHandle: "",
     discordHandle: "",
   });
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [exportedPrivateKey, setExportedPrivateKey] = useState<number[] | null>(null);
 
   // Set page title
   useEffect(() => {
@@ -134,6 +149,91 @@ export default function AccountPage() {
       });
     },
   });
+
+  // Generate Centurio wallet mutation
+  const generateWalletMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/account/generate-centurio-wallet", {
+        method: "POST",
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to generate wallet");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({
+        title: "Wallet Created!",
+        description: "Your Centurio wallet has been generated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate wallet",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Export private key mutation
+  const exportPrivateKeyMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/account/export-private-key", {
+        method: "POST",
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to export private key");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setExportedPrivateKey(data.privateKey);
+      setShowExportDialog(true);
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to export private key",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied!",
+        description: `${label} copied to clipboard`,
+      });
+    } catch (err) {
+      toast({
+        title: "Copy Failed",
+        description: "Could not copy to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const downloadPrivateKey = () => {
+    if (!exportedPrivateKey) return;
+    const blob = new Blob([JSON.stringify(exportedPrivateKey)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "centurio-wallet-private-key.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({
+      title: "Downloaded",
+      description: "Private key saved as JSON file",
+    });
+  };
 
   // Sync social handles state from user data
   useEffect(() => {
@@ -261,7 +361,7 @@ export default function AccountPage() {
               <Mail className="w-6 h-6 text-primary" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold mb-2">Email Verification (Security Required)</h3>
+              <h3 className="text-lg font-semibold mb-2">Email Verification (Required)</h3>
               {isEmailVerified ? (
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-green-600" />
@@ -270,7 +370,7 @@ export default function AccountPage() {
               ) : (
                 <>
                   <p className="text-sm text-muted-foreground mb-3">
-                    As a security measure (similar to 2FA), you must verify your email address before linking a wallet or making payments.
+                    Verify your email to unlock wallet generation and payment features.
                   </p>
                   <Button 
                     onClick={() => sendVerificationMutation.mutate()}
@@ -284,6 +384,134 @@ export default function AccountPage() {
                       </>
                     ) : (
                       "Send Verification Email"
+                    )}
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        {/* Centurio Wallet - Auto-generated Solana wallet */}
+        <Card className="p-6 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Key className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="text-lg font-semibold">Centurio Wallet</h3>
+                <Badge variant="outline">Auto-Generated</Badge>
+              </div>
+              
+              {!isEmailVerified ? (
+                <Alert className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Email Verification Required</AlertTitle>
+                  <AlertDescription>
+                    You must verify your email before we can generate your Centurio wallet.
+                  </AlertDescription>
+                </Alert>
+              ) : user?.solanaPublicKey ? (
+                <>
+                  <div className="flex items-center gap-2 mb-3">
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                    <span className="text-sm font-medium">Wallet Generated</span>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Public Key (Wallet Address)</Label>
+                      <div className="flex gap-2 mt-1">
+                        <div className="flex-1 text-sm font-mono bg-muted p-2 rounded break-all" data-testid="text-centurio-wallet">
+                          {user.solanaPublicKey}
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => copyToClipboard(user.solanaPublicKey!, "Wallet address")}
+                          data-testid="button-copy-wallet"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-500/10 border border-blue-500/20 rounded p-3 space-y-2">
+                      <p className="text-sm font-medium">Import to Phantom Wallet</p>
+                      <p className="text-xs text-muted-foreground">
+                        Your NFTs will be minted to this address. Export the private key below to import into Phantom and manage your NFTs directly.
+                      </p>
+                      <div className="flex gap-2 mt-2">
+                        <Button
+                          size="sm"
+                          onClick={() => exportPrivateKeyMutation.mutate()}
+                          disabled={exportPrivateKeyMutation.isPending}
+                          data-testid="button-export-private-key"
+                        >
+                          {exportPrivateKeyMutation.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Loading...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="w-4 h-4 mr-2" />
+                              Export Private Key
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          asChild
+                        >
+                          <a href="https://phantom.app/" target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Get Phantom
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {user.hasExportedPrivateKey && (
+                      <Alert>
+                        <CheckCircle2 className="h-4 w-4" />
+                        <AlertTitle>Private Key Exported</AlertTitle>
+                        <AlertDescription>
+                          You've already exported your private key. Keep it safe!
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    We'll create a secure Solana wallet for you to hold your logo NFTs. You can export the private key to import into Phantom wallet anytime.
+                  </p>
+                  <Alert className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Why Centurio Wallet?</AlertTitle>
+                    <AlertDescription>
+                      This makes it easy to get started with crypto. Your NFTs are minted to this wallet, and you can later import it into Phantom for full control.
+                    </AlertDescription>
+                  </Alert>
+                  <Button
+                    onClick={() => generateWalletMutation.mutate()}
+                    disabled={generateWalletMutation.isPending}
+                    data-testid="button-generate-wallet"
+                  >
+                    {generateWalletMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Key className="w-4 h-4 mr-2" />
+                        Generate My Centurio Wallet
+                      </>
                     )}
                   </Button>
                 </>
@@ -499,6 +727,86 @@ export default function AccountPage() {
           </div>
         </Card>
       </main>
+
+      {/* Export Private Key Dialog */}
+      <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+        <DialogContent className="max-w-2xl" data-testid="dialog-export-key">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-yellow-600" />
+              Export Private Key - CRITICAL SECURITY WARNING
+            </DialogTitle>
+            <DialogDescription>
+              Your private key grants full control over your wallet. Anyone with this key can access and steal your NFTs.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Security Warnings</AlertTitle>
+              <AlertDescription className="space-y-2 mt-2">
+                <p>• Never share this key with anyone</p>
+                <p>• Never enter it on untrusted websites</p>
+                <p>• Store it offline in a secure location</p>
+                <p>• Anyone with this key can steal your NFTs</p>
+              </AlertDescription>
+            </Alert>
+
+            <div className="space-y-2">
+              <Label>Private Key (Array Format for Phantom)</Label>
+              <div className="relative">
+                <pre className="text-xs font-mono bg-muted p-3 rounded max-h-40 overflow-auto border" data-testid="text-private-key">
+                  {exportedPrivateKey ? JSON.stringify(exportedPrivateKey) : "Loading..."}
+                </pre>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="absolute top-2 right-2"
+                  onClick={() => exportedPrivateKey && copyToClipboard(JSON.stringify(exportedPrivateKey), "Private key")}
+                  data-testid="button-copy-private-key"
+                >
+                  <Copy className="w-3 h-3 mr-1" />
+                  Copy
+                </Button>
+              </div>
+            </div>
+
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded p-4 space-y-3">
+              <p className="font-medium text-sm">How to Import into Phantom:</p>
+              <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
+                <li>Open Phantom wallet extension or app</li>
+                <li>Click the menu (top right) → "Add / Connect Wallet"</li>
+                <li>Select "Import Private Key"</li>
+                <li>Paste the array shown above (or use the downloaded JSON file)</li>
+                <li>Name your wallet "Centurio Wallet"</li>
+                <li>Your NFTs will now appear in Phantom!</li>
+              </ol>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              onClick={downloadPrivateKey}
+              disabled={!exportedPrivateKey}
+              variant="outline"
+              data-testid="button-download-key"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download as JSON
+            </Button>
+            <Button
+              onClick={() => {
+                setShowExportDialog(false);
+                setExportedPrivateKey(null);
+              }}
+              data-testid="button-close-dialog"
+            >
+              I've Saved It Securely
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
