@@ -292,7 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             userWalletStoragePath: imageUrl, // URL is the storage path
             fileSize: 0, // Unknown for URLs
             mimeType: `image/${format.toLowerCase()}`,
-            fileHash: crypto.createHash('sha256').update(imageUrl).digest('hex'), // Hash of URL
+            fileHash: createHash('sha256').update(imageUrl).digest('hex'), // Hash of URL
             width: 0, // Will need to be determined by fetching
             height: 0,
             format,
