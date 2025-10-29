@@ -10,6 +10,7 @@ import { randomUUID } from "crypto";
 import { createHash } from "crypto";
 import path from "path";
 import fs from "fs/promises";
+import { generateSolanaWallet, formatPrivateKeyForPhantom } from "./solana-wallet";
 
 // Stripe is optional in development - only required for payment endpoints
 const stripe = process.env.STRIPE_SECRET_KEY 
@@ -418,6 +419,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error updating social handles:", error);
       res.status(500).json({ message: error.message || "Failed to update social handles" });
+    }
+  });
+
+  // Generate Centurio Solana wallet (after email verification)
+  app.post('/api/account/generate-centurio-wallet', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if email is verified
+      if (!user.emailVerified) {
+        return res.status(403).json({ 
+          message: "Email verification required before wallet generation",
+          requiresEmailVerification: true,
+        });
+      }
+
+      // Check if wallet already exists
+      if (user.solanaPublicKey) {
+        return res.status(400).json({ 
+          message: "Centurio wallet already exists",
+          publicKey: user.solanaPublicKey,
+        });
+      }
+
+      // Generate new Solana wallet
+      const wallet = generateSolanaWallet();
+      
+      // Save to database
+      const updatedUser = await storage.createCenturioWallet(
+        userId,
+        wallet.publicKey,
+        wallet.encryptedPrivateKey
+      );
+
+      res.json({ 
+        message: "Centurio wallet created successfully",
+        publicKey: wallet.publicKey,
+        createdAt: updatedUser.solanaWalletCreatedAt,
+      });
+    } catch (error: any) {
+      console.error("Error generating Centurio wallet:", error);
+      res.status(500).json({ message: error.message || "Failed to generate wallet" });
+    }
+  });
+
+  // Export private key for Phantom import (requires email verification)
+  app.post('/api/account/export-private-key', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Security checks
+      if (!user.emailVerified) {
+        return res.status(403).json({ 
+          message: "Email verification required to export private key",
+          requiresEmailVerification: true,
+        });
+      }
+
+      if (!user.solanaEncryptedPrivateKey) {
+        return res.status(404).json({ message: "No Centurio wallet found" });
+      }
+
+      // Decrypt and format private key for Phantom
+      const privateKeyArray = formatPrivateKeyForPhantom(user.solanaEncryptedPrivateKey);
+
+      // Mark as exported
+      if (!user.hasExportedPrivateKey) {
+        await storage.markPrivateKeyExported(userId);
+      }
+
+      res.json({ 
+        privateKey: privateKeyArray,
+        publicKey: user.solanaPublicKey,
+        warning: "Keep this private key safe. Never share it with anyone.",
+      });
+    } catch (error: any) {
+      console.error("Error exporting private key:", error);
+      res.status(500).json({ message: error.message || "Failed to export private key" });
     }
   });
 

@@ -23,6 +23,8 @@ export interface IStorage {
   updateEmailVerified(userId: string, verified: boolean): Promise<User>;
   updateNotificationPreferences(userId: string, notifyPaymentsDue: boolean, notifyRentalReminders: boolean): Promise<User>;
   updateSocialHandles(userId: string, handles: { twitterHandle?: string; telegramHandle?: string; discordHandle?: string }): Promise<User>;
+  createCenturioWallet(userId: string, publicKey: string, encryptedPrivateKey: string): Promise<User>;
+  markPrivateKeyExported(userId: string): Promise<User>;
   
   // Logo operations
   createLogo(logo: InsertLogo): Promise<Logo>;
@@ -120,6 +122,29 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .update(users)
       .set({ ...handles, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async createCenturioWallet(userId: string, publicKey: string, encryptedPrivateKey: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        solanaPublicKey: publicKey,
+        solanaEncryptedPrivateKey: encryptedPrivateKey,
+        solanaWalletCreatedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async markPrivateKeyExported(userId: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ hasExportedPrivateKey: true, updatedAt: new Date() })
       .where(eq(users.id, userId))
       .returning();
     return user;
