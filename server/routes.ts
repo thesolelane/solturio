@@ -45,10 +45,32 @@ async function extractImageMetadata(buffer: Buffer, mimetype: string) {
     const fileHash = createHash('sha256').update(buffer).digest('hex');
 
     if (mimetype === 'image/svg+xml') {
-      // SVG doesn't have pixel dimensions, return defaults
+      // Parse SVG to get viewBox or width/height attributes
+      const svgString = buffer.toString('utf-8');
+      let width = 0;
+      let height = 0;
+
+      // Try to extract viewBox
+      const viewBoxMatch = svgString.match(/viewBox=["']([^"']+)["']/);
+      if (viewBoxMatch) {
+        const viewBox = viewBoxMatch[1].split(/\s+/);
+        if (viewBox.length === 4) {
+          width = parseFloat(viewBox[2]);
+          height = parseFloat(viewBox[3]);
+        }
+      }
+
+      // If no viewBox, try width/height attributes
+      if (!width || !height) {
+        const widthMatch = svgString.match(/\bwidth=["']?(\d+(?:\.\d+)?)/);
+        const heightMatch = svgString.match(/\bheight=["']?(\d+(?:\.\d+)?)/);
+        if (widthMatch) width = parseFloat(widthMatch[1]);
+        if (heightMatch) height = parseFloat(heightMatch[1]);
+      }
+
       return {
-        width: 512,
-        height: 512,
+        width: Math.round(width) || 0,
+        height: Math.round(height) || 0,
         format: 'SVG',
         colorPalette: [],
         dominantColor: null,
@@ -72,10 +94,12 @@ async function extractImageMetadata(buffer: Buffer, mimetype: string) {
         .toBuffer({ resolveWithObject: true });
 
       const pixels = resized.data;
+      const channels = resized.info.channels; // Usually 3 (RGB) or 4 (RGBA)
       const colorMap = new Map<string, number>();
 
       // Sample every 10th pixel to get color distribution
-      for (let i = 0; i < pixels.length; i += 30) {
+      // Step by (channels * 10) to properly skip pixels
+      for (let i = 0; i < pixels.length; i += channels * 10) {
         if (i + 2 < pixels.length) {
           const r = pixels[i];
           const g = pixels[i + 1];

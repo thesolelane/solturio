@@ -30,6 +30,7 @@ export default function Upload() {
   const [, setLocation] = useLocation();
   const [logos, setLogos] = useState<UploadedLogo[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [companyName, setCompanyName] = useState('');
   const queryClient = useQueryClient();
 
   // Set page title
@@ -152,7 +153,12 @@ export default function Upload() {
 
   const uploadMutation = useMutation({
     mutationFn: async () => {
+      if (!companyName.trim()) {
+        throw new Error('Please enter your company name');
+      }
+
       const formData = new FormData();
+      formData.append('companyName', companyName.trim());
       logos.forEach((logo, index) => {
         formData.append('logos', logo.file);
         formData.append(`description_${index}`, logo.description);
@@ -233,6 +239,26 @@ export default function Upload() {
             Upload your logo files. We'll automatically extract technical specifications.
           </p>
         </div>
+
+        {/* Company Name Input */}
+        <Card className="p-6 mb-8">
+          <div className="max-w-md">
+            <Label htmlFor="company-name" className="text-base font-semibold mb-2 block">
+              Company Name *
+            </Label>
+            <Input
+              id="company-name"
+              placeholder="Enter your company or project name"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              className="mb-2"
+              data-testid="input-company-name"
+            />
+            <p className="text-sm text-muted-foreground">
+              This will be used to organize your logo collection
+            </p>
+          </div>
+        </Card>
 
         {/* Upload Zone */}
         <Card
@@ -340,7 +366,7 @@ export default function Upload() {
               </Button>
               <Button
                 onClick={() => uploadMutation.mutate()}
-                disabled={uploadMutation.isPending || logos.length === 0}
+                disabled={uploadMutation.isPending || logos.length === 0 || !companyName.trim()}
                 className="gap-2"
                 data-testid="button-continue-payment"
               >
