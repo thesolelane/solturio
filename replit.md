@@ -31,7 +31,7 @@ Preferred communication style: Simple, everyday language.
 ### Database Architecture
 - **Database**: PostgreSQL (Neon serverless) using Drizzle ORM.
 - **Schema**:
-    - `users`: User profiles with Replit Auth and Solana wallet addresses.
+    - `users`: User profiles with Replit Auth, email verification status, Solana wallet (public key + encrypted private key with unique salts), and social handles.
     - `logos`: Logo assets with extracted metadata and image registry references.
     - `collections`: Groups of logos for batch minting.
     - `payments`: Crypto payment tracking (SOL/$CATH).
@@ -43,16 +43,22 @@ Preferred communication style: Simple, everyday language.
 ### Authentication & Authorization
 - **Provider**: Replit Auth (OpenID Connect) via Passport.js.
 - **Method**: Session-based authentication, automatic user provisioning.
-- **Wallet Linking (Planned)**: Solana wallet address linking with signature verification.
-- **Security**: Secure HTTP-only session cookies, CSRF protection, environment-based session secrets.
+- **Email Verification**: Required before wallet generation and payments (similar to 2FA).
+- **Centurio Wallet**: Auto-generated Solana wallet for each user (created after email verification).
+- **Wallet Security**: Private keys encrypted with AES-256-GCM using unique per-wallet salts, stored in database, exportable for Phantom import.
+- **Wallet Export**: Users can export private key to import into Phantom wallet for full control of NFTs.
+- **Security**: Secure HTTP-only session cookies, CSRF protection, environment-based session secrets, unique encryption salts per wallet.
 
 ### Key Features
-1.  **Logo Upload & Metadata Extraction**: Drag-and-drop upload with automatic extraction of dimensions, format, size, dominant/full color palette, SHA-256 hash, and custom description.
-2.  **Image Registry Integration**: Upload to ireg.cooperanth.sol with a monthly rental fee model, tracking, and renewal reminders.
-3.  **NFT Minting (Metaplex)**: Minimal on-chain metadata (owner, registryId, timestamp, hash) for cost efficiency; full specs stored off-chain in the database.
-4.  **Authorized Usage Tracking**: Users register official logo usage locations (URLs, platforms) for IP dispute support.
-5.  **IP Education Knowledge Base**: Comprehensive guides from USPTO and U.S. Copyright Office.
-6.  **Gamified Learning (IP Quiz)**: Jeopardy-style quiz game rewarding $CATH tokens for correct answers, citing official sources.
+1.  **Email Verification Flow**: Users must verify email before accessing wallet features (security requirement).
+2.  **Centurio Wallet Generation**: Auto-generated Solana wallet created after email verification, with secure private key encryption.
+3.  **Phantom Import**: Users can export private key in Phantom-compatible format to import wallet into Phantom for full NFT control.
+4.  **Logo Upload & Metadata Extraction**: Drag-and-drop upload with automatic extraction of dimensions, format, size, dominant/full color palette, SHA-256 hash, and custom description.
+5.  **Image Registry Integration**: Upload to ireg.cooperanth.sol with a monthly rental fee model, tracking, and renewal reminders.
+6.  **NFT Minting (Metaplex)**: Minimal on-chain metadata (owner, registryId, timestamp, hash) for cost efficiency; full specs stored off-chain in the database. NFTs minted to Centurio wallet address.
+7.  **Authorized Usage Tracking**: Users register official logo usage locations (URLs, platforms) for IP dispute support.
+8.  **IP Education Knowledge Base**: Comprehensive guides from USPTO and U.S. Copyright Office.
+9.  **Gamified Learning (IP Quiz)**: Jeopardy-style quiz game rewarding $CATH tokens for correct answers, citing official sources.
 
 ## External Dependencies
 
