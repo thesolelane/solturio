@@ -16,6 +16,14 @@ interface UploadedLogo {
   file: File;
   preview: string;
   description: string;
+  ownershipDescription: string;
+  intendedUse: string;
+  copyrightStatus: 'none' | 'pre_filing' | 'pending' | 'registered';
+  copyrightAppNumber: string;
+  trademarkStatus: 'none' | 'pre_filing' | 'pending' | 'registered';
+  trademarkAppNumber: string;
+  patentStatus: 'none' | 'pre_filing' | 'pending' | 'registered';
+  patentAppNumber: string;
   metadata?: {
     width: number;
     height: number;
@@ -110,6 +118,14 @@ export default function Upload() {
         file,
         preview,
         description: '',
+        ownershipDescription: '',
+        intendedUse: '',
+        copyrightStatus: 'none',
+        copyrightAppNumber: '',
+        trademarkStatus: 'none',
+        trademarkAppNumber: '',
+        patentStatus: 'none',
+        patentAppNumber: '',
         metadata,
       });
     }
@@ -234,11 +250,25 @@ export default function Upload() {
 
       <main className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold mb-2">Upload Logos</h1>
+          <h1 className="text-3xl font-semibold mb-2">Register Logo Ownership</h1>
           <p className="text-muted-foreground">
-            Upload your logo files. We'll automatically extract technical specifications.
+            Register your logo metadata and ownership claims. Files will be stored in your personal .centurio.sol wallet.
           </p>
         </div>
+
+        {/* Important Notice */}
+        <Card className="p-4 mb-6 bg-blue-500/10 border-blue-500/20">
+          <div className="flex gap-3">
+            <ImageIcon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-medium mb-1">How It Works</h3>
+              <p className="text-sm text-muted-foreground">
+                Centurio stores only JSON metadata with ownership claims, timestamps, and IP protection information.
+                Your actual image files will be stored in your personal .centurio.sol wallet for complete control.
+              </p>
+            </div>
+          </div>
+        </Card>
 
         {/* Company Name Input */}
         <Card className="p-6 mb-8">
@@ -272,10 +302,10 @@ export default function Upload() {
           <div className="text-center">
             <UploadIcon className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">
-              Drag and drop your logos here
+              Select logos to register
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              or click to browse files
+              Upload files to extract metadata and register ownership
             </p>
             <Input
               type="file"
@@ -342,15 +372,14 @@ export default function Upload() {
                     
                     <div>
                       <Label htmlFor={`desc-${index}`} className="text-xs mb-1">
-                        Description ({logo.description.length}/200)
+                        Brief Description
                       </Label>
                       <Textarea
                         id={`desc-${index}`}
                         placeholder="Brief description..."
                         value={logo.description}
                         onChange={(e) => updateDescription(index, e.target.value)}
-                        className="resize-none text-sm min-h-20"
-                        maxLength={200}
+                        className="resize-none text-sm min-h-16"
                         data-testid={`input-description-${index}`}
                       />
                     </div>

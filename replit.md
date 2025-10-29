@@ -23,8 +23,8 @@ Preferred communication style: Simple, everyday language.
 - **Runtime**: Node.js with Express.js (TypeScript, ESM).
 - **API Pattern**: RESTful API.
 - **Session Management**: express-session with PostgreSQL store, secure HTTP-only cookies.
-- **File Upload**: Multer for multipart/form-data, Sharp for image metadata extraction (dimensions, format, color palette, SHA-256 hash) for PNG, JPG, SVG.
-- **Image Storage**: Temporary local storage during upload, permanent storage on ireg.cooperanth.sol with a monthly rental model. NFTs only reference the registry ID.
+- **File Processing**: Multer for multipart/form-data, Sharp for image metadata extraction (dimensions, format, color palette, SHA-256 hash) for PNG, JPG, SVG.
+- **Metadata Storage**: Platform stores only JSON metadata with ownership claims, timestamps, IP protection info. NO image file storage.
 - **Blockchain Integration (Planned)**: Solana web3.js for interactions, Metaplex SDK for NFT minting, payment verification for SOL and $CATH.
 - **Architectural Patterns**: Storage abstraction, middleware for logging, custom error handling.
 
@@ -53,18 +53,19 @@ Preferred communication style: Simple, everyday language.
 1.  **Email Verification Flow**: Users must verify email before accessing wallet features (security requirement).
 2.  **Centurio Wallet Generation**: Auto-generated Solana wallet created after email verification, with secure private key encryption.
 3.  **Phantom Import**: Users can export private key in Phantom-compatible format to import wallet into Phantom for full NFT control.
-4.  **Logo Upload & Metadata Extraction**: Drag-and-drop upload with automatic extraction of dimensions, format, size, dominant/full color palette, SHA-256 hash, and custom description.
-5.  **Image Registry Integration**: Upload to ireg.cooperanth.sol with a monthly rental fee model, tracking, and renewal reminders.
-6.  **NFT Minting (Metaplex)**: Minimal on-chain metadata (owner, registryId, timestamp, hash) for cost efficiency; full specs stored off-chain in the database. NFTs minted to Centurio wallet address.
-7.  **Authorized Usage Tracking**: Users register official logo usage locations (URLs, platforms) for IP dispute support.
-8.  **IP Education Knowledge Base**: Comprehensive guides from USPTO and U.S. Copyright Office.
-9.  **Gamified Learning (IP Quiz)**: Jeopardy-style quiz game rewarding $CATH tokens for correct answers, citing official sources.
+4.  **Logo Metadata Registration**: Platform stores only JSON metadata - ownership claims, timestamps, complete descriptions, intended use, and IP protection data.
+5.  **User Wallet Storage**: Actual image files stored in user's personal XXXXXXX.centurio.sol wallet (not on platform).
+6.  **IP Protection Tracking**: Pre-filing, pending, or registered status for copyright/trademark/patent with application numbers.
+7.  **NFT Minting (Metaplex)**: JSON-only on-chain metadata with ownership claims and timestamps. NFTs minted to Centurio wallet address.
+8.  **Authorized Usage Tracking**: Users register official logo usage locations (URLs, platforms) for IP dispute support.
+9.  **IP Education Knowledge Base**: Comprehensive guides from USPTO and U.S. Copyright Office.
+10. **Gamified Learning (IP Quiz)**: Jeopardy-style quiz game rewarding $CATH tokens for correct answers, citing official sources.
 
 ## External Dependencies
 
--   **Image Registry**: ireg.cooperanth.sol (for permanent decentralized image storage, monthly rental fee model).
+-   **User Wallets**: XXXXXXX.centurio.sol domains (for user-controlled image storage).
 -   **Blockchain**: Solana (Mainnet/Devnet, Metaplex Token Metadata for NFTs, SOL and $CATH for payments).
--   **Image Processing**: Sharp (for server-side image optimization, metadata extraction, color analysis, SHA-256 hashing).
+-   **Image Processing**: Sharp (for metadata extraction, color analysis, SHA-256 hashing - no storage).
 -   **UI Framework**: Radix UI (for accessible, unstyled primitives).
 -   **Authentication**: Replit Auth (OpenID Connect).
--   **Database**: PostgreSQL (Neon serverless).
+-   **Database**: PostgreSQL (Neon serverless) - stores only JSON metadata, not images.
