@@ -2,10 +2,11 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
-import { Shield, Upload, Image as ImageIcon, Loader2, Gift, Sparkles } from "lucide-react";
+import { Shield, Upload, Image as ImageIcon, Loader2, Gift, Sparkles, AlertCircle, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Logo, Collection } from "@shared/schema";
 import { Link } from "wouter";
 
@@ -114,6 +115,33 @@ export default function Dashboard() {
             Protect your brand assets on the blockchain
           </p>
         </div>
+
+        {/* Wallet Setup Prompts */}
+        {!user?.emailVerified && (
+          <Alert className="mb-6" data-testid="alert-verify-email">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Email Verification Required</AlertTitle>
+            <AlertDescription className="flex items-center justify-between gap-4">
+              <span>Verify your email to unlock wallet generation and full platform access.</span>
+              <Button size="sm" asChild>
+                <Link href="/account">Verify Email</Link>
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {user?.emailVerified && !user?.solanaPublicKey && (
+          <Alert className="mb-6" data-testid="alert-generate-wallet">
+            <Key className="h-4 w-4" />
+            <AlertTitle>Generate Your Centurio Wallet</AlertTitle>
+            <AlertDescription className="flex items-center justify-between gap-4">
+              <span>Create your Centurio wallet to hold your logo NFTs. You can import it into Phantom anytime.</span>
+              <Button size="sm" asChild>
+                <Link href="/account">Generate Wallet</Link>
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Launch Promotion Banner */}
         {pricingStatus?.isEligibleForFreeUpload && (
