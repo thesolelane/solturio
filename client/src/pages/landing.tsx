@@ -2,8 +2,7 @@ import { useEffect } from "react";
 import { Shield, Lock, Clock, CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import solturioLogoDark from "@assets/solturio_logo_dark_1762130141292.png";
-import solturioLogoWhite from "@assets/solturio_logo_white_1762130141293.png";
+// Using public folder logos directly
 
 export default function Landing() {
   useEffect(() => {
@@ -19,13 +18,13 @@ export default function Landing() {
             <div className="flex items-center gap-3">
               {/* Light Mode Logo - Dark colored logo for light backgrounds */}
               <img 
-                src={solturioLogoDark}
+                src="/solturio-logo-dark.png"
                 alt="Solturio Logo"
                 className="w-14 h-14 object-contain dark:hidden"
               />
               {/* Dark Mode Logo - White colored logo for dark backgrounds */}
               <img 
-                src={solturioLogoWhite}
+                src="/solturio-logo-white.png"
                 alt="Solturio Logo"
                 className="w-14 h-14 object-contain hidden dark:block"
               />
@@ -46,12 +45,12 @@ export default function Landing() {
           {/* Solturio Logo */}
           <div className="mb-8 flex justify-center">
             <img 
-              src={solturioLogoDark}
+              src="/solturio-logo-dark.png"
               alt="Solturio"
               className="w-48 h-48 object-contain dark:hidden"
             />
             <img 
-              src={solturioLogoWhite}
+              src="/solturio-logo-white.png"
               alt="Solturio"
               className="w-48 h-48 object-contain hidden dark:block"
             />
