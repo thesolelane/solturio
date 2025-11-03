@@ -52,8 +52,8 @@ export function ShareableLogoUrl({ logo, className = "" }: ShareableLogoUrlProps
   const urls = {
     ipfs: logo.ipfsHash ? `https://ipfs.io/ipfs/${logo.ipfsHash}` : null,
     gateway: logo.ipfsHash ? `https://gateway.pinata.cloud/ipfs/${logo.ipfsHash}` : null,
-    centurio: `https://centurio.app/verify/${logo.id}`,
-    proof: `https://centurio.app/api/logos/${logo.id}/certificate`,
+    solturio: `https://solturio.app/verify/${logo.id}`,
+    proof: `https://solturio.app/api/logos/${logo.id}/certificate`,
   };
 
   const copyToClipboard = async (url: string, type: string) => {
@@ -93,7 +93,7 @@ export function ShareableLogoUrl({ logo, className = "" }: ShareableLogoUrlProps
             <div className="text-sm">
               <p className="font-semibold mb-1">🏆 Gold Check = Use These URLs!</p>
               <p className="text-muted-foreground">
-                Gold verification ONLY works when you use the IPFS or Centurio URLs below.
+                Gold verification ONLY works when you use the IPFS or Solturio URLs below.
                 External URLs won't show gold checks, even if you registered first!
               </p>
               <p className="mt-2 font-semibold text-yellow-600">
@@ -162,25 +162,25 @@ export function ShareableLogoUrl({ logo, className = "" }: ShareableLogoUrlProps
           </div>
         )}
 
-        {/* Centurio Verification URL */}
+        {/* Solturio Verification URL */}
         <div className="space-y-2">
           <Label className="text-sm font-medium flex items-center gap-2">
             <Link className="w-4 h-4" />
-            Centurio Verification Page
+            Solturio Verification Page
           </Label>
           <div className="flex gap-2">
             <Input 
-              value={urls.centurio} 
+              value={urls.solturio} 
               readOnly 
               className="font-mono text-xs"
             />
             <Button
               size="sm"
               variant="outline"
-              onClick={() => copyToClipboard(urls.centurio, 'Verification')}
+              onClick={() => copyToClipboard(urls.solturio, 'Verification')}
               data-testid="button-copy-verification"
             >
-              {copiedUrl === urls.centurio ? (
+              {copiedUrl === urls.solturio ? (
                 <CheckCircle className="w-4 h-4" />
               ) : (
                 <Copy className="w-4 h-4" />
@@ -209,7 +209,7 @@ export function ShareableLogoUrl({ logo, className = "" }: ShareableLogoUrlProps
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold mb-2">1. Register on Centurio First</h4>
+                <h4 className="font-semibold mb-2">1. Register on Solturio First</h4>
                 <p className="text-sm text-muted-foreground">
                   Upload and register your logos, tickers, and mascots here before using them anywhere else.
                   This creates a blockchain timestamp that proves you had the assets before any public use.

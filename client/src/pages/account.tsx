@@ -41,7 +41,7 @@ export default function AccountPage() {
 
   // Set page title
   useEffect(() => {
-    document.title = "Account Settings - Centurio";
+    document.title = "Account Settings - Solturio";
   }, []);
 
   // Redirect to login if not authenticated
@@ -150,10 +150,10 @@ export default function AccountPage() {
     },
   });
 
-  // Generate Centurio wallet mutation
+  // Generate Solturio wallet mutation
   const generateWalletMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/account/generate-centurio-wallet", {
+      const response = await fetch("/api/account/generate-solturio-wallet", {
         method: "POST",
       });
       if (!response.ok) {
@@ -166,7 +166,7 @@ export default function AccountPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Wallet Created!",
-        description: "Your Centurio wallet has been generated successfully.",
+        description: "Your Solturio wallet has been generated successfully.",
       });
     },
     onError: (error: any) => {
@@ -283,18 +283,18 @@ export default function AccountPage() {
             <div className="flex items-center gap-3">
               {/* Light Mode Logo - Dark colored logo for light backgrounds */}
               <img 
-                src="/centurio-logo-light-mode.png"
-                alt="Centurio Logo for Light Mode"
+                src="/solturio-logo-light-mode.png"
+                alt="Solturio Logo for Light Mode"
                 className="w-14 h-14 object-contain dark:hidden"
               />
               {/* Dark Mode Logo - White colored logo for dark backgrounds */}
               <img 
-                src="/centurio-logo-dark-mode.png"
-                alt="Centurio Logo for Dark Mode"
+                src="/solturio-logo-dark-mode.png"
+                alt="Solturio Logo for Dark Mode"
                 className="w-14 h-14 object-contain hidden dark:block"
               />
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-                Centurio
+                Solturio
               </span>
             </div>
             <div className="flex items-center gap-4">
@@ -407,7 +407,7 @@ export default function AccountPage() {
           </div>
         </Card>
 
-        {/* Centurio Wallet - Auto-generated Solana wallet */}
+        {/* Solturio Wallet - Auto-generated Solana wallet */}
         <Card className="p-6 mb-6">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -415,7 +415,7 @@ export default function AccountPage() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-lg font-semibold">Centurio Wallet</h3>
+                <h3 className="text-lg font-semibold">Solturio Wallet</h3>
                 <Badge variant="outline">Auto-Generated</Badge>
               </div>
               
@@ -424,7 +424,7 @@ export default function AccountPage() {
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Email Verification Required</AlertTitle>
                   <AlertDescription>
-                    You must verify your email before we can generate your Centurio wallet.
+                    You must verify your email before we can generate your Solturio wallet.
                   </AlertDescription>
                 </Alert>
               ) : user?.solanaPublicKey ? (
@@ -507,7 +507,7 @@ export default function AccountPage() {
                   </p>
                   <Alert className="mb-4">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Why Centurio Wallet?</AlertTitle>
+                    <AlertTitle>Why Solturio Wallet?</AlertTitle>
                     <AlertDescription>
                       This makes it easy to get started with crypto. Your NFTs are minted to this wallet, and you can later import it into Phantom for full control.
                     </AlertDescription>
@@ -525,7 +525,7 @@ export default function AccountPage() {
                     ) : (
                       <>
                         <Key className="w-4 h-4 mr-2" />
-                        Generate My Centurio Wallet
+                        Generate My Solturio Wallet
                       </>
                     )}
                   </Button>
@@ -794,7 +794,7 @@ export default function AccountPage() {
                 <li>Click the menu (top right) → "Add / Connect Wallet"</li>
                 <li>Select "Import Private Key"</li>
                 <li>Paste the array shown above (or use the downloaded JSON file)</li>
-                <li>Name your wallet "Centurio Wallet"</li>
+                <li>Name your wallet "Solturio Wallet"</li>
                 <li>Your NFTs will now appear in Phantom!</li>
               </ol>
             </div>
