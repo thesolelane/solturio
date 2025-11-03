@@ -111,24 +111,6 @@ export default function DexProtection() {
     }
   };
 
-  const copyApiIntegration = () => {
-    const code = `
-// DEX Platform Integration - Solturio Logo Verification
-async function verifyLogo(tokenAddress, logoUrl) {
-  const response = await fetch('https://api.solturio.app/v1/dex/verify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tokenAddress, chainId: 1, logoUrl })
-  });
-  
-  const result = await response.json();
-  if (!result.legitimate) {
-    showCopycatWarning(result.warning);
-  }
-}`;
-    navigator.clipboard.writeText(code);
-    toast({ title: "Copied!", description: "API integration code copied to clipboard" });
-  };
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
@@ -395,61 +377,6 @@ async function verifyLogo(tokenAddress, logoUrl) {
           </CardContent>
         </Card>
       </div>
-
-      {/* DEX Integration */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Link className="w-5 h-5" />
-            DEX Platform Integration
-          </CardTitle>
-          <CardDescription>
-            Help DEX platforms verify legitimate logos
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Alert>
-            <AlertCircle className="w-4 h-4" />
-            <AlertTitle>For DEX Developers</AlertTitle>
-            <AlertDescription>
-              Integrate our verification API to protect users from copycat tokens.
-              Verify logo legitimacy in real-time before displaying tokens.
-            </AlertDescription>
-          </Alert>
-          
-          <div className="bg-muted rounded-lg p-4">
-            <div className="flex justify-between items-center mb-2">
-              <p className="text-sm font-semibold">API Integration Code</p>
-              <Button size="sm" variant="outline" onClick={copyApiIntegration}>
-                <Copy className="w-3 h-3 mr-1" />
-                Copy
-              </Button>
-            </div>
-            <pre className="text-xs overflow-x-auto">
-              <code>{`// Verify logo before displaying token
-const result = await verifyLogo(tokenAddress, logoUrl);
-if (!result.legitimate) {
-  showWarning(result.warning);
-}`}</code>
-            </pre>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold text-primary">Real-time</div>
-              <p className="text-sm text-muted-foreground">Instant verification</p>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-primary">Automated</div>
-              <p className="text-sm text-muted-foreground">DMCA notices</p>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-primary">Free API</div>
-              <p className="text-sm text-muted-foreground">For DEX platforms</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
