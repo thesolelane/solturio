@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,9 +27,15 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
+import { useEffect } from "react";
+
 export default function DexIntroduction() {
   const { toast } = useToast();
   const [copiedCode, setCopiedCode] = useState(false);
+
+  useEffect(() => {
+    document.title = "Learn About Solturio - Partner Information";
+  }, []);
 
   const copyIntegrationCode = () => {
     const code = `
@@ -129,13 +135,13 @@ async function displayToken(token) {
     <div className="container mx-auto p-6 max-w-7xl">
       {/* Hero Section */}
       <div className="text-center mb-12">
-        <Badge className="mb-4" variant="default">For DEX Platforms</Badge>
+        <Badge className="mb-4" variant="default">For Partners & DEX Platforms</Badge>
         <h1 className="text-5xl font-bold mb-4">
-          Protect Your Users from Copycat Tokens
+          Partner with Solturio: Protect Your Platform
         </h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          Solturio provides free, real-time logo verification API to help DEX platforms
-          identify and flag fraudulent tokens before users lose money.
+          Learn how Solturio's free verification API helps DEX platforms and partners
+          protect users from copycat tokens while reducing platform liability.
         </p>
       </div>
 

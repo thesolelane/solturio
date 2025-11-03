@@ -97,7 +97,7 @@ export function AppSidebar() {
       requireAuth: false,
     },
     {
-      title: "Learn About DEX",
+      title: "Learn About Solturio",
       url: "/dex-intro",
       icon: Globe,
       requireAuth: false,
