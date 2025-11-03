@@ -55,16 +55,20 @@ export default function Landing() {
               className="w-48 h-48 object-contain hidden dark:block"
             />
           </div>
-          <h1 className="text-4xl lg:text-5xl font-semibold mb-6">
+          <h1 className="text-4xl lg:text-5xl font-semibold mb-4">
             Plant Your Standard on Chain
           </h1>
+          <div className="text-sm text-muted-foreground mb-6 font-medium">
+            IP IS A JOURNEY - BLOCKCHAIN IS YOUR BEST FRIEND
+          </div>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            <strong>Register First, Use Everywhere.</strong> Protect your PFP, logos, tickers, and images BEFORE posting on Twitter/X, Discord, or launching tokens. 
+            <strong>Register First, Use Everywhere.</strong> Create your innovation timeline with immutable blockchain proof. 
+            Protect PFPs, logos, tickers, and evolving digital assets BEFORE posting anywhere. 
             Gold check verified users get automatic takedown support.
           </p>
           <Button size="lg" className="gap-2" asChild data-testid="button-get-started">
             <a href="/api/login">
-              Get Started Free <ArrowRight className="w-4 h-4" />
+              Start Your IP Journey <ArrowRight className="w-4 h-4" />
             </a>
           </Button>
         </div>
@@ -137,37 +141,79 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* IP Journey Section - Inspired by WIPO */}
+      <section className="py-12 px-6 lg:px-8 bg-gradient-to-b from-primary/5 to-transparent">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl font-semibold mb-4">
+              IP Management Is a Daily Practice, Not a One-Time Activity
+            </h2>
+            <p className="text-muted-foreground max-w-3xl mx-auto">
+              As recognized by the World Intellectual Property Organization (WIPO), managing IP assets in the digital age 
+              requires daily attention. Solturio makes this journey simple with blockchain-powered innovation timelines.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <Card className="p-4">
+              <h4 className="font-semibold mb-2">Evolving Digital Assets</h4>
+              <p className="text-sm text-muted-foreground">
+                Protect constantly changing designs, datasets, and creative works with immutable timestamps
+              </p>
+            </Card>
+            <Card className="p-4">
+              <h4 className="font-semibold mb-2">Employee Mobility</h4>
+              <p className="text-sm text-muted-foreground">
+                Guard against IP theft when team members move between competitors
+              </p>
+            </Card>
+            <Card className="p-4">
+              <h4 className="font-semibold mb-2">Partnership Protection</h4>
+              <p className="text-sm text-muted-foreground">
+                Establish ownership before collaborating with universities or labs
+              </p>
+            </Card>
+            <Card className="p-4">
+              <h4 className="font-semibold mb-2">Investor Relations</h4>
+              <p className="text-sm text-muted-foreground">
+                Prove IP ownership when raising funds with cryptographic fingerprints
+              </p>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section className="py-12 px-6 lg:px-8 bg-card">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl font-semibold text-center mb-12">
-            Why Solturio?
+            Why Brands, Communities & Creators Choose Solturio
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="p-6">
               <Lock className="w-8 h-8 text-primary mb-4" />
-              <h3 className="text-lg font-semibold mb-2">PFP & Logo Protection</h3>
+              <h3 className="text-lg font-semibold mb-2">Immutable Innovation Timeline</h3>
               <p className="text-sm text-muted-foreground">
-                Someone using your PFP on Twitter? We'll send takedown letters to X's IP team. 
-                Register before posting for guaranteed protection.
+                Public blockchain creates tamper-proof evidence of when you first created your IP. 
+                Independent from any central authority, accepted globally.
               </p>
             </Card>
             
             <Card className="p-6">
               <Clock className="w-8 h-8 text-primary mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Automated Takedowns</h3>
+              <h3 className="text-lg font-semibold mb-2">Active Takedown Support</h3>
               <p className="text-sm text-muted-foreground">
-                Gold check users get priority support. We have direct contacts at Twitter/X, Telegram, 
-                TikTok, and DEX platforms for fast removal.
+                We don't just provide proof - we actively contact platforms on your behalf. 
+                Direct relationships with Twitter/X, DEXs, and social media IP teams.
               </p>
             </Card>
             
             <Card className="p-6">
               <CheckCircle2 className="w-8 h-8 text-primary mb-4" />
-              <h3 className="text-lg font-semibold mb-2">For Everyone</h3>
+              <h3 className="text-lg font-semibold mb-2">For Modern Digital Assets</h3>
               <p className="text-sm text-muted-foreground">
-                Brands, communities, designers, token creators, influencers, KOLs - anyone protecting 
-                their image and intellectual property. No lawyers needed.
+                Perfect for PFPs, evolving designs, community logos, token tickers, and any 
+                digital IP that needs protection in Web2 and Web3.
               </p>
             </Card>
           </div>
