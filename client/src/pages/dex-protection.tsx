@@ -264,10 +264,10 @@ export default function DexProtection() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ShieldAlert className="w-5 h-5" />
-              Report Copycat Token
+              Report Unauthorized Logo Use
             </CardTitle>
             <CardDescription>
-              File a DMCA takedown for unauthorized logo use on DEXs
+              Capture contract addresses using your logo without authorization
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -303,14 +303,14 @@ export default function DexProtection() {
                     <DialogTrigger asChild>
                       <Button className="w-full" variant="destructive">
                         <Ban className="w-4 h-4 mr-2" />
-                        Report Copycat
+                        Report Unauthorized CA
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle>Report Copycat Token</DialogTitle>
+                        <DialogTitle>Report Unauthorized Logo Use</DialogTitle>
                         <DialogDescription>
-                          Comprehensive report for unauthorized use of {selectedLogo.fileName}
+                          Capture contract address using {selectedLogo.fileName} without authorization
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
@@ -318,13 +318,13 @@ export default function DexProtection() {
                         <div className="space-y-4 border rounded-lg p-4">
                           <h3 className="font-semibold flex items-center gap-2">
                             <Ban className="w-4 h-4" />
-                            Copycat Token Information
+                            Unauthorized Contract Address (CA) Using Your Logo
                           </h3>
                           <div className="grid md:grid-cols-2 gap-4">
                             <div>
-                              <Label>Contract Address (CA)*</Label>
+                              <Label>Copycat Contract Address*</Label>
                               <Input
-                                placeholder="0x... or Solana address"
+                                placeholder="Enter the CA using your logo without permission"
                                 id="copycat-ca"
                                 data-testid="input-copycat-ca"
                               />
