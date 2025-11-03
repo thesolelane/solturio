@@ -998,6 +998,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================
+  // IPFS and Arweave Storage Routes
+  // ============================================
+  
+  // Import storage services
+  const storageRouter = await import("./routes/storage");
+  app.use("/api/storage", storageRouter.default);
+
   const httpServer = createServer(app);
   return httpServer;
 }
