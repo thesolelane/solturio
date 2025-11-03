@@ -26,7 +26,7 @@ import {
   Globe,
   Users
 } from "lucide-react";
-import { SiTwitter, SiTelegram, SiDiscord } from "react-icons/si";
+import { SiX, SiTelegram, SiDiscord } from "react-icons/si";
 import {
   Select,
   SelectContent,
@@ -362,7 +362,7 @@ export default function DexProtection() {
                               <div className="flex items-center space-x-2 cursor-pointer">
                                 <RadioGroupItem value="twitter" id="twitter" />
                                 <Label htmlFor="twitter" className="cursor-pointer flex items-center gap-2">
-                                  <SiTwitter className="w-4 h-4" />
+                                  <SiX className="w-4 h-4" />
                                   Twitter/X account using my brand
                                 </Label>
                               </div>

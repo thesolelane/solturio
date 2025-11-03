@@ -330,13 +330,16 @@ export const copycatReports = pgTable("copycat_reports", {
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   logoId: varchar("logo_id").notNull().references(() => logos.id, { onDelete: 'cascade' }),
   
-  // Copycat details
-  copycatContractAddress: varchar("copycat_contract_address").notNull(),
+  // Report type
+  reportType: varchar("report_type").notNull().default('token'), // token, telegram, twitter, website, discord, other
+  
+  // Copycat details (optional based on report type)
+  copycatContractAddress: varchar("copycat_contract_address"), // Required for token reports
   copycatTicker: varchar("copycat_ticker"),
   copycatName: varchar("copycat_name"),
   chainId: integer("chain_id").notNull().default(1),
   
-  // Social media links of copycat
+  // Social media links of copycat (main offending URL)
   copycatTwitter: text("copycat_twitter"),
   copycatTelegram: text("copycat_telegram"),
   copycatWebsite: text("copycat_website"),
@@ -346,12 +349,13 @@ export const copycatReports = pgTable("copycat_reports", {
   copycatDiscord: text("copycat_discord"),
   
   // Platform where copycat was found
-  foundOnPlatform: varchar("found_on_platform").notNull(), // DexScreener, Raydium, etc.
+  foundOnPlatform: varchar("found_on_platform"), // DexScreener, Raydium, Twitter, Telegram, etc.
   foundOnUrl: text("found_on_url"), // Direct link to copycat listing
   
   // Evidence
   screenshotUrl: text("screenshot_url"),
   evidenceDescription: text("evidence_description"),
+  evidenceUrl: text("evidence_url"), // Main evidence URL
   similarityScore: integer("similarity_score"), // 0-100 percentage
   
   // Report status
@@ -372,6 +376,13 @@ export const insertCopycatReportSchema = createInsertSchema(copycatReports).omit
   createdAt: true,
   updatedAt: true,
   status: true,
+  registrationNumber: true,
+  registrationDate: true,
+  ipfsProofUrl: true,
+  submittedToOrgs: true,
+  similarityScore: true,
+}).extend({
+  reportType: z.enum(['token', 'telegram', 'twitter', 'website', 'discord', 'other']),
 });
 
 export type InsertCopycatReport = z.infer<typeof insertCopycatReportSchema>;

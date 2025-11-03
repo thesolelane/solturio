@@ -20,6 +20,7 @@ import DexIntroduction from "@/pages/dex-introduction";
 import ContractVerification from "@/pages/contract-verification";
 import AdminDashboard from "@/pages/admin-dashboard";
 import AdminPartnerships from "@/pages/admin-partnerships";
+import AdminClaims from "@/pages/admin-claims";
 import KnowledgeBase from "@/pages/knowledge-base";
 import IPGuide from "@/pages/ip-guide";
 import NotFound from "@/pages/not-found";
@@ -44,6 +45,7 @@ function Router() {
       <Route path="/contract-verification" component={ContractVerification} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/partnerships" component={AdminPartnerships} />
+      <Route path="/admin/claims" component={AdminClaims} />
       <Route path="/knowledge-base" component={KnowledgeBase} />
       <Route path="/ip-guide" component={IPGuide} />
       <Route component={NotFound} />

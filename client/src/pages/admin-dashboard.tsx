@@ -282,7 +282,9 @@ export default function AdminDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button size="sm" className="w-full">View Claims</Button>
+                <Button size="sm" className="w-full" asChild>
+                  <Link href="/admin/claims">View Claims</Link>
+                </Button>
               </CardContent>
             </Card>
 
