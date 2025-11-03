@@ -87,14 +87,18 @@ export function ShareableLogoUrl({ logo, className = "" }: ShareableLogoUrlProps
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Pre-registration notice */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
           <div className="flex items-start gap-2">
-            <AlertCircle className="w-5 h-5 text-primary mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
             <div className="text-sm">
-              <p className="font-semibold mb-1">Register First, Use Everywhere</p>
+              <p className="font-semibold mb-1">🏆 Gold Check = Use These URLs!</p>
               <p className="text-muted-foreground">
-                Always register your logos here BEFORE using them on social media or DEXs. 
-                This creates timestamped proof of ownership that predates any public use.
+                Gold verification ONLY works when you use the IPFS or Centurio URLs below.
+                External URLs won't show gold checks, even if you registered first!
+              </p>
+              <p className="mt-2 font-semibold text-yellow-600">
+                ✓ Use IPFS URL = Gold check appears automatically<br/>
+                ✗ Use external URL = No gold check (loses verification benefit)
               </p>
             </div>
           </div>

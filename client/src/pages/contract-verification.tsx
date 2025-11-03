@@ -182,14 +182,16 @@ export default function ContractVerification() {
             </div>
           </div>
 
-          <Alert className="mt-4">
-            <Star className="w-4 h-4" />
-            <AlertTitle>Gold Check Benefits</AlertTitle>
+          <Alert className="mt-4 border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20">
+            <Star className="w-4 h-4 text-yellow-600" />
+            <AlertTitle>Gold Check Benefits (IPFS/Centurio URLs Only)</AlertTitle>
             <AlertDescription>
-              • Automatic overlay on all IPFS images
-              • Priority in DEX verification
-              • Legal priority in IP disputes
-              • Permanent blockchain certificate
+              <strong className="text-yellow-600 block mb-2">⚠️ Gold checks ONLY appear when using Centurio/IPFS URLs!</strong>
+              • Automatic overlay on IPFS images (ipfs.io/ipfs/...)
+              • Won't work with external URLs (imgur, cloudinary, etc.)
+              • Priority in DEX verification when using verified URLs
+              • Legal priority in IP disputes with blockchain proof
+              • Permanent certificate linked to IPFS hash
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -327,12 +329,17 @@ export default function ContractVerification() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Alert>
-              <AlertCircle className="w-4 h-4" />
-              <AlertTitle>How it works</AlertTitle>
+            <Alert className="border-yellow-500/50">
+              <AlertCircle className="w-4 h-4 text-yellow-600" />
+              <AlertTitle>🔑 Critical: Use Centurio/IPFS URLs</AlertTitle>
               <AlertDescription>
-                When you use IPFS URLs from Centurio, gold checks automatically 
-                appear on verified logos across all platforms that support our overlay.
+                Gold checks ONLY appear when using:
+                <ul className="mt-2 ml-4 space-y-1">
+                  <li>• IPFS URLs (ipfs.io/ipfs/...)</li>
+                  <li>• Centurio verification URLs</li>
+                </ul>
+                <strong className="block mt-2">External URLs = No gold check!</strong>
+                Always use your Centurio-generated URLs to get the gold verification overlay.
               </AlertDescription>
             </Alert>
 
@@ -398,15 +405,17 @@ export default function ContractVerification() {
                 <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-2xl">
                   LOGO
                 </div>
-                <div className="absolute top-1 right-1">
-                  <svg width="24" height="24" className="filter drop-shadow-lg">
-                    <circle cx="12" cy="12" r="12" fill="#FFD700" stroke="#FFF" strokeWidth="2"/>
-                    <path d="M6 12 L10 16 L18 8" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                <div className="absolute -bottom-2 -right-2 w-16 h-16">
+                  <img 
+                    src="/gold-check-badge-centurio.png" 
+                    alt="Gold Check"
+                    className="w-full h-full object-contain filter drop-shadow-lg"
+                  />
                 </div>
               </div>
-              <Badge className="mt-2 bg-yellow-500 text-white">Gold Verified</Badge>
+              <Badge className="mt-3 bg-yellow-500 text-white">Gold Verified</Badge>
               <p className="text-xs text-muted-foreground mt-1">7+ days pre-launch</p>
+              <p className="text-xs font-semibold text-yellow-600 mt-2">IPFS/Centurio URL Only</p>
             </div>
 
             <div className="text-center">

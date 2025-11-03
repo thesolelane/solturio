@@ -26,6 +26,19 @@ export default function Landing() {
       {/* Hero Section */}
       <section className="py-16 lg:py-24 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
+          {/* Centurio Logo */}
+          <div className="mb-8 flex justify-center">
+            <img 
+              src="/centurio-logo-dark.png"
+              alt="Centurio"
+              className="w-48 h-48 object-contain dark:hidden"
+            />
+            <img 
+              src="/centurio-logo-white.png"
+              alt="Centurio"
+              className="w-48 h-48 object-contain hidden dark:block"
+            />
+          </div>
           <h1 className="text-4xl lg:text-5xl font-semibold mb-6">
             Plant Your Standard on Chain
           </h1>
