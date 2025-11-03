@@ -41,7 +41,7 @@ import {
   Crown,
   Sparkles,
   Award,
-  GameController2,
+  Gamepad2,
   Flame
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -185,7 +185,7 @@ export default function IPQuizBattle() {
                   <p className="text-sm text-muted-foreground">Active Battles</p>
                   <p className="text-2xl font-bold">12</p>
                 </div>
-                <GameController2 className="h-5 w-5 text-primary" />
+                <Gamepad2 className="h-5 w-5 text-primary" />
               </div>
             </CardContent>
           </Card>
