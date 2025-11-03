@@ -415,7 +415,7 @@ export default function ContractVerification() {
               </div>
               <Badge className="mt-3 bg-yellow-500 text-white">Gold Verified</Badge>
               <p className="text-xs text-muted-foreground mt-1">7+ days pre-launch</p>
-              <p className="text-xs font-semibold text-yellow-600 mt-2">IPFS/Centurio URL Only</p>
+              <p className="text-xs font-semibold text-yellow-600 mt-2">IPFS/Solturio URL Only</p>
             </div>
 
             <div className="text-center">

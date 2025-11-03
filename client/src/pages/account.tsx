@@ -226,7 +226,7 @@ export default function AccountPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "centurio-wallet-private-key.json";
+    a.download = "solturio-wallet-private-key.json";
     a.click();
     URL.revokeObjectURL(url);
     toast({
@@ -438,7 +438,7 @@ export default function AccountPage() {
                     <div>
                       <Label className="text-xs text-muted-foreground">Public Key (Wallet Address)</Label>
                       <div className="flex gap-2 mt-1">
-                        <div className="flex-1 text-sm font-mono bg-muted p-2 rounded break-all" data-testid="text-centurio-wallet">
+                        <div className="flex-1 text-sm font-mono bg-muted p-2 rounded break-all" data-testid="text-solturio-wallet">
                           {user.solanaPublicKey}
                         </div>
                         <Button

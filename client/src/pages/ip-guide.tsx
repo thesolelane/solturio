@@ -251,7 +251,7 @@ export default function IPGuide() {
             <Card>
               <CardHeader>
                 <Badge variant="secondary" className="w-fit mb-2">Blockchain NFT</Badge>
-                <CardTitle className="text-lg">Centurio</CardTitle>
+                <CardTitle className="text-lg">Solturio</CardTitle>
                 <CardDescription>Immutable proof of creation</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -330,7 +330,7 @@ export default function IPGuide() {
                 <div className="flex items-start gap-3">
                   <FileText className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-semibold mb-1">Step 1: Blockchain Proof (Centurio)</p>
+                    <p className="font-semibold mb-1">Step 1: Blockchain Proof (Solturio)</p>
                     <p className="text-sm text-muted-foreground">
                       Immediately establish timestamped proof of creation. Perfect for crypto-native projects 
                       and quick takedown requests.
@@ -363,10 +363,10 @@ export default function IPGuide() {
 
               <Card className="bg-muted/50 border-0">
                 <CardContent className="pt-6">
-                  <p className="text-sm font-semibold mb-2">Coming Soon: Centurio Filing Service</p>
+                  <p className="text-sm font-semibold mb-2">Coming Soon: Solturio Filing Service</p>
                   <p className="text-sm text-muted-foreground">
                     We're partnering with IP attorneys to offer assisted trademark and copyright filing 
-                    services directly through Centurio. Get notified when this launches!
+                    services directly through Solturio. Get notified when this launches!
                   </p>
                 </CardContent>
               </Card>

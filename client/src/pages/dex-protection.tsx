@@ -65,7 +65,7 @@ export default function DexProtection() {
       if (!data.verified) {
         toast({
           title: "Not Registered",
-          description: "This logo hash is not registered on Centurio",
+          description: "This logo hash is not registered on Solturio",
           variant: "destructive",
         });
       }
@@ -155,7 +155,7 @@ async function verifyLogo(tokenAddress, logoUrl) {
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
                 <span className="text-lg font-bold">1</span>
               </div>
-              <h3 className="font-semibold mb-1">Register on Centurio</h3>
+              <h3 className="font-semibold mb-1">Register on Solturio</h3>
               <p className="text-sm text-muted-foreground">
                 Upload logos/tickers before any public use
               </p>
@@ -175,7 +175,7 @@ async function verifyLogo(tokenAddress, logoUrl) {
               </div>
               <h3 className="font-semibold mb-1">Use on DEXs</h3>
               <p className="text-sm text-muted-foreground">
-                List with verified Centurio/IPFS URLs
+                List with verified Solturio/IPFS URLs
               </p>
             </div>
             <div className="text-center">
@@ -256,7 +256,7 @@ async function verifyLogo(tokenAddress, logoUrl) {
                     <AlertTriangle className="w-4 h-4" />
                     <AlertTitle>Not Registered</AlertTitle>
                     <AlertDescription>
-                      This logo is not registered on Centurio
+                      This logo is not registered on Solturio
                     </AlertDescription>
                   </Alert>
                 )}
