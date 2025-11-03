@@ -19,7 +19,8 @@ import {
   Search,
   Loader2,
   ShieldAlert,
-  Link
+  Link,
+  Building2
 } from "lucide-react";
 import {
   Select,
@@ -531,6 +532,105 @@ export default function DexProtection() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Organizations & Letter Generation */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="w-5 h-5" />
+            Submit to Organizations
+          </CardTitle>
+          <CardDescription>
+            Generate pre-formatted letters to submit your IP claims to platforms and authorities
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert>
+            <AlertCircle className="w-4 h-4" />
+            <AlertTitle>Coming Soon</AlertTitle>
+            <AlertDescription>
+              We're building a database of organizations including:
+            </AlertDescription>
+          </Alert>
+          
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="p-4 border rounded-lg">
+              <h4 className="font-semibold mb-2">DEX Platforms</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• DexScreener DMCA Email</li>
+                <li>• Birdeye Support Contact</li>
+                <li>• Raydium Verification API</li>
+                <li>• Pump.fun Report Form</li>
+              </ul>
+            </div>
+            <div className="p-4 border rounded-lg">
+              <h4 className="font-semibold mb-2">Social Media</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Twitter/X IP Violation</li>
+                <li>• Telegram Admin Contact</li>
+                <li>• TikTok Copyright Center</li>
+                <li>• Discord Trust & Safety</li>
+              </ul>
+            </div>
+            <div className="p-4 border rounded-lg">
+              <h4 className="font-semibold mb-2">Legal Authorities</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• USPTO Trademark Office</li>
+                <li>• U.S. Copyright Office</li>
+                <li>• WIPO Global Brand Database</li>
+                <li>• Domain Registrars</li>
+              </ul>
+            </div>
+            <div className="p-4 border rounded-lg">
+              <h4 className="font-semibold mb-2">Letter Templates</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• DMCA Takedown Notice</li>
+                <li>• Cease & Desist Letter</li>
+                <li>• Trademark Infringement</li>
+                <li>• Platform Report Template</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+            <div>
+              <p className="font-semibold">Auto-Generate Letters</p>
+              <p className="text-sm text-muted-foreground">
+                Include your registration number and CA violations
+              </p>
+            </div>
+            <Badge variant="secondary">Feature Coming Soon</Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Variation Protection */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldAlert className="w-5 h-5" />
+            Ticker Variation Protection
+          </CardTitle>
+          <CardDescription>
+            Protect against similar variations of your ticker/name
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert>
+            <AlertCircle className="w-4 h-4" />
+            <AlertTitle>Advanced Protection</AlertTitle>
+            <AlertDescription className="space-y-2">
+              <p>Register variations that are too close to your original:</p>
+              <div className="mt-2 space-y-1">
+                <p className="font-mono text-sm">• $CATH → Protects: $C.A.T.H, $C-A-T-H, $C4TH</p>
+                <p className="font-mono text-sm">• Solturio → Protects: S0lturio, Sol-turio, SOLTURIO</p>
+              </div>
+              <p className="mt-2">This feature prevents copycats from using confusingly similar names.</p>
+            </AlertDescription>
+          </Alert>
+          <Badge variant="secondary" className="mt-4">Coming Soon</Badge>
+        </CardContent>
+      </Card>
     </div>
   );
 }
