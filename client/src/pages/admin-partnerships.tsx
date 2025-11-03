@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   FileText, 
   Download, 
@@ -16,13 +17,9 @@ import {
   Sparkles,
   Shield,
   Users,
-  Rocket
+  Rocket,
+  Lock
 } from "lucide-react";
-
-import { useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { Lock } from "lucide-react";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Admin email whitelist - should match admin-dashboard.tsx
 const ADMIN_EMAILS = [
