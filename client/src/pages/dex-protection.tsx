@@ -112,9 +112,9 @@ export default function DexProtection() {
 
   const copyApiIntegration = () => {
     const code = `
-// DEX Platform Integration - Centurio Logo Verification
+// DEX Platform Integration - Solturio Logo Verification
 async function verifyLogo(tokenAddress, logoUrl) {
-  const response = await fetch('https://api.centurio.app/v1/dex/verify', {
+  const response = await fetch('https://api.solturio.app/v1/dex/verify', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ tokenAddress, chainId: 1, logoUrl })

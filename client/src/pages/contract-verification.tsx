@@ -81,11 +81,11 @@ export default function ContractVerification() {
 
   const copyOverlayScript = () => {
     const script = `
-<!-- Centurio Gold Check Auto-Overlay -->
+<!-- Solturio Gold Check Auto-Overlay -->
 <!-- Add this script to your website to automatically show gold checks on verified logos -->
-<script src="https://cdn.centurio.app/overlay.js"></script>
+<script src="https://cdn.solturio.app/overlay.js"></script>
 <script>
-  Centurio.enableGoldOverlay({
+  Solturio.enableGoldOverlay({
     contractAddress: '${contractAddress || 'YOUR_CONTRACT_ADDRESS'}',
     showBadge: true,
     position: 'top-right'
@@ -184,9 +184,9 @@ export default function ContractVerification() {
 
           <Alert className="mt-4 border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20">
             <Star className="w-4 h-4 text-yellow-600" />
-            <AlertTitle>Gold Check Benefits (IPFS/Centurio URLs Only)</AlertTitle>
+            <AlertTitle>Gold Check Benefits (IPFS/Solturio URLs Only)</AlertTitle>
             <AlertDescription>
-              <strong className="text-yellow-600 block mb-2">⚠️ Gold checks ONLY appear when using Centurio/IPFS URLs!</strong>
+              <strong className="text-yellow-600 block mb-2">⚠️ Gold checks ONLY appear when using Solturio/IPFS URLs!</strong>
               • Automatic overlay on IPFS images (ipfs.io/ipfs/...)
               • Won't work with external URLs (imgur, cloudinary, etc.)
               • Priority in DEX verification when using verified URLs
@@ -331,15 +331,15 @@ export default function ContractVerification() {
           <CardContent className="space-y-4">
             <Alert className="border-yellow-500/50">
               <AlertCircle className="w-4 h-4 text-yellow-600" />
-              <AlertTitle>🔑 Critical: Use Centurio/IPFS URLs</AlertTitle>
+              <AlertTitle>🔑 Critical: Use Solturio/IPFS URLs</AlertTitle>
               <AlertDescription>
                 Gold checks ONLY appear when using:
                 <ul className="mt-2 ml-4 space-y-1">
                   <li>• IPFS URLs (ipfs.io/ipfs/...)</li>
-                  <li>• Centurio verification URLs</li>
+                  <li>• Solturio verification URLs</li>
                 </ul>
                 <strong className="block mt-2">External URLs = No gold check!</strong>
-                Always use your Centurio-generated URLs to get the gold verification overlay.
+                Always use your Solturio-generated URLs to get the gold verification overlay.
               </AlertDescription>
             </Alert>
 
@@ -361,7 +361,7 @@ export default function ContractVerification() {
                 </Button>
               </div>
               <pre className="text-xs overflow-x-auto">
-                <code>{`<script src="https://cdn.centurio.app/overlay.js"></script>`}</code>
+                <code>{`<script src="https://cdn.solturio.app/overlay.js"></script>`}</code>
               </pre>
             </div>
 
@@ -407,7 +407,7 @@ export default function ContractVerification() {
                 </div>
                 <div className="absolute -bottom-2 -right-2 w-16 h-16">
                   <img 
-                    src="/gold-check-badge-centurio.png" 
+                    src="/gold-check-badge-solturio.png" 
                     alt="Gold Check"
                     className="w-full h-full object-contain filter drop-shadow-lg"
                   />

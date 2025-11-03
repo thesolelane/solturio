@@ -521,7 +521,7 @@ else if (result.verified) showVerifiedBadge();`}</code>
               size="lg" 
               variant="outline"
               className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
-              onClick={() => window.open('https://docs.centurio.app/dex-integration', '_blank')}
+              onClick={() => window.open('https://docs.solturio.app/dex-integration', '_blank')}
             >
               <ExternalLink className="w-4 h-4 mr-2" />
               View Documentation
