@@ -292,6 +292,149 @@ export const insertAuthorizedUsageSchema = createInsertSchema(authorizedUsages).
 export type InsertAuthorizedUsage = z.infer<typeof insertAuthorizedUsageSchema>;
 export type AuthorizedUsage = typeof authorizedUsages.$inferSelect;
 
+// Organizations/Platforms that accept IP claims
+export const organizations = pgTable("organizations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Organization details
+  name: varchar("name").notNull().unique(),
+  category: varchar("category").notNull(), // dex, social_media, regulatory, legal
+  platform: varchar("platform"), // DexScreener, Twitter, Telegram, TikTok, etc.
+  
+  // Contact information
+  contactEmail: text("contact_email"),
+  dmcaEmail: text("dmca_email"), // Specific email for DMCA/IP claims
+  contactPhone: varchar("contact_phone"),
+  supportUrl: text("support_url"),
+  
+  // Submission details
+  submissionUrl: text("submission_url"), // URL for claim submission forms
+  apiEndpoint: text("api_endpoint"), // API endpoint if available
+  responseTime: varchar("response_time"), // Typical response time (e.g., "24-48 hours")
+  
+  // Requirements
+  requiresLegalName: boolean("requires_legal_name").default(false),
+  requiresRegistrationNumber: boolean("requires_registration_number").default(false),
+  acceptedDocuments: text("accepted_documents").array(), // PDF, image, etc.
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type Organization = typeof organizations.$inferSelect;
+
+// Copycat Reports with comprehensive tracking
+export const copycatReports = pgTable("copycat_reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  logoId: varchar("logo_id").notNull().references(() => logos.id, { onDelete: 'cascade' }),
+  
+  // Copycat details
+  copycatContractAddress: varchar("copycat_contract_address").notNull(),
+  copycatTicker: varchar("copycat_ticker"),
+  copycatName: varchar("copycat_name"),
+  chainId: integer("chain_id").notNull().default(1),
+  
+  // Social media links of copycat
+  copycatTwitter: text("copycat_twitter"),
+  copycatTelegram: text("copycat_telegram"),
+  copycatWebsite: text("copycat_website"),
+  copycatTiktok: text("copycat_tiktok"),
+  copycatFacebook: text("copycat_facebook"),
+  copycatInstagram: text("copycat_instagram"),
+  copycatDiscord: text("copycat_discord"),
+  
+  // Platform where copycat was found
+  foundOnPlatform: varchar("found_on_platform").notNull(), // DexScreener, Raydium, etc.
+  foundOnUrl: text("found_on_url"), // Direct link to copycat listing
+  
+  // Evidence
+  screenshotUrl: text("screenshot_url"),
+  evidenceDescription: text("evidence_description"),
+  similarityScore: integer("similarity_score"), // 0-100 percentage
+  
+  // Report status
+  status: varchar("status").notNull().default('pending'), // pending, submitted, resolved, rejected
+  submittedToOrgs: text("submitted_to_orgs").array(), // Organization IDs
+  
+  // User's Solturio registration proof
+  registrationNumber: varchar("registration_number"),
+  registrationDate: timestamp("registration_date"),
+  ipfsProofUrl: text("ipfs_proof_url"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertCopycatReportSchema = createInsertSchema(copycatReports).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  status: true,
+});
+
+export type InsertCopycatReport = z.infer<typeof insertCopycatReportSchema>;
+export type CopycatReport = typeof copycatReports.$inferSelect;
+
+// Outreach Letters sent to organizations
+export const outreachLetters = pgTable("outreach_letters", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  reportId: varchar("report_id").notNull().references(() => copycatReports.id, { onDelete: 'cascade' }),
+  organizationId: varchar("organization_id").notNull().references(() => organizations.id),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  
+  // Letter details
+  templateType: varchar("template_type").notNull(), // dmca, cease_desist, takedown_request
+  letterSubject: text("letter_subject").notNull(),
+  letterBody: text("letter_body").notNull(),
+  
+  // User customization
+  userContactName: varchar("user_contact_name"),
+  userContactEmail: varchar("user_contact_email"),
+  userContactPhone: varchar("user_contact_phone"),
+  userCompanyName: varchar("user_company_name"),
+  
+  // Sending details
+  sentAt: timestamp("sent_at"),
+  sentVia: varchar("sent_via"), // email, api, form_submission
+  responseReceived: boolean("response_received").default(false),
+  responseDate: timestamp("response_date"),
+  responseNotes: text("response_notes"),
+  
+  // Status
+  status: varchar("status").notNull().default('draft'), // draft, sent, responded, resolved
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type OutreachLetter = typeof outreachLetters.$inferSelect;
+
+// Variation Protections - similar names/tickers to protect against
+export const variationProtections = pgTable("variation_protections", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  logoId: varchar("logo_id").notNull().references(() => logos.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  
+  // Original
+  originalTicker: varchar("original_ticker").notNull(),
+  originalName: varchar("original_name"),
+  
+  // Protected variation
+  variationTicker: varchar("variation_ticker"),
+  variationName: varchar("variation_name"),
+  variationType: varchar("variation_type"), // dots, spaces, similar_chars, abbreviation
+  
+  // Examples: $CATH protects $C.A.T.H, $C-A-T-H, $C4TH, etc.
+  isAutoGenerated: boolean("is_auto_generated").default(false),
+  isApproved: boolean("is_approved").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type VariationProtection = typeof variationProtections.$inferSelect;
+
 // Quiz questions for IP education
 export const quizQuestions = pgTable("quiz_questions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
