@@ -277,19 +277,34 @@ export default function AccountPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b h-16 flex items-center px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Shield className="w-8 h-8 text-primary" />
-            <span className="text-xl font-semibold">Centurio</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/dashboard">Dashboard</Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild data-testid="button-logout">
-              <a href="/api/logout">Sign Out</a>
-            </Button>
+      <header className="border-b bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5">
+        <div className="h-20 flex items-center px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* Light Mode Logo - Dark colored logo for light backgrounds */}
+              <img 
+                src="/centurio-logo-light-mode.png"
+                alt="Centurio Logo for Light Mode"
+                className="w-14 h-14 object-contain dark:hidden"
+              />
+              {/* Dark Mode Logo - White colored logo for dark backgrounds */}
+              <img 
+                src="/centurio-logo-dark-mode.png"
+                alt="Centurio Logo for Dark Mode"
+                className="w-14 h-14 object-contain hidden dark:block"
+              />
+              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
+                Centurio
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild data-testid="button-logout">
+                <a href="/api/logout">Sign Out</a>
+              </Button>
+            </div>
           </div>
         </div>
       </header>

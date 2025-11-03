@@ -160,14 +160,29 @@ export default function Checkout() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b h-16 flex items-center px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 hover-elevate">
-            <Shield className="w-8 h-8 text-primary" />
-            <span className="text-xl font-semibold">Centurio</span>
-          </Link>
-          <div className="text-sm text-muted-foreground">
-            Step 2 of 3: Payment
+      <header className="border-b bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5">
+        <div className="h-20 flex items-center px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-3 hover-elevate">
+              {/* Light Mode Logo - Dark colored logo for light backgrounds */}
+              <img 
+                src="/centurio-logo-light-mode.png"
+                alt="Centurio Logo for Light Mode"
+                className="w-14 h-14 object-contain dark:hidden"
+              />
+              {/* Dark Mode Logo - White colored logo for dark backgrounds */}
+              <img 
+                src="/centurio-logo-dark-mode.png"
+                alt="Centurio Logo for Dark Mode"
+                className="w-14 h-14 object-contain hidden dark:block"
+              />
+              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
+                Centurio
+              </span>
+            </Link>
+            <div className="text-sm text-muted-foreground">
+              Step 2 of 3: Payment
+            </div>
           </div>
         </div>
       </header>
