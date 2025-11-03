@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 
 export default function NotFound() {
   useEffect(() => {
-    document.title = "Page Not Found - Centurio";
+    document.title = "Page Not Found - Solturio";
   }, []);
 
   return (
