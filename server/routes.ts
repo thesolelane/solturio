@@ -1006,6 +1006,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const storageRouter = await import("./routes/storage");
   app.use("/api/storage", storageRouter.default);
 
+  // ============================================
+  // Partnership & Outreach Documents
+  // ============================================
+  
+  // Generate Solana Foundation Proposal
+  app.get("/api/documents/solana-foundation-proposal", async (req, res) => {
+    try {
+      const { generateSolanaFoundationProposal } = await import("./documents/solana-foundation-proposal");
+      const pdfBuffer = await generateSolanaFoundationProposal();
+      
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", "attachment; filename=Centurio-Solana-Foundation-Proposal.pdf");
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating Solana Foundation proposal:", error);
+      res.status(500).json({ error: "Failed to generate proposal" });
+    }
+  });
+  
+  // Generate DEX Partnership Proposal
+  app.post("/api/documents/dex-partnership-proposal", async (req, res) => {
+    try {
+      const { dexName } = req.body;
+      const { generateDEXPartnershipProposal } = await import("./documents/dex-partnership-proposal");
+      const pdfBuffer = await generateDEXPartnershipProposal(dexName || "Your Platform");
+      
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename=Centurio-DEX-Partnership-${dexName || "Proposal"}.pdf`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Error generating DEX partnership proposal:", error);
+      res.status(500).json({ error: "Failed to generate proposal" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

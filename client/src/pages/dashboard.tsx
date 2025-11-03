@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
-import { Shield, Upload, Image as ImageIcon, Loader2, Gift, Sparkles, AlertCircle, Key, ExternalLink, User } from "lucide-react";
+import { Shield, Upload, Image as ImageIcon, Loader2, Gift, Sparkles, AlertCircle, Key, ExternalLink, User, Building2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -245,6 +245,27 @@ export default function Dashboard() {
             )}
           </Card>
         </div>
+
+        {/* Partnership & Outreach Section */}
+        <Card className="p-6 mb-8 border-primary/20">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold mb-2">Partnership & Outreach</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Download professional proposals for DEXs and the Solana Foundation to help spread Centurio
+              </p>
+              <Button asChild variant="outline" size="sm" data-testid="button-partnerships">
+                <Link href="/partnerships">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Access Partnership Materials
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </Card>
 
         {/* Quick Actions */}
         <div className="mb-12">
