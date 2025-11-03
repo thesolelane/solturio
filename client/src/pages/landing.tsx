@@ -58,15 +58,82 @@ export default function Landing() {
           <h1 className="text-4xl lg:text-5xl font-semibold mb-6">
             Plant Your Standard on Chain
           </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Create immutable, timestamped proof of ownership for your logos and trademarks. 
-            Mint NFTs on Solana to establish permanent IP protection.
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            <strong>Register First, Use Everywhere.</strong> Protect your PFP, logos, tickers, and images BEFORE posting on Twitter/X, Discord, or launching tokens. 
+            Gold check verified users get automatic takedown support.
           </p>
           <Button size="lg" className="gap-2" asChild data-testid="button-get-started">
             <a href="/api/login">
               Get Started Free <ArrowRight className="w-4 h-4" />
             </a>
           </Button>
+        </div>
+      </section>
+
+      {/* Workflow Section */}
+      <section className="py-12 px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-2xl font-semibold text-center mb-12">
+            The Solturio Protection Workflow
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-5xl mx-auto mb-12">
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <span className="text-lg font-bold">1</span>
+              </div>
+              <h3 className="font-semibold mb-1">Register First</h3>
+              <p className="text-sm text-muted-foreground">
+                Upload your PFP, logo, or ticker BEFORE using anywhere
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <span className="text-lg font-bold">2</span>
+              </div>
+              <h3 className="font-semibold mb-1">Get Gold Check</h3>
+              <p className="text-sm text-muted-foreground">
+                Receive verified URLs with blockchain proof
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <span className="text-lg font-bold">3</span>
+              </div>
+              <h3 className="font-semibold mb-1">Use Everywhere</h3>
+              <p className="text-sm text-muted-foreground">
+                Post on Twitter/X, launch tokens, build community
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-full bg-green-600/10 flex items-center justify-center mx-auto mb-3">
+                <CheckCircle2 className="w-6 h-6 text-green-600" />
+              </div>
+              <h3 className="font-semibold mb-1">We Handle Takedowns</h3>
+              <p className="text-sm text-muted-foreground">
+                Copycats? We contact platforms directly for removal
+              </p>
+            </div>
+          </div>
+          
+          <Card className="p-6 bg-primary/5 border-primary/20">
+            <div className="text-center">
+              <Shield className="w-10 h-10 text-primary mx-auto mb-3" />
+              <h3 className="text-lg font-semibold mb-2">Platform Support Network</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                We maintain direct contacts with IP teams at major platforms:
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                <div>✓ Twitter/X</div>
+                <div>✓ Telegram</div>
+                <div>✓ TikTok</div>
+                <div>✓ Discord</div>
+                <div>✓ Instagram</div>
+                <div>✓ DexScreener</div>
+                <div>✓ Raydium</div>
+                <div>✓ Pump.fun</div>
+              </div>
+            </div>
+          </Card>
         </div>
       </section>
 
@@ -79,25 +146,28 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="p-6">
               <Lock className="w-8 h-8 text-primary mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Immutable Proof</h3>
+              <h3 className="text-lg font-semibold mb-2">PFP & Logo Protection</h3>
               <p className="text-sm text-muted-foreground">
-                Blockchain timestamps create tamper-proof evidence of ownership that stands up in IP disputes and trademark applications.
+                Someone using your PFP on Twitter? We'll send takedown letters to X's IP team. 
+                Register before posting for guaranteed protection.
               </p>
             </Card>
             
             <Card className="p-6">
               <Clock className="w-8 h-8 text-primary mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Priority Evidence</h3>
+              <h3 className="text-lg font-semibold mb-2">Automated Takedowns</h3>
               <p className="text-sm text-muted-foreground">
-                Prove you owned the logo first. DEXScreener and exchanges prioritize takedown requests backed by blockchain proof.
+                Gold check users get priority support. We have direct contacts at Twitter/X, Telegram, 
+                TikTok, and DEX platforms for fast removal.
               </p>
             </Card>
             
             <Card className="p-6">
               <CheckCircle2 className="w-8 h-8 text-primary mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Auto-Documentation</h3>
+              <h3 className="text-lg font-semibold mb-2">For Everyone</h3>
               <p className="text-sm text-muted-foreground">
-                We automatically extract technical specs (dimensions, colors, format) and let you add custom descriptions for complete records.
+                Designers, token creators, influencers, KOLs, communities - anyone protecting their 
+                brand and image. No lawyers needed.
               </p>
             </Card>
           </div>
