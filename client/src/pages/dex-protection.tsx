@@ -84,11 +84,21 @@ export default function DexProtection() {
   const reportCopycatMutation = useMutation({
     mutationFn: async (data: {
       originalLogoId: string;
-      fraudulentTokenAddress: string;
+      copycatContractAddress: string;
+      copycatTicker?: string;
+      copycatName?: string;
       dexPlatform: string;
       evidenceUrl: string;
-      reporterEmail?: string;
-    }) => apiRequest('/api/dex/report-copycat', 'POST', data),
+      copycatTwitter?: string;
+      copycatTelegram?: string;
+      copycatWebsite?: string;
+      copycatTiktok?: string;
+      copycatFacebook?: string;
+      copycatInstagram?: string;
+      copycatDiscord?: string;
+      screenshotUrl?: string;
+      evidenceDescription?: string;
+    }) => apiRequest('/api/copycat/report', 'POST', data),
     onSuccess: (result) => {
       toast({
         title: "Report Submitted",
@@ -295,67 +305,211 @@ export default function DexProtection() {
                         Report Copycat
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Report Copycat Token</DialogTitle>
                         <DialogDescription>
-                          File a DMCA takedown for unauthorized use of {selectedLogo.fileName}
+                          Comprehensive report for unauthorized use of {selectedLogo.fileName}
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <div>
-                          <Label>Fraudulent Token Address</Label>
-                          <Input
-                            placeholder="0x..."
-                            id="fraudulent-address"
-                            data-testid="input-fraudulent-address"
-                          />
+                        {/* Copycat Token Details */}
+                        <div className="space-y-4 border rounded-lg p-4">
+                          <h3 className="font-semibold flex items-center gap-2">
+                            <Ban className="w-4 h-4" />
+                            Copycat Token Information
+                          </h3>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                              <Label>Contract Address (CA)*</Label>
+                              <Input
+                                placeholder="0x... or Solana address"
+                                id="copycat-ca"
+                                data-testid="input-copycat-ca"
+                              />
+                            </div>
+                            <div>
+                              <Label>Token Ticker</Label>
+                              <Input
+                                placeholder="$FAKE"
+                                id="copycat-ticker"
+                                data-testid="input-copycat-ticker"
+                              />
+                            </div>
+                            <div>
+                              <Label>Token Name</Label>
+                              <Input
+                                placeholder="Fake Token Name"
+                                id="copycat-name"
+                                data-testid="input-copycat-name"
+                              />
+                            </div>
+                            <div>
+                              <Label>Found on Platform*</Label>
+                              <Select id="dex-platform">
+                                <SelectTrigger data-testid="select-dex-platform">
+                                  <SelectValue placeholder="Select platform" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="dexscreener">DexScreener</SelectItem>
+                                  <SelectItem value="dextools">DexTools</SelectItem>
+                                  <SelectItem value="birdeye">Birdeye</SelectItem>
+                                  <SelectItem value="raydium">Raydium</SelectItem>
+                                  <SelectItem value="jupiter">Jupiter</SelectItem>
+                                  <SelectItem value="pumpfun">Pump.fun</SelectItem>
+                                  <SelectItem value="other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <Label>DEX Platform</Label>
-                          <Select id="dex-platform">
-                            <SelectTrigger data-testid="select-dex-platform">
-                              <SelectValue placeholder="Select platform" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="dexscreener">DexScreener</SelectItem>
-                              <SelectItem value="dextools">DexTools</SelectItem>
-                              <SelectItem value="birdeye">Birdeye</SelectItem>
-                              <SelectItem value="raydium">Raydium</SelectItem>
-                              <SelectItem value="jupiter">Jupiter</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
-                            </SelectContent>
-                          </Select>
+
+                        {/* Social Media Links */}
+                        <div className="space-y-4 border rounded-lg p-4">
+                          <h3 className="font-semibold flex items-center gap-2">
+                            <Link className="w-4 h-4" />
+                            Copycat Social Media Links
+                          </h3>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                              <Label>Twitter/X</Label>
+                              <Input
+                                placeholder="https://twitter.com/..."
+                                id="copycat-twitter"
+                                data-testid="input-copycat-twitter"
+                              />
+                            </div>
+                            <div>
+                              <Label>Telegram</Label>
+                              <Input
+                                placeholder="https://t.me/..."
+                                id="copycat-telegram"
+                                data-testid="input-copycat-telegram"
+                              />
+                            </div>
+                            <div>
+                              <Label>Website</Label>
+                              <Input
+                                placeholder="https://..."
+                                id="copycat-website"
+                                data-testid="input-copycat-website"
+                              />
+                            </div>
+                            <div>
+                              <Label>Discord</Label>
+                              <Input
+                                placeholder="https://discord.gg/..."
+                                id="copycat-discord"
+                                data-testid="input-copycat-discord"
+                              />
+                            </div>
+                            <div>
+                              <Label>TikTok</Label>
+                              <Input
+                                placeholder="https://tiktok.com/..."
+                                id="copycat-tiktok"
+                                data-testid="input-copycat-tiktok"
+                              />
+                            </div>
+                            <div>
+                              <Label>Facebook</Label>
+                              <Input
+                                placeholder="https://facebook.com/..."
+                                id="copycat-facebook"
+                                data-testid="input-copycat-facebook"
+                              />
+                            </div>
+                            <div>
+                              <Label>Instagram</Label>
+                              <Input
+                                placeholder="https://instagram.com/..."
+                                id="copycat-instagram"
+                                data-testid="input-copycat-instagram"
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <Label>Evidence URL</Label>
-                          <Input
-                            placeholder="Link to copycat listing"
-                            id="evidence-url"
-                            data-testid="input-evidence-url"
-                          />
-                        </div>
-                        <div>
-                          <Label>Additional Notes</Label>
-                          <Textarea
-                            placeholder="Describe the infringement..."
-                            id="notes"
-                            data-testid="input-notes"
-                          />
+
+                        {/* Evidence */}
+                        <div className="space-y-4 border rounded-lg p-4">
+                          <h3 className="font-semibold flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            Evidence & Documentation
+                          </h3>
+                          <div>
+                            <Label>Evidence URL*</Label>
+                            <Input
+                              placeholder="Direct link to copycat listing"
+                              id="evidence-url"
+                              data-testid="input-evidence-url"
+                            />
+                          </div>
+                          <div>
+                            <Label>Screenshot URL</Label>
+                            <Input
+                              placeholder="Link to screenshot evidence"
+                              id="screenshot-url"
+                              data-testid="input-screenshot-url"
+                            />
+                          </div>
+                          <div>
+                            <Label>Description of Infringement</Label>
+                            <Textarea
+                              placeholder="Describe how they're copying your logo, ticker, or name..."
+                              id="evidence-description"
+                              rows={3}
+                              data-testid="input-evidence-description"
+                            />
+                          </div>
                         </div>
                         <Button
                           className="w-full"
                           onClick={() => {
-                            const fraudulentAddress = (document.getElementById('fraudulent-address') as HTMLInputElement)?.value;
+                            // Required fields
+                            const copycatCA = (document.getElementById('copycat-ca') as HTMLInputElement)?.value;
                             const dexPlatform = (document.getElementById('dex-platform') as HTMLSelectElement)?.value;
                             const evidenceUrl = (document.getElementById('evidence-url') as HTMLInputElement)?.value;
                             
-                            if (selectedLogo && fraudulentAddress && dexPlatform && evidenceUrl) {
+                            // Optional fields
+                            const copycatTicker = (document.getElementById('copycat-ticker') as HTMLInputElement)?.value;
+                            const copycatName = (document.getElementById('copycat-name') as HTMLInputElement)?.value;
+                            
+                            // Social media
+                            const copycatTwitter = (document.getElementById('copycat-twitter') as HTMLInputElement)?.value;
+                            const copycatTelegram = (document.getElementById('copycat-telegram') as HTMLInputElement)?.value;
+                            const copycatWebsite = (document.getElementById('copycat-website') as HTMLInputElement)?.value;
+                            const copycatDiscord = (document.getElementById('copycat-discord') as HTMLInputElement)?.value;
+                            const copycatTiktok = (document.getElementById('copycat-tiktok') as HTMLInputElement)?.value;
+                            const copycatFacebook = (document.getElementById('copycat-facebook') as HTMLInputElement)?.value;
+                            const copycatInstagram = (document.getElementById('copycat-instagram') as HTMLInputElement)?.value;
+                            
+                            // Evidence
+                            const screenshotUrl = (document.getElementById('screenshot-url') as HTMLInputElement)?.value;
+                            const evidenceDescription = (document.getElementById('evidence-description') as HTMLTextAreaElement)?.value;
+                            
+                            if (selectedLogo && copycatCA && dexPlatform && evidenceUrl) {
                               reportCopycatMutation.mutate({
                                 originalLogoId: selectedLogo.id,
-                                fraudulentTokenAddress: fraudulentAddress,
+                                copycatContractAddress: copycatCA,
+                                copycatTicker: copycatTicker || undefined,
+                                copycatName: copycatName || undefined,
                                 dexPlatform,
                                 evidenceUrl,
+                                copycatTwitter: copycatTwitter || undefined,
+                                copycatTelegram: copycatTelegram || undefined,
+                                copycatWebsite: copycatWebsite || undefined,
+                                copycatDiscord: copycatDiscord || undefined,
+                                copycatTiktok: copycatTiktok || undefined,
+                                copycatFacebook: copycatFacebook || undefined,
+                                copycatInstagram: copycatInstagram || undefined,
+                                screenshotUrl: screenshotUrl || undefined,
+                                evidenceDescription: evidenceDescription || undefined,
+                              });
+                            } else {
+                              toast({
+                                title: "Missing Required Fields",
+                                description: "Please fill in Contract Address, Platform, and Evidence URL",
+                                variant: "destructive",
                               });
                             }
                           }}
@@ -366,7 +520,7 @@ export default function DexProtection() {
                           ) : (
                             <FileText className="w-4 h-4 mr-2" />
                           )}
-                          Submit DMCA Takedown
+                          Submit Comprehensive Report
                         </Button>
                       </div>
                     </DialogContent>
