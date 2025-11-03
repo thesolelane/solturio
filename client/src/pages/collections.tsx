@@ -68,18 +68,18 @@ export default function Collections() {
             <Link href="/" className="flex items-center gap-3 hover-elevate">
               {/* Light Mode Logo - Dark colored logo for light backgrounds */}
               <img 
-                src="/centurio-logo-light-mode.png"
-                alt="Centurio Logo for Light Mode"
+                src="/solturio-logo-light-mode.png"
+                alt="Solturio Logo for Light Mode"
                 className="w-14 h-14 object-contain dark:hidden"
               />
               {/* Dark Mode Logo - White colored logo for dark backgrounds */}
               <img 
-                src="/centurio-logo-dark-mode.png"
-                alt="Centurio Logo for Dark Mode"
+                src="/solturio-logo-dark-mode.png"
+                alt="Solturio Logo for Dark Mode"
                 className="w-14 h-14 object-contain hidden dark:block"
               />
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-                Centurio
+                Solturio
               </span>
             </Link>
             <Button variant="outline" size="sm" asChild>

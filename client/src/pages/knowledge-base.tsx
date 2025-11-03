@@ -6,7 +6,7 @@ import { Shield, Copyright, Verified, AlertCircle } from "lucide-react";
 
 export default function KnowledgeBase() {
   useEffect(() => {
-    document.title = "IP Knowledge Base - Centurio";
+    document.title = "IP Knowledge Base - Solturio";
   }, []);
 
   return (
@@ -27,7 +27,7 @@ export default function KnowledgeBase() {
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <p>
-            <strong>Centurio is NOT a law firm and does not provide legal advice.</strong> We provide 
+            <strong>Solturio is NOT a law firm and does not provide legal advice.</strong> We provide 
             technology tools to help you create blockchain-based proof of logo ownership and manage your 
             digital assets.
           </p>
@@ -530,7 +530,7 @@ export default function KnowledgeBase() {
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground">
                       SaaS platforms, software development, hosting services, IT consulting, blockchain services.
-                      <p className="font-semibold text-primary mt-2">Perfect for Centurio!</p>
+                      <p className="font-semibold text-primary mt-2">Perfect for Solturio!</p>
                     </CardContent>
                   </Card>
 

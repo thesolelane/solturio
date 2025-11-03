@@ -45,7 +45,7 @@ export default function Upload() {
 
   // Set page title
   useEffect(() => {
-    document.title = "Upload Logo - Centurio";
+    document.title = "Upload Logo - Solturio";
   }, []);
 
   // Redirect if not authenticated
@@ -255,7 +255,7 @@ export default function Upload() {
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 hover-elevate">
             <Shield className="w-8 h-8 text-primary" />
-            <span className="text-xl font-semibold">Centurio</span>
+            <span className="text-xl font-semibold">Solturio</span>
           </Link>
           <Button variant="outline" size="sm" asChild>
             <Link href="/">Dashboard</Link>
@@ -267,7 +267,7 @@ export default function Upload() {
         <div className="mb-8">
           <h1 className="text-3xl font-semibold mb-2">Register Logo Ownership</h1>
           <p className="text-muted-foreground">
-            Register your logo metadata and ownership claims. Files will be stored in your personal .centurio.sol wallet.
+            Register your logo metadata and ownership claims. Files will be stored in your personal .solturio.sol wallet.
           </p>
         </div>
 
@@ -278,8 +278,8 @@ export default function Upload() {
             <div>
               <h3 className="font-medium mb-1">How It Works</h3>
               <p className="text-sm text-muted-foreground">
-                Centurio stores only JSON metadata with ownership claims, timestamps, and IP protection information.
-                Your actual image files will be stored in your personal .centurio.sol wallet for complete control.
+                Solturio stores only JSON metadata with ownership claims, timestamps, and IP protection information.
+                Your actual image files will be stored in your personal .solturio.sol wallet for complete control.
               </p>
             </div>
           </div>
@@ -347,12 +347,12 @@ export default function Upload() {
           <div>
             <h3 className="text-lg font-semibold mb-2">Or Provide Image URL</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              If your logo is already hosted online (e.g., in your .centurio.sol wallet or IPFS), provide the URL
+              If your logo is already hosted online (e.g., in your .solturio.sol wallet or IPFS), provide the URL
             </p>
             <div className="flex gap-2">
               <Input
                 type="url"
-                placeholder="https://your-wallet.centurio.sol/logo.png"
+                placeholder="https://your-wallet.solturio.sol/logo.png"
                 className="flex-1"
                 value={imageUrlInput}
                 onChange={(e) => setImageUrlInput(e.target.value)}

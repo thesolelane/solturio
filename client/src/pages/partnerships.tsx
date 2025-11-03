@@ -33,7 +33,7 @@ export default function Partnerships() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "Centurio-Solana-Foundation-Proposal.pdf";
+      a.download = "Solturio-Solana-Foundation-Proposal.pdf";
       a.click();
       window.URL.revokeObjectURL(url);
       
@@ -74,7 +74,7 @@ export default function Partnerships() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Centurio-DEX-Partnership-${dexName}.pdf`;
+      a.download = `Solturio-DEX-Partnership-${dexName}.pdf`;
       a.click();
       window.URL.revokeObjectURL(url);
       
@@ -102,18 +102,18 @@ export default function Partnerships() {
             <div className="flex items-center gap-3">
               {/* Light Mode Logo - Dark colored logo for light backgrounds */}
               <img 
-                src="/centurio-logo-light-mode.png"
-                alt="Centurio Logo for Light Mode"
+                src="/solturio-logo-light-mode.png"
+                alt="Solturio Logo for Light Mode"
                 className="w-14 h-14 object-contain dark:hidden"
               />
               {/* Dark Mode Logo - White colored logo for dark backgrounds */}
               <img 
-                src="/centurio-logo-dark-mode.png"
-                alt="Centurio Logo for Dark Mode"
+                src="/solturio-logo-dark-mode.png"
+                alt="Solturio Logo for Dark Mode"
                 className="w-14 h-14 object-contain hidden dark:block"
               />
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-                Centurio
+                Solturio
               </span>
             </div>
             <Button variant="outline" asChild>
@@ -128,7 +128,7 @@ export default function Partnerships() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-4">Partnership & Outreach</h1>
           <p className="text-lg text-muted-foreground">
-            Download professional proposals and partnership materials to share Centurio with DEXs, investors, and the Solana ecosystem
+            Download professional proposals and partnership materials to share Solturio with DEXs, investors, and the Solana ecosystem
           </p>
         </div>
 
@@ -333,7 +333,7 @@ export default function Partnerships() {
         <Card className="p-6 mt-8 bg-gradient-to-r from-primary/5 to-background">
           <h3 className="text-xl font-semibold mb-3">Ready to Partner?</h3>
           <p className="text-muted-foreground mb-4">
-            Contact our partnership team to discuss how Centurio can protect your platform from IP theft and copycats.
+            Contact our partnership team to discuss how Solturio can protect your platform from IP theft and copycats.
           </p>
           <div className="flex flex-wrap gap-4">
             <div className="flex items-center gap-2 text-sm">
