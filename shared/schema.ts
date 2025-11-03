@@ -449,17 +449,30 @@ export type VariationProtection = typeof variationProtections.$inferSelect;
 // Quiz questions for IP education
 export const quizQuestions = pgTable("quiz_questions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  category: varchar("category", { length: 100 }).notNull(), // Trademark Basics, Copyright Law, IP Symbols, etc
-  difficulty: varchar("difficulty", { length: 20 }).notNull(), // easy, medium, hard
+  category: varchar("category", { length: 100 }).notNull(), // USPTO Trademarks, WIPO Basics, EUIPO Rights, EPO Patents, etc
+  difficulty: varchar("difficulty", { length: 20 }).notNull(), // easy, medium, hard, expert
   points: integer("points").notNull(), // 100, 200, 300, 400, 500
   
   question: text("question").notNull(),
-  answer: text("answer").notNull(),
+  options: text("options").array().notNull(), // Multiple choice options [A, B, C, D]
+  answer: text("answer").notNull(), // The correct option
+  hint: text("hint"), // Hint text that helps eliminate 2 wrong answers
   explanation: text("explanation"), // Detailed explanation with source
-  sourceUrl: text("source_url"), // Link to official source (USPTO, Copyright.gov)
+  
+  sourceAuthority: varchar("source_authority", { length: 50 }), // USPTO, WIPO, EUIPO, EPO
+  sourceUrl: text("source_url"), // Link to official source
+  sourceCitation: text("source_citation"), // Official document citation
+  
+  roundNumber: integer("round_number"), // 1-3 (for progressive difficulty)
+  questionOrder: integer("question_order"), // 1-15 (position in round)
+  
+  usageCount: integer("usage_count").default(0), // Track how often used
+  correctCount: integer("correct_count").default(0), // Track correct answers
+  hintUsageCount: integer("hint_usage_count").default(0), // Track hint usage
   
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export type QuizQuestion = typeof quizQuestions.$inferSelect;
@@ -475,7 +488,11 @@ export const quizAttempts = pgTable("quiz_attempts", {
   pointsEarned: integer("points_earned").notNull(),
   cathReward: varchar("cath_reward"), // Amount of $CATH earned (as string for precision)
   
+  hintUsed: boolean("hint_used").default(false), // Track if hint was used
+  pointsBeforeHint: integer("points_before_hint"), // Original points before 75% reduction
+  
   timeToAnswer: integer("time_to_answer"), // Time in seconds
+  battleId: varchar("battle_id"), // If part of a battle
   
   createdAt: timestamp("created_at").defaultNow(),
 });

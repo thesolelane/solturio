@@ -48,7 +48,7 @@ export default function IPQuiz() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedPoints, setSelectedPoints] = useState<number | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<QuizQuestion | null>(null);
-  const [userAnswer, setUserAnswer] = useState("");
+  const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [showAnswer, setShowAnswer] = useState(false);
   const [timeLeft, setTimeLeft] = useState(30);
   const [isTimerActive, setIsTimerActive] = useState(false);
@@ -56,6 +56,8 @@ export default function IPQuiz() {
   const [sessionStreak, setSessionStreak] = useState(0);
   const [showCathReward, setShowCathReward] = useState(false);
   const [cathEarned, setCathEarned] = useState<string>("0");
+  const [hintUsed, setHintUsed] = useState(false);
+  const [eliminatedOptions, setEliminatedOptions] = useState<string[]>([]);
 
   // Fetch user stats
   const { data: stats } = useQuery<QuizStats>({
@@ -70,10 +72,16 @@ export default function IPQuiz() {
 
   // Submit answer mutation
   const submitAnswerMutation = useMutation({
-    mutationFn: async ({ questionId, answer }: { questionId: string; answer: string }) => {
+    mutationFn: async ({ questionId, answer, hintUsed }: { questionId: string; answer: string; hintUsed: boolean }) => {
       return apiRequest("/api/quiz/answer", {
         method: "POST",
-        body: { questionId, answer, timeToAnswer: 30 - timeLeft },
+        body: { 
+          questionId, 
+          answer, 
+          timeToAnswer: 30 - timeLeft,
+          hintUsed,
+          originalPoints: selectedPoints
+        },
       });
     },
     onSuccess: (data: any) => {
@@ -128,10 +136,50 @@ export default function IPQuiz() {
     });
   };
 
+  // Mock multiple choice questions
+  const getMockQuestion = (category: string, points: number) => {
+    const mockQuestions = [
+      {
+        question: "What symbol indicates a registered trademark in the United States?",
+        options: ["™", "®", "©", "℠"],
+        answer: "®",
+        explanation: "The ® symbol (R in a circle) indicates a federally registered trademark. It can only be used after USPTO registration is complete.",
+      },
+      {
+        question: "How long does copyright protection typically last for individual creators?",
+        options: ["20 years", "50 years", "Life + 70 years", "100 years"],
+        answer: "Life + 70 years",
+        explanation: "Under WIPO and most national laws, copyright lasts for the life of the creator plus 70 years after death.",
+      },
+      {
+        question: "What is the maximum duration for EU design protection?",
+        options: ["10 years", "15 years", "20 years", "25 years"],
+        answer: "25 years",
+        explanation: "EUIPO registered community designs can be protected for up to 25 years with renewals every 5 years.",
+      }
+    ];
+    
+    const selected = mockQuestions[Math.floor(Math.random() * mockQuestions.length)];
+    return {
+      id: `mock-${Date.now()}`,
+      category,
+      difficulty: points <= 200 ? "easy" : points <= 400 ? "medium" : "hard",
+      points,
+      ...selected,
+      sourceUrl: category.includes("USPTO") ? "https://www.uspto.gov" : 
+                 category.includes("WIPO") ? "https://www.wipo.int" :
+                 category.includes("EUIPO") ? "https://euipo.europa.eu" : "https://www.epo.org",
+      isActive: true,
+      createdAt: new Date(),
+    };
+  };
+
   // Select a question
   const selectQuestion = (category: string, points: number) => {
     setSelectedCategory(category);
     setSelectedPoints(points);
+    setHintUsed(false);
+    setEliminatedOptions([]);
     
     // Get a random question for this category/points
     const questions = availableQuestions.filter(
@@ -141,38 +189,48 @@ export default function IPQuiz() {
     if (questions.length > 0) {
       const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
       setCurrentQuestion(randomQuestion);
-      setUserAnswer("");
+      setSelectedAnswer("");
       setShowAnswer(false);
       setTimeLeft(30);
       setIsTimerActive(true);
     } else {
-      // Mock question if none available
-      setCurrentQuestion({
-        id: "mock-1",
-        category,
-        difficulty: points <= 200 ? "easy" : points <= 400 ? "medium" : "hard",
-        points,
-        question: `What symbol indicates a registered trademark in the United States?`,
-        answer: "®",
-        explanation: "The ® symbol (R in a circle) indicates a federally registered trademark. It can only be used after USPTO registration is complete.",
-        sourceUrl: "https://www.uspto.gov/trademarks",
-        isActive: true,
-        createdAt: new Date(),
-      });
-      setUserAnswer("");
+      // Use mock question if none available
+      const mockQuestion = getMockQuestion(category, points);
+      setCurrentQuestion(mockQuestion as any);
+      setSelectedAnswer("");
       setShowAnswer(false);
       setTimeLeft(30);
       setIsTimerActive(true);
     }
   };
 
+  // Use hint (eliminates 2 wrong answers, reduces points by 75%)
+  const useHint = () => {
+    if (!currentQuestion || hintUsed || showAnswer) return;
+    
+    const options = (currentQuestion as any).options || ["A", "B", "C", "D"];
+    const correctAnswer = currentQuestion.answer;
+    const wrongOptions = options.filter((opt: string) => opt !== correctAnswer);
+    
+    // Randomly eliminate 2 wrong answers
+    const toEliminate = wrongOptions.sort(() => Math.random() - 0.5).slice(0, 2);
+    setEliminatedOptions(toEliminate);
+    setHintUsed(true);
+    
+    toast({
+      title: "Hint Used! 💡",
+      description: "2 wrong answers eliminated. Points reduced by 75%.",
+    });
+  };
+
   // Submit answer
   const handleSubmitAnswer = () => {
-    if (!currentQuestion || !userAnswer.trim()) return;
+    if (!currentQuestion || !selectedAnswer) return;
     
     submitAnswerMutation.mutate({
       questionId: currentQuestion.id,
-      answer: userAnswer,
+      answer: selectedAnswer,
+      hintUsed: hintUsed,
     });
   };
 
