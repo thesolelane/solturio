@@ -85,8 +85,7 @@ export default function IPQuiz() {
       });
     },
     onSuccess: (data: any) => {
-      setShowAnswer(true);
-      setIsTimerActive(false);
+      // Timer and answer are already shown immediately on submit
       
       if (data.isCorrect) {
         setSessionScore(sessionScore + data.pointsEarned);
@@ -226,6 +225,10 @@ export default function IPQuiz() {
   // Submit answer
   const handleSubmitAnswer = () => {
     if (!currentQuestion || !selectedAnswer) return;
+    
+    // Immediately stop timer and show answer
+    setIsTimerActive(false);
+    setShowAnswer(true);
     
     submitAnswerMutation.mutate({
       questionId: currentQuestion.id,
