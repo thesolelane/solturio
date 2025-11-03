@@ -166,8 +166,8 @@ export default function Landing() {
               <CheckCircle2 className="w-8 h-8 text-primary mb-4" />
               <h3 className="text-lg font-semibold mb-2">For Everyone</h3>
               <p className="text-sm text-muted-foreground">
-                Designers, token creators, influencers, KOLs, communities - anyone protecting their 
-                brand and image. No lawyers needed.
+                Brands, communities, designers, token creators, influencers, KOLs - anyone protecting 
+                their image and intellectual property. No lawyers needed.
               </p>
             </Card>
           </div>
