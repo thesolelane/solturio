@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Centurio Community Support
+    url: https://discord.gg/centurio
+    about: Please ask and answer questions here
+  - name: Centurio Documentation
+    url: https://docs.centurio.app
+    about: Check our documentation for guides and API reference
+  - name: Partnership Inquiries
+    url: mailto:partnerships@centurio.app
+    about: For DEX platforms and enterprise partnerships
