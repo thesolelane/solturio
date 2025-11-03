@@ -11,7 +11,8 @@ import {
   Lock,
   BarChart3,
   Building2,
-  Users
+  Users,
+  Brain
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -112,6 +113,12 @@ export function AppSidebar() {
       title: "IP Protection Guide",
       url: "/ip-guide",
       icon: FileText,
+      requireAuth: false,
+    },
+    {
+      title: "IP Quiz Game",
+      url: "/ip-quiz",
+      icon: Brain,
       requireAuth: false,
     },
   ];
