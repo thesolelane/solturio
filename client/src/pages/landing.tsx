@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { Shield, Lock, Clock, CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import centurioLogoDark from "@assets/centurio_logo_dark_1762130141292.png";
+import centurioLogoWhite from "@assets/centurio_logo_white_1762130141293.png";
 
 export default function Landing() {
   useEffect(() => {
@@ -17,14 +19,14 @@ export default function Landing() {
             <div className="flex items-center gap-3">
               {/* Light Mode Logo - Dark colored logo for light backgrounds */}
               <img 
-                src="/centurio-logo-light-mode.png"
-                alt="Centurio Logo for Light Mode"
+                src={centurioLogoDark}
+                alt="Centurio Logo"
                 className="w-14 h-14 object-contain dark:hidden"
               />
               {/* Dark Mode Logo - White colored logo for dark backgrounds */}
               <img 
-                src="/centurio-logo-dark-mode.png"
-                alt="Centurio Logo for Dark Mode"
+                src={centurioLogoWhite}
+                alt="Centurio Logo"
                 className="w-14 h-14 object-contain hidden dark:block"
               />
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
@@ -44,12 +46,12 @@ export default function Landing() {
           {/* Centurio Logo */}
           <div className="mb-8 flex justify-center">
             <img 
-              src="/centurio-logo-dark.png"
+              src={centurioLogoDark}
               alt="Centurio"
               className="w-48 h-48 object-contain dark:hidden"
             />
             <img 
-              src="/centurio-logo-white.png"
+              src={centurioLogoWhite}
               alt="Centurio"
               className="w-48 h-48 object-contain hidden dark:block"
             />
@@ -107,39 +109,42 @@ export default function Landing() {
       <section className="py-16 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl font-semibold text-center mb-12">
-            Simple, Transparent Pricing
+            Pay with Crypto - No Fiat
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             <Card className="p-6 border-2">
               <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Starter</h3>
-                <div className="text-3xl font-bold mb-4">$49</div>
+                <h3 className="text-lg font-semibold mb-2">Solana</h3>
+                <div className="text-3xl font-bold mb-2">0.5 SOL</div>
+                <div className="text-sm text-muted-foreground mb-4">or 100,000 BONK</div>
                 <p className="text-sm text-muted-foreground mb-6">Up to 5 logos</p>
                 <Button className="w-full" variant="outline" asChild data-testid="button-pricing-starter">
-                  <a href="/api/login">Get Started</a>
+                  <a href="/api/login">Pay with SOL</a>
                 </Button>
               </div>
             </Card>
             
             <Card className="p-6 border-2 border-primary">
               <div className="text-center">
-                <div className="text-xs font-semibold text-primary mb-2">MOST POPULAR</div>
-                <h3 className="text-lg font-semibold mb-2">Professional</h3>
-                <div className="text-3xl font-bold mb-4">$99</div>
+                <div className="text-xs font-semibold text-primary mb-2">BEST VALUE - 50% OFF</div>
+                <h3 className="text-lg font-semibold mb-2">$CATH Token</h3>
+                <div className="text-3xl font-bold mb-2">500 CATH</div>
+                <div className="text-sm text-green-600 dark:text-green-400 line-through mb-1">1,000 CATH</div>
                 <p className="text-sm text-muted-foreground mb-6">Up to 20 logos</p>
                 <Button className="w-full" asChild data-testid="button-pricing-professional">
-                  <a href="/api/login">Get Started</a>
+                  <a href="/api/login">Pay with CATH</a>
                 </Button>
               </div>
             </Card>
             
             <Card className="p-6 border-2">
               <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Enterprise</h3>
-                <div className="text-3xl font-bold mb-4">$299</div>
-                <p className="text-sm text-muted-foreground mb-6">Unlimited logos</p>
+                <h3 className="text-lg font-semibold mb-2">Arweave Storage</h3>
+                <div className="text-2xl font-bold mb-2">1 AR</div>
+                <div className="text-sm text-muted-foreground mb-4">+ 0.3 SOL network fee</div>
+                <p className="text-sm text-muted-foreground mb-6">Permanent storage, unlimited logos</p>
                 <Button className="w-full" variant="outline" asChild data-testid="button-pricing-enterprise">
-                  <a href="/api/login">Get Started</a>
+                  <a href="/api/login">Pay with AR</a>
                 </Button>
               </div>
             </Card>
