@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { 
   Shield, 
   AlertTriangle, 
+  AlertCircle,
   CheckCircle, 
   Copy, 
   Ban,
