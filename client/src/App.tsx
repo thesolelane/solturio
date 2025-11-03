@@ -24,6 +24,7 @@ import AdminClaims from "@/pages/admin-claims";
 import KnowledgeBase from "@/pages/knowledge-base";
 import IPGuide from "@/pages/ip-guide";
 import IPQuiz from "@/pages/ip-quiz";
+import IPQuizBattle from "@/pages/ip-quiz-battle";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -50,6 +51,7 @@ function Router() {
       <Route path="/knowledge-base" component={KnowledgeBase} />
       <Route path="/ip-guide" component={IPGuide} />
       <Route path="/ip-quiz" component={IPQuiz} />
+      <Route path="/ip-quiz-battle" component={IPQuizBattle} />
       <Route component={NotFound} />
     </Switch>
   );
