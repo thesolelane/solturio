@@ -27,8 +27,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-import { useEffect } from "react";
-
 export default function DexIntroduction() {
   const { toast } = useToast();
   const [copiedCode, setCopiedCode] = useState(false);
