@@ -19,10 +19,79 @@ import {
   Rocket
 } from "lucide-react";
 
-export default function Partnerships() {
+import { useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { Lock } from "lucide-react";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+// Admin email whitelist - should match admin-dashboard.tsx
+const ADMIN_EMAILS = [
+  "admin@solturio.app",
+  "admin@cooperanth.com",
+];
+
+export default function AdminPartnerships() {
   const [dexName, setDexName] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    document.title = "Partnership Tools - Solturio Admin";
+  }, []);
+
+  // Check if user is admin
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && user?.email) {
+      const adminAccess = ADMIN_EMAILS.includes(user.email.toLowerCase());
+      setIsAdmin(adminAccess);
+      
+      if (!adminAccess) {
+        toast({
+          title: "Access Denied",
+          description: "Admin access required for partnership tools",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 2000);
+      }
+    } else if (!authLoading && !isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to access admin tools",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+    }
+  }, [user, isAuthenticated, authLoading, toast]);
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-pulse">Loading partnership tools...</div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="max-w-md">
+          <CardHeader>
+            <Lock className="w-8 h-8 text-destructive mx-auto mb-2" />
+            <CardTitle className="text-center">Admin Access Required</CardTitle>
+            <CardDescription className="text-center">
+              Partnership tools are restricted to Solturio administrators.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   const downloadSolanaProposal = async () => {
     try {
