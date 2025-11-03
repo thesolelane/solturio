@@ -100,7 +100,7 @@ export default function DexProtection() {
       screenshotUrl?: string;
       evidenceDescription?: string;
     }) => apiRequest('/api/copycat/report', 'POST', data),
-    onSuccess: (result) => {
+    onSuccess: (result: any) => {
       toast({
         title: "Report Submitted",
         description: `Report ID: ${result.reportId}. We'll send a DMCA notice to the platform.`,
@@ -125,11 +125,31 @@ export default function DexProtection() {
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">DEX Protection</h1>
-        <p className="text-muted-foreground">
-          Protect your logos from copycats on decentralized exchanges
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-bold mb-2">Get Protected on DEX Platforms</h1>
+        <p className="text-lg text-muted-foreground mb-4">
+          Register your logos and tickers BEFORE launching to prevent copycats
         </p>
+        <div className="flex gap-4 justify-center">
+          <Button size="lg" asChild className="gap-2">
+            <a href="/upload">
+              <Shield className="w-4 h-4" />
+              Get Protected Now
+            </a>
+          </Button>
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="gap-2"
+            onClick={() => {
+              const reportSection = document.getElementById('report-section');
+              reportSection?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            <ShieldAlert className="w-4 h-4" />
+            Report IP Theft
+          </Button>
+        </div>
       </div>
 
       {/* Pre-registration workflow */}
@@ -259,34 +279,34 @@ export default function DexProtection() {
           </CardContent>
         </Card>
 
-        {/* Report Copycat */}
-        <Card>
+        {/* Report IP Theft */}
+        <Card id="report-section">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ShieldAlert className="w-5 h-5" />
-              Report Unauthorized Logo Use
+              Report IP Theft
             </CardTitle>
             <CardDescription>
-              Capture contract addresses using your logo without authorization
+              Report CAs or individuals using your intellectual property without permission
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {logos.length === 0 ? (
               <Alert>
                 <AlertDescription>
-                  Upload logos first to report copycats
+                  Get protected first - upload your logos to report IP theft
                 </AlertDescription>
               </Alert>
             ) : (
               <>
                 <div className="space-y-2">
-                  <Label>Select Your Logo</Label>
+                  <Label>Select Your Protected Logo</Label>
                   <Select onValueChange={(value) => {
                     const logo = logos.find(l => l.id === value);
                     setSelectedLogo(logo || null);
                   }}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose logo to protect" />
+                      <SelectValue placeholder="Choose which IP was stolen" />
                     </SelectTrigger>
                     <SelectContent>
                       {logos.map((logo) => (
@@ -303,28 +323,28 @@ export default function DexProtection() {
                     <DialogTrigger asChild>
                       <Button className="w-full" variant="destructive">
                         <Ban className="w-4 h-4 mr-2" />
-                        Report Unauthorized CA
+                        Report CA Using My IP
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle>Report Unauthorized Logo Use</DialogTitle>
+                        <DialogTitle>Report IP Theft</DialogTitle>
                         <DialogDescription>
-                          Capture contract address using {selectedLogo.fileName} without authorization
+                          Report contract address or individual stealing your intellectual property: {selectedLogo.fileName}
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
-                        {/* Copycat Token Details */}
+                        {/* IP Theft Details */}
                         <div className="space-y-4 border rounded-lg p-4">
                           <h3 className="font-semibold flex items-center gap-2">
                             <Ban className="w-4 h-4" />
-                            Unauthorized Contract Address (CA) Using Your Logo
+                            Contract Address (CA) Stealing Your IP
                           </h3>
                           <div className="grid md:grid-cols-2 gap-4">
                             <div>
-                              <Label>Copycat Contract Address*</Label>
+                              <Label>Thief's Contract Address*</Label>
                               <Input
-                                placeholder="Enter the CA using your logo without permission"
+                                placeholder="CA using your IP without permission"
                                 id="copycat-ca"
                                 data-testid="input-copycat-ca"
                               />
@@ -347,7 +367,7 @@ export default function DexProtection() {
                             </div>
                             <div>
                               <Label>Found on Platform*</Label>
-                              <Select id="dex-platform">
+                              <Select>
                                 <SelectTrigger data-testid="select-dex-platform">
                                   <SelectValue placeholder="Select platform" />
                                 </SelectTrigger>

@@ -13,6 +13,20 @@ Solturio is a fully decentralized web application that enables users to protect 
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Updates (November 2025)
+
+### Clear Protection Messaging
+- DEX Protection page now clearly shows "Get Protected" call-to-action
+- "Report" functionality explicitly labeled as "Report IP Theft" for CAs or individuals using intellectual property without permission
+- Distinction between getting protection (registering first) vs reporting theft (when someone steals your IP)
+
+### Landing Page Enhancements  
+- Added WIPO-inspired messaging: "IP IS A JOURNEY - BLOCKCHAIN IS YOUR BEST FRIEND"
+- New section on IP as daily practice, not one-time activity
+- Emphasis on evolving digital assets, employee mobility, partnership protection
+- Clear workflow: Register First → Get Gold Check → Use Everywhere → We Handle Takedowns
+- Platform support network display showing direct contacts with Twitter/X, DEX platforms, social media
+
 ## Recent Updates (October 2025)
 
 ### Authorized Usage Tracking
