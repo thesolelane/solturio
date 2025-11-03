@@ -7,8 +7,8 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
         size: "A4",
         margins: { top: 50, bottom: 50, left: 50, right: 50 },
         info: {
-          Title: "Centurio - Solana Ecosystem IP Protection Platform",
-          Author: "Centurio Team",
+          Title: "Solturio - Solana Ecosystem IP Protection Platform",
+          Author: "Solturio Team",
           Subject: "Partnership Proposal for Solana Foundation",
           CreationDate: new Date(),
         },
@@ -18,9 +18,9 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       doc.on("data", (chunk) => buffers.push(chunk));
       doc.on("end", () => resolve(Buffer.concat(buffers)));
 
-      // Header with Centurio branding
+      // Header with Solturio branding
       doc.fontSize(24).font("Helvetica-Bold").fillColor("#14F195");
-      doc.text("CENTURIO", 50, 50);
+      doc.text("SOLTURIO", 50, 50);
       doc.fontSize(10).fillColor("#666").font("Helvetica");
       doc.text("Plant Your Standard on Chain™", 50, 80);
       
@@ -42,7 +42,7 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       // Subject line
       doc.moveDown(2);
       doc.font("Helvetica-Bold").fontSize(14);
-      doc.text("Re: Centurio - Pioneering IP Protection Infrastructure for the Solana Ecosystem", {
+      doc.text("Re: Solturio - Pioneering IP Protection Infrastructure for the Solana Ecosystem", {
         underline: true,
       });
 
@@ -52,7 +52,7 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       doc.text("Dear Solana Foundation Team,", { paragraphGap: 10 });
 
       doc.text(
-        "We are excited to present Centurio, a groundbreaking intellectual property protection platform built exclusively on Solana. Our mission aligns perfectly with Solana's vision of creating a decentralized, high-performance blockchain ecosystem that empowers creators and businesses worldwide.",
+        "We are excited to present Solturio, a groundbreaking intellectual property protection platform built exclusively on Solana. Our mission aligns perfectly with Solana's vision of creating a decentralized, high-performance blockchain ecosystem that empowers creators and businesses worldwide.",
         { align: "justify", paragraphGap: 10 }
       );
 
@@ -81,11 +81,11 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       // Our Solution
       doc.moveDown();
       doc.font("Helvetica-Bold").fontSize(13);
-      doc.text("Centurio's Solution: Blockchain-Native IP Protection", { paragraphGap: 5 });
+      doc.text("Solturio's Solution: Blockchain-Native IP Protection", { paragraphGap: 5 });
       
       doc.font("Helvetica").fontSize(11);
       doc.text(
-        "Centurio creates an immutable, timestamp-verified registry of intellectual property on Solana, providing:",
+        "Solturio creates an immutable, timestamp-verified registry of intellectual property on Solana, providing:",
         { align: "justify", paragraphGap: 5 }
       );
 
@@ -129,7 +129,7 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       
       doc.font("Helvetica").fontSize(11);
       doc.text(
-        "Centurio leverages Solana's unique capabilities:",
+        "Solturio leverages Solana's unique capabilities:",
         { align: "justify", paragraphGap: 5 }
       );
 
@@ -185,7 +185,7 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
         "2. Technical Resources: Access to Solana core developers for optimization",
         "3. Ecosystem Integration: Introduction to key DEXs and wallets",
         "4. Co-Marketing: Joint announcement of IP protection standard",
-        "5. Foundation Usage: Solana Foundation using Centurio for its own IP",
+        "5. Foundation Usage: Solana Foundation using Solturio for its own IP",
       ];
       
       partnership.forEach(item => {
@@ -199,7 +199,7 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       
       doc.font("Helvetica").fontSize(11);
       doc.text(
-        "We would welcome the opportunity to discuss how Centurio can become the standard for IP protection across the Solana ecosystem. We are prepared to:",
+        "We would welcome the opportunity to discuss how Solturio can become the standard for IP protection across the Solana ecosystem. We are prepared to:",
         { align: "justify", paragraphGap: 5 }
       );
 
@@ -217,7 +217,7 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       // Closing
       doc.moveDown();
       doc.text(
-        "Thank you for considering Centurio as a strategic addition to the Solana ecosystem. Together, we can create a safer, more trustworthy environment for all participants.",
+        "Thank you for considering Solturio as a strategic addition to the Solana ecosystem. Together, we can create a safer, more trustworthy environment for all participants.",
         { align: "justify", paragraphGap: 10 }
       );
 
@@ -225,16 +225,16 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       doc.text("Sincerely,", { paragraphGap: 5 });
       doc.moveDown();
       doc.font("Helvetica-Bold");
-      doc.text("The Centurio Team");
+      doc.text("The Solturio Team");
       doc.font("Helvetica").fontSize(10);
       doc.text("Email: partnerships@solturio.app");
       doc.text("Website: https://solturio.app");
-      doc.text("Twitter: @CenturioProtect");
+      doc.text("Twitter: @SolturioProtect");
 
       // Footer
       doc.fontSize(9).fillColor("#666");
       doc.text(
-        "Centurio - Plant Your Standard on Chain™",
+        "Solturio - Plant Your Standard on Chain™",
         50,
         doc.page.height - 50,
         { align: "center" }

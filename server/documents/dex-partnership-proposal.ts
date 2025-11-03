@@ -7,8 +7,8 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
         size: "A4",
         margins: { top: 50, bottom: 50, left: 50, right: 50 },
         info: {
-          Title: "Centurio DEX Partnership Proposal",
-          Author: "Centurio Team",
+          Title: "Solturio DEX Partnership Proposal",
+          Author: "Solturio Team",
           Subject: `Partnership Proposal for ${dexName}`,
           CreationDate: new Date(),
         },
@@ -18,9 +18,9 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.on("data", (chunk) => buffers.push(chunk));
       doc.on("end", () => resolve(Buffer.concat(buffers)));
 
-      // Header with Centurio branding
+      // Header with Solturio branding
       doc.fontSize(24).font("Helvetica-Bold").fillColor("#14F195");
-      doc.text("CENTURIO", 50, 50);
+      doc.text("SOLTURIO", 50, 50);
       doc.fontSize(10).fillColor("#666").font("Helvetica");
       doc.text("Plant Your Standard on Chain™", 50, 80);
       
@@ -37,7 +37,7 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.text("EXECUTIVE SUMMARY", 70, 195);
       doc.fontSize(11).font("Helvetica");
       doc.text(
-        "Centurio offers a FREE, real-time API that instantly verifies logo legitimacy, protecting your users from scams while reducing your platform's liability. Integration takes just 3 lines of code and provides sub-100ms verification.",
+        "Solturio offers a FREE, real-time API that instantly verifies logo legitimacy, protecting your users from scams while reducing your platform's liability. Integration takes just 3 lines of code and provides sub-100ms verification.",
         70, 215,
         { width: doc.page.width - 140, align: "justify" }
       );
@@ -67,12 +67,12 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       // Our Solution
       doc.moveDown();
       doc.font("Helvetica-Bold").fontSize(14);
-      doc.text("Centurio's Solution: Instant Logo Verification");
+      doc.text("Solturio's Solution: Instant Logo Verification");
       
       doc.moveDown();
       doc.font("Helvetica").fontSize(11);
       doc.text(
-        "Centurio provides a revolutionary verification system that protects your platform:",
+        "Solturio provides a revolutionary verification system that protects your platform:",
         { align: "justify", paragraphGap: 5 }
       );
 
@@ -100,18 +100,18 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       // Step 1
       doc.rect(50, 100, doc.page.width - 100, 80).stroke("#14F195");
       doc.font("Helvetica-Bold").fontSize(12);
-      doc.text("Step 1: Project Registers on Centurio", 60, 110);
+      doc.text("Step 1: Project Registers on Solturio", 60, 110);
       doc.font("Helvetica").fontSize(10);
-      doc.text("• Project uploads logo to Centurio BEFORE launching", 60, 130);
+      doc.text("• Project uploads logo to Solturio BEFORE launching", 60, 130);
       doc.text("• Receives blockchain timestamp and IPFS hash", 60, 145);
-      doc.text("• Gets verified Centurio URL for their logo", 60, 160);
+      doc.text("• Gets verified Solturio URL for their logo", 60, 160);
 
       // Step 2
       doc.rect(50, 200, doc.page.width - 100, 80).stroke("#14F195");
       doc.font("Helvetica-Bold").fontSize(12);
       doc.text("Step 2: Project Launches on Your DEX", 60, 210);
       doc.font("Helvetica").fontSize(10);
-      doc.text("• Token creator submits Centurio-verified logo URL", 60, 230);
+      doc.text("• Token creator submits Solturio-verified logo URL", 60, 230);
       doc.text("• Your platform calls our verification API", 60, 245);
       doc.text("• Instant response with verification status", 60, 260);
 
@@ -254,7 +254,7 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.moveDown();
       doc.font("Helvetica").fontSize(11);
       doc.text(
-        '"Since integrating Centurio, we\'ve seen a 90% drop in scam reports and our users feel much safer trading on our platform."',
+        '"Since integrating Solturio, we\'ve seen a 90% drop in scam reports and our users feel much safer trading on our platform."',
         { 
           indent: 20,
           italics: true,
@@ -297,8 +297,8 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       
       doc.text("📧 Email: dex@solturio.app", { indent: 20 });
       doc.text("🌐 Website: solturio.app/dex", { indent: 20 });
-      doc.text("📱 Telegram: @CenturioDEX", { indent: 20 });
-      doc.text("🐦 Twitter: @CenturioProtect", { indent: 20 });
+      doc.text("📱 Telegram: @SolturioDEX", { indent: 20 });
+      doc.text("🐦 Twitter: @SolturioProtect", { indent: 20 });
 
       // Special Offer Box
       doc.moveDown(2);
@@ -315,7 +315,7 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       // Footer
       doc.fillColor("#666").fontSize(9);
       doc.text(
-        "© 2024 Centurio - Plant Your Standard on Chain™",
+        "© 2024 Solturio - Plant Your Standard on Chain™",
         50,
         doc.page.height - 50,
         { align: "center" }

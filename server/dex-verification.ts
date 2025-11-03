@@ -20,7 +20,7 @@ interface VerificationResponse {
   owner?: {
     companyName: string;
     registrationDate: string;
-    centurioId: string;
+    solturioId: string;
   };
   proof?: {
     ipfsHash: string;
@@ -59,8 +59,8 @@ export async function verifyTokenLogo(request: VerificationRequest): Promise<Ver
       return {
         verified: false,
         legitimate: false,
-        warning: "This logo is not registered on Centurio. May be unauthorized use.",
-        reportUrl: `https://centurio.app/report?hash=${fileHash}`,
+        warning: "This logo is not registered on Solturio. May be unauthorized use.",
+        reportUrl: `https://solturio.app/report?hash=${fileHash}`,
       };
     }
 
@@ -89,16 +89,16 @@ export async function verifyTokenLogo(request: VerificationRequest): Promise<Ver
       owner: {
         companyName: collection?.companyName || "Unknown",
         registrationDate: originalLogo.createdAt.toISOString(),
-        centurioId: originalLogo.id,
+        solturioId: originalLogo.id,
       },
       proof: {
         ipfsHash: originalLogo.ipfsHash || "",
         fileHash: originalLogo.fileHash,
         transactionHash: originalLogo.transactionHash,
-        certificateUrl: `https://centurio.app/api/logos/${originalLogo.id}/certificate`,
+        certificateUrl: `https://solturio.app/api/logos/${originalLogo.id}/certificate`,
       },
       warning: isAuthorized ? undefined : "Logo registered but not authorized for this token address",
-      reportUrl: isAuthorized ? undefined : `https://centurio.app/report-fraud/${originalLogo.id}`,
+      reportUrl: isAuthorized ? undefined : `https://solturio.app/report-fraud/${originalLogo.id}`,
     };
   } catch (error) {
     console.error("Verification error:", error);
@@ -178,11 +178,11 @@ export async function bulkVerifyLogos(
  */
 export function getDexIntegrationCode(apiKey: string): string {
   return `
-// DEX Platform Integration - Centurio Logo Verification
+// DEX Platform Integration - Solturio Logo Verification
 // Add this to your token display logic
 
 async function verifyLogoOwnership(tokenAddress, logoUrl) {
-  const response = await fetch('https://api.centurio.app/v1/dex/verify', {
+  const response = await fetch('https://api.solturio.app/v1/dex/verify', {
     method: 'POST',
     headers: {
       'X-API-Key': '${apiKey}',

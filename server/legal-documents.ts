@@ -137,7 +137,7 @@ export async function generatePriorArtCertificate(
   }
   
   // Generate QR code for verification URL
-  const verificationUrl = `https://centurio.app/verify/${registration.id}`;
+  const verificationUrl = `https://solturio.app/verify/${registration.id}`;
   const qrDataUrl = await QRCode.toDataURL(verificationUrl, { width: 60 });
   doc.addImage(qrDataUrl, 'PNG', pageWidth - 80, 195, 60, 60);
   
@@ -224,7 +224,7 @@ export async function generateDMCATakedownNotice(
     '6. Blockchain Verification:',
     `This work has been registered on the blockchain with hash: ${registration.fileHash}`,
     registration.ipfsHash ? `IPFS Hash: ${registration.ipfsHash}` : '',
-    `Verification available at: https://centurio.app/verify/${registration.id}`,
+    `Verification available at: https://solturio.app/verify/${registration.id}`,
     '',
     'Please expeditiously remove or disable access to the infringing material.',
     '',
@@ -331,7 +331,7 @@ export async function generateCeaseAndDesistLetter(
     'EVIDENCE OF PRIOR ART:',
     `• SHA-256 Hash: ${registration.fileHash}`,
     registration.ipfsHash ? `• IPFS Hash: ${registration.ipfsHash}` : '',
-    `• Blockchain Verification: https://centurio.app/verify/${registration.id}`,
+    `• Blockchain Verification: https://solturio.app/verify/${registration.id}`,
     registration.transactionHash ? `• Transaction Hash: ${registration.transactionHash}` : '',
     '',
     'DEMAND:',

@@ -75,8 +75,8 @@ class ArweaveService {
         transaction.addTag(tag.name, tag.value);
       });
 
-      // Add Centurio platform tags
-      transaction.addTag("App-Name", "Centurio");
+      // Add Solturio platform tags
+      transaction.addTag("App-Name", "Solturio");
       transaction.addTag("App-Version", "1.0.0");
       transaction.addTag("Unix-Time", Math.round(Date.now() / 1000).toString());
 
@@ -145,9 +145,9 @@ class ArweaveService {
     return `https://arweave.net/${txId}`;
   }
 
-  getCenturioGatewayUrl(txId: string): string {
-    // Future: Use Centurio's own Arweave gateway
-    return `https://arweave.centurio.app/${txId}`;
+  getSolturioGatewayUrl(txId: string): string {
+    // Future: Use Solturio's own Arweave gateway
+    return `https://arweave.solturio.app/${txId}`;
   }
 
   isConfigured(): boolean {

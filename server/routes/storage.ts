@@ -57,7 +57,7 @@ router.post("/ipfs/upload", requireAuth, upload.single("file"), async (req, res)
       size: req.file.size,
       uploadedBy: req.user!.email,
       uploadedAt: new Date().toISOString(),
-      platform: "Centurio",
+      platform: "Solturio",
       ...req.body.metadata, // Additional metadata from request
     };
 
@@ -79,7 +79,7 @@ router.post("/ipfs/upload", requireAuth, upload.single("file"), async (req, res)
       pinSize: result.pinSize,
       timestamp: result.timestamp,
       gatewayUrl: ipfsService.getGatewayUrl(result.ipfsHash),
-      centurioUrl: ipfsService.getCenturioGatewayUrl(result.ipfsHash),
+      solturioUrl: ipfsService.getSolturioGatewayUrl(result.ipfsHash),
     });
   } catch (error) {
     console.error("IPFS upload error:", error);
@@ -103,7 +103,7 @@ router.post("/arweave/upload", requireAuth, upload.single("file"), async (req, r
       { name: "Original-Name", value: req.file.originalname },
       { name: "Content-Type", value: req.file.mimetype },
       { name: "Uploaded-By", value: req.user!.email },
-      { name: "Platform", value: "Centurio" },
+      { name: "Platform", value: "Solturio" },
     ];
 
     // Add custom tags from request
@@ -128,7 +128,7 @@ router.post("/arweave/upload", requireAuth, upload.single("file"), async (req, r
       success: true,
       txId: result.txId,
       url: result.url,
-      centurioUrl: arweaveService.getCenturioGatewayUrl(result.txId),
+      solturioUrl: arweaveService.getSolturioGatewayUrl(result.txId),
     });
   } catch (error) {
     console.error("Arweave upload error:", error);
@@ -152,7 +152,7 @@ router.post("/ipfs/metadata", requireAuth, async (req, res) => {
     // Add platform metadata
     const enrichedMetadata = {
       ...metadata,
-      platform: "Centurio",
+      platform: "Solturio",
       uploadedBy: req.user!.email,
       uploadedAt: new Date().toISOString(),
     };
@@ -193,7 +193,7 @@ router.post("/arweave/metadata", requireAuth, async (req, res) => {
     // Add platform metadata
     const enrichedMetadata = {
       ...metadata,
-      platform: "Centurio",
+      platform: "Solturio",
       uploadedBy: req.user!.email,
       uploadedAt: new Date().toISOString(),
     };
@@ -201,7 +201,7 @@ router.post("/arweave/metadata", requireAuth, async (req, res) => {
     // Prepare tags
     const arweaveTags = [
       { name: "Type", value: "metadata" },
-      { name: "Platform", value: "Centurio" },
+      { name: "Platform", value: "Solturio" },
       { name: "Uploaded-By", value: req.user!.email },
       ...tags,
     ];

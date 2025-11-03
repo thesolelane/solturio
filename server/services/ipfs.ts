@@ -147,9 +147,9 @@ class IPFSService {
     return `https://ipfs.io/ipfs/${ipfsHash}`;
   }
 
-  getCenturioGatewayUrl(ipfsHash: string): string {
-    // Future: Use Centurio's own IPFS gateway
-    return `https://ipfs.centurio.app/${ipfsHash}`;
+  getSolturioGatewayUrl(ipfsHash: string): string {
+    // Future: Use Solturio's own IPFS gateway
+    return `https://ipfs.solturio.app/${ipfsHash}`;
   }
 
   isConfigured(): boolean {

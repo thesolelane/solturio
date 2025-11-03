@@ -106,7 +106,7 @@ export async function checkGoldVerification(
     daysBeforeLaunch: binding.prelaunchRegistration ? 
       Math.floor((binding.bindingDate.getTime() - logo.createdAt.getTime()) / (1000 * 60 * 60 * 24)) : 
       undefined,
-    verificationProof: `https://centurio.app/verify/contract/${contractAddress}`,
+    verificationProof: `https://solturio.app/verify/contract/${contractAddress}`,
   };
 }
 
@@ -158,8 +158,8 @@ export function generateVerificationWidget(
   };
 
   return `
-    <!-- Centurio Verification Widget -->
-    <div id="centurio-verify-${contractAddress}" style="display: inline-flex; align-items: center; padding: 4px 8px; background: ${colors[verificationLevel]}20; border: 1px solid ${colors[verificationLevel]}; border-radius: 4px;">
+    <!-- Solturio Verification Widget -->
+    <div id="solturio-verify-${contractAddress}" style="display: inline-flex; align-items: center; padding: 4px 8px; background: ${colors[verificationLevel]}20; border: 1px solid ${colors[verificationLevel]}; border-radius: 4px;">
       <svg width="16" height="16" style="margin-right: 4px;">
         <circle cx="8" cy="8" r="8" fill="${colors[verificationLevel]}"/>
         <path d="M4 8 L7 11 L12 5" stroke="white" stroke-width="2" fill="none"/>
@@ -170,11 +170,11 @@ export function generateVerificationWidget(
     </div>
     <script>
       // Auto-verify on load
-      fetch('https://api.centurio.app/v1/contract/verify/${contractAddress}')
+      fetch('https://api.solturio.app/v1/contract/verify/${contractAddress}')
         .then(r => r.json())
         .then(data => {
           if (data.verified) {
-            document.getElementById('centurio-verify-${contractAddress}').style.display = 'inline-flex';
+            document.getElementById('solturio-verify-${contractAddress}').style.display = 'inline-flex';
           }
         });
     </script>
@@ -186,7 +186,7 @@ export function generateVerificationWidget(
  */
 export function generateIPFSOverlayScript(): string {
   return `
-    // Centurio Gold Check Overlay
+    // Solturio Gold Check Overlay
     // Add this script to automatically overlay gold checks on verified IPFS images
     
     (function() {
@@ -201,7 +201,7 @@ export function generateIPFSOverlayScript(): string {
         const ipfsHash = match[1];
         
         // Check verification status
-        const response = await fetch(\`https://api.centurio.app/v1/ipfs/verify/\${ipfsHash}\`);
+        const response = await fetch(\`https://api.solturio.app/v1/ipfs/verify/\${ipfsHash}\`);
         const data = await response.json();
         
         if (data.hasGoldCheck) {
@@ -226,7 +226,7 @@ export function generateIPFSOverlayScript(): string {
           checkmark.style.top = '4px';
           checkmark.style.right = '4px';
           checkmark.style.pointerEvents = 'none';
-          checkmark.title = 'Centurio Gold Verified - Pre-launch Registration';
+          checkmark.title = 'Solturio Gold Verified - Pre-launch Registration';
           
           wrapper.appendChild(checkmark);
         }
@@ -267,7 +267,7 @@ export function generateDEXBadge(verification: VerificationStatus): string {
     `Gold ✓ Pre-launch`;
 
   return `
-    <div class="centurio-gold-badge" style="
+    <div class="solturio-gold-badge" style="
       display: inline-flex;
       align-items: center;
       padding: 2px 6px;
