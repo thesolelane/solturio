@@ -134,7 +134,7 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.fillColor("#000").font("Courier").fontSize(10);
       doc.text("// Simple API Integration", 60, 465);
       doc.text("const verification = await fetch(", 60, 480);
-      doc.text("  `https://api.centurio.app/verify/${tokenAddress}`", 60, 495);
+      doc.text("  `https://api.solturio.app/verify/${tokenAddress}`", 60, 495);
       doc.text(");", 60, 510);
       doc.text("const { isVerified, goldBadge } = await verification.json();", 60, 525);
 
@@ -274,7 +274,7 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.text("Integration takes less than 10 minutes:", { paragraphGap: 10 });
 
       const steps = [
-        "1️⃣ Sign up for free API access at centurio.app/dex-signup",
+        "1️⃣ Sign up for free API access at solturio.app/dex-signup",
         "2️⃣ Add 3 lines of code to your token submission flow",
         "3️⃣ Test with our sandbox environment",
         "4️⃣ Go live and protect your users immediately",
@@ -295,8 +295,8 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.fontSize(11).font("Helvetica");
       doc.text("Contact our DEX Partnership Team:", { paragraphGap: 5 });
       
-      doc.text("📧 Email: dex@centurio.app", { indent: 20 });
-      doc.text("🌐 Website: centurio.app/dex", { indent: 20 });
+      doc.text("📧 Email: dex@solturio.app", { indent: 20 });
+      doc.text("🌐 Website: solturio.app/dex", { indent: 20 });
       doc.text("📱 Telegram: @CenturioDEX", { indent: 20 });
       doc.text("🐦 Twitter: @CenturioProtect", { indent: 20 });
 

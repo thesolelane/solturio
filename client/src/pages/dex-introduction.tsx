@@ -33,12 +33,12 @@ export default function DexIntroduction() {
 
   const copyIntegrationCode = () => {
     const code = `
-// Centurio Logo Verification API Integration
+// Solturio Logo Verification API Integration
 // Free API for DEX platforms - No API key required for basic verification
 
-async function verifyCenturioLogo(tokenAddress, chainId, logoUrl) {
+async function verifySolturioLogo(tokenAddress, chainId, logoUrl) {
   try {
-    const response = await fetch('https://api.centurio.app/v1/dex/verify', {
+    const response = await fetch('https://api.solturio.app/v1/dex/verify', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -55,12 +55,12 @@ async function verifyCenturioLogo(tokenAddress, chainId, logoUrl) {
     
     // Response structure:
     // {
-    //   verified: boolean,      // Logo is registered on Centurio
+    //   verified: boolean,      // Logo is registered on Solturio
     //   legitimate: boolean,    // Logo is authorized for this token
     //   owner: {               // Original registrant details
     //     companyName: string,
     //     registrationDate: string,
-    //     centurioId: string
+    //     solturioId: string
     //   },
     //   proof: {               // Blockchain proof
     //     ipfsHash: string,
@@ -74,14 +74,14 @@ async function verifyCenturioLogo(tokenAddress, chainId, logoUrl) {
     
     return result;
   } catch (error) {
-    console.error('Centurio verification error:', error);
+    console.error('Solturio verification error:', error);
     return { verified: false, legitimate: false };
   }
 }
 
 // Example usage in your token display logic
 async function displayToken(token) {
-  const verification = await verifyCenturioLogo(
+  const verification = await verifySolturioLogo(
     token.address,
     token.chainId,
     token.logoUrl
@@ -134,7 +134,7 @@ async function displayToken(token) {
           Protect Your Users from Copycat Tokens
         </h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          Centurio provides free, real-time logo verification API to help DEX platforms
+          Solturio provides free, real-time logo verification API to help DEX platforms
           identify and flag fraudulent tokens before users lose money.
         </p>
       </div>
@@ -216,7 +216,7 @@ async function displayToken(token) {
       {/* How It Works */}
       <Card className="mb-12">
         <CardHeader>
-          <CardTitle className="text-2xl">How Centurio Works</CardTitle>
+          <CardTitle className="text-2xl">How Solturio Works</CardTitle>
           <CardDescription>
             Simple workflow that creates undeniable proof of ownership
           </CardDescription>
@@ -230,7 +230,7 @@ async function displayToken(token) {
               <div className="flex-1">
                 <h3 className="font-semibold mb-1">Projects Register Logos First</h3>
                 <p className="text-sm text-muted-foreground">
-                  Legitimate projects upload logos to Centurio BEFORE launching tokens,
+                  Legitimate projects upload logos to Solturio BEFORE launching tokens,
                   creating blockchain-timestamped proof of ownership.
                 </p>
               </div>
@@ -296,7 +296,7 @@ async function displayToken(token) {
             </div>
             <pre className="text-xs overflow-x-auto">
               <code>{`// Quick integration - 3 lines of code
-const result = await verifyCenturioLogo(tokenAddress, chainId, logoUrl);
+const result = await verifySolturioLogo(tokenAddress, chainId, logoUrl);
 if (!result.legitimate) showCopycatWarning(result.warning);
 else if (result.verified) showVerifiedBadge();`}</code>
             </pre>
@@ -365,7 +365,7 @@ else if (result.verified) showVerifiedBadge();`}</code>
                 <div>
                   <p className="font-semibold">Competitive Edge</p>
                   <p className="text-sm text-muted-foreground">
-                    First movers get "Centurio Protected" badge
+                    First movers get "Solturio Protected" badge
                   </p>
                 </div>
               </li>
@@ -428,7 +428,7 @@ else if (result.verified) showVerifiedBadge();`}</code>
         <CardHeader>
           <CardTitle className="text-2xl">Target Integration Partners</CardTitle>
           <CardDescription>
-            Leading DEX platforms that would benefit from Centurio protection
+            Leading DEX platforms that would benefit from Solturio protection
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -482,7 +482,7 @@ else if (result.verified) showVerifiedBadge();`}</code>
             <AccordionItem value="item-4">
               <AccordionTrigger>How do legitimate projects register?</AccordionTrigger>
               <AccordionContent>
-                Projects upload their logos to Centurio before token launch, creating
+                Projects upload their logos to Solturio before token launch, creating
                 blockchain-timestamped proof. They get IPFS URLs and verification certificates
                 to use when listing on DEXs. The earlier they register, the stronger their claim.
               </AccordionContent>
@@ -513,7 +513,7 @@ else if (result.verified) showVerifiedBadge();`}</code>
             <Button 
               size="lg" 
               variant="secondary"
-              onClick={() => window.open('mailto:partnerships@centurio.app', '_blank')}
+              onClick={() => window.open('mailto:partnerships@solturio.app', '_blank')}
             >
               Contact Partnerships
             </Button>

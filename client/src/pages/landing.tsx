@@ -75,7 +75,7 @@ export default function Landing() {
       <section className="py-12 px-6 lg:px-8 bg-card">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl font-semibold text-center mb-12">
-            Why Centurio?
+            Why Solturio?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="p-6">

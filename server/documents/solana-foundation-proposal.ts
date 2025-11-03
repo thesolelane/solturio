@@ -227,8 +227,8 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       doc.font("Helvetica-Bold");
       doc.text("The Centurio Team");
       doc.font("Helvetica").fontSize(10);
-      doc.text("Email: partnerships@centurio.app");
-      doc.text("Website: https://centurio.app");
+      doc.text("Email: partnerships@solturio.app");
+      doc.text("Website: https://solturio.app");
       doc.text("Twitter: @CenturioProtect");
 
       // Footer
