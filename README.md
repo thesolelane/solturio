@@ -1,10 +1,10 @@
-# Centurio - Decentralized Logo IP Protection Platform 🛡️
+# Solturio - Decentralized Logo IP Protection Platform 🛡️
 
 **Plant Your Standard on Chain** - Blockchain-powered intellectual property protection for the digital age.
 
 ## 🎯 Overview
 
-Centurio is a decentralized web application that enables creators, brands, and projects to protect their intellectual property by registering logos on the blockchain BEFORE public use. By establishing timestamped proof of ownership on Solana, Centurio creates an immutable chain of custody that protects against copycats, especially in the DeFi/DEX ecosystem where logo theft is rampant.
+Solturio is a decentralized web application that enables creators, brands, and projects to protect their intellectual property by registering logos on the blockchain BEFORE public use. By establishing timestamped proof of ownership on Solana, Solturio creates an immutable chain of custody that protects against copycats, especially in the DeFi/DEX ecosystem where logo theft is rampant.
 
 ## 🚀 Key Features
 
@@ -34,7 +34,7 @@ Centurio is a decentralized web application that enables creators, brands, and p
 ## 💡 How It Works
 
 1. **Upload & Register** - Projects upload logos/tickers BEFORE public launch
-2. **Get Verified URLs** - Receive IPFS and Centurio URLs with embedded verification
+2. **Get Verified URLs** - Receive IPFS and Solturio URLs with embedded verification
 3. **Use Verified URLs** - Use these URLs on social media, DEXs, and websites
 4. **Gold Check Appears** - Verified logos automatically display gold checkmarks
 5. **Copycats Get Caught** - File hash matching identifies and flags unauthorized use
@@ -45,7 +45,7 @@ Centurio is a decentralized web application that enables creators, brands, and p
 - **🥈 Silver** - Registered 1-7 days before launch
 - **🥉 Bronze** - Registered after launch
 
-**Critical**: Gold checks ONLY appear when using Centurio/IPFS URLs - external URLs get no verification!
+**Critical**: Gold checks ONLY appear when using Solturio/IPFS URLs - external URLs get no verification!
 
 ## 🔧 Tech Stack
 
@@ -53,7 +53,7 @@ Centurio is a decentralized web application that enables creators, brands, and p
 - **Backend**: Node.js, Express, TypeScript
 - **Database**: PostgreSQL (Neon serverless), Drizzle ORM
 - **Blockchain**: Solana, Metaplex SDK (planned)
-- **Storage**: IPFS (via Pinata), user-controlled .centurio.sol wallets
+- **Storage**: IPFS (via Pinata), user-controlled .solturio.sol wallets
 - **Authentication**: Replit Auth (OpenID Connect)
 
 ## 🎮 Target Users
@@ -66,7 +66,7 @@ Centurio is a decentralized web application that enables creators, brands, and p
 
 ## 🌟 Unique Value Proposition
 
-Unlike traditional IP protection that's slow and expensive, Centurio provides:
+Unlike traditional IP protection that's slow and expensive, Solturio provides:
 
 - **Instant Protection** - Register in seconds, not months
 - **Undeniable Proof** - Blockchain timestamps can't be forged

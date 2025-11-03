@@ -2,12 +2,12 @@ import { useEffect } from "react";
 import { Shield, Lock, Clock, CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import centurioLogoDark from "@assets/centurio_logo_dark_1762130141292.png";
-import centurioLogoWhite from "@assets/centurio_logo_white_1762130141293.png";
+import solturioLogoDark from "@assets/solturio_logo_dark_1762130141292.png";
+import solturioLogoWhite from "@assets/solturio_logo_white_1762130141293.png";
 
 export default function Landing() {
   useEffect(() => {
-    document.title = "Centurio - Plant Your Standard on Chain";
+    document.title = "Solturio - Plant Your Standard on Chain";
   }, []);
 
   return (
@@ -19,18 +19,18 @@ export default function Landing() {
             <div className="flex items-center gap-3">
               {/* Light Mode Logo - Dark colored logo for light backgrounds */}
               <img 
-                src={centurioLogoDark}
-                alt="Centurio Logo"
+                src={solturioLogoDark}
+                alt="Solturio Logo"
                 className="w-14 h-14 object-contain dark:hidden"
               />
               {/* Dark Mode Logo - White colored logo for dark backgrounds */}
               <img 
-                src={centurioLogoWhite}
-                alt="Centurio Logo"
+                src={solturioLogoWhite}
+                alt="Solturio Logo"
                 className="w-14 h-14 object-contain hidden dark:block"
               />
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-                Centurio
+                Solturio
               </span>
             </div>
             <Button asChild data-testid="button-login">
@@ -43,16 +43,16 @@ export default function Landing() {
       {/* Hero Section */}
       <section className="py-16 lg:py-24 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
-          {/* Centurio Logo */}
+          {/* Solturio Logo */}
           <div className="mb-8 flex justify-center">
             <img 
-              src={centurioLogoDark}
-              alt="Centurio"
+              src={solturioLogoDark}
+              alt="Solturio"
               className="w-48 h-48 object-contain dark:hidden"
             />
             <img 
-              src={centurioLogoWhite}
-              alt="Centurio"
+              src={solturioLogoWhite}
+              alt="Solturio"
               className="w-48 h-48 object-contain hidden dark:block"
             />
           </div>
@@ -155,7 +155,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t py-8 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center text-sm text-muted-foreground">
-          <p>&copy; 2025 Centurio. Powered by Solana & Metaplex.</p>
+          <p>&copy; 2025 Solturio. Powered by Solana & Metaplex.</p>
         </div>
       </footer>
     </div>

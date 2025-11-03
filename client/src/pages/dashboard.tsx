@@ -16,7 +16,7 @@ export default function Dashboard() {
 
   // Set page title
   useEffect(() => {
-    document.title = "Dashboard - Centurio";
+    document.title = "Dashboard - Solturio";
   }, []);
 
   // Redirect to login if not authenticated
@@ -84,18 +84,18 @@ export default function Dashboard() {
             <div className="flex items-center gap-3">
               {/* Light Mode Logo - Dark colored logo for light backgrounds */}
               <img 
-                src="/centurio-logo-light-mode.png"
-                alt="Centurio Logo for Light Mode"
+                src="/solturio-logo-light-mode.png"
+                alt="Solturio Logo for Light Mode"
                 className="w-14 h-14 object-contain dark:hidden"
               />
               {/* Dark Mode Logo - White colored logo for dark backgrounds */}
               <img 
-                src="/centurio-logo-dark-mode.png"
-                alt="Centurio Logo for Dark Mode"
+                src="/solturio-logo-dark-mode.png"
+                alt="Solturio Logo for Dark Mode"
                 className="w-14 h-14 object-contain hidden dark:block"
               />
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-                Centurio
+                Solturio
               </span>
             </div>
             <div className="flex items-center gap-4">
@@ -148,9 +148,9 @@ export default function Dashboard() {
         {user?.emailVerified && !user?.solanaPublicKey && (
           <Alert className="mb-6" data-testid="alert-generate-wallet">
             <Key className="h-4 w-4" />
-            <AlertTitle>Generate Your Centurio Wallet</AlertTitle>
+            <AlertTitle>Generate Your Solturio Wallet</AlertTitle>
             <AlertDescription className="flex items-center justify-between gap-4">
-              <span>Create your Centurio wallet to hold your logo NFTs. You can import it into Phantom anytime.</span>
+              <span>Create your Solturio wallet to hold your logo NFTs. You can import it into Phantom anytime.</span>
               <Button size="sm" asChild>
                 <Link href="/account">Generate Wallet</Link>
               </Button>
@@ -255,7 +255,7 @@ export default function Dashboard() {
             <div className="flex-1">
               <h3 className="text-lg font-semibold mb-2">Partnership & Outreach</h3>
               <p className="text-sm text-muted-foreground mb-3">
-                Download professional proposals for DEXs and the Solana Foundation to help spread Centurio
+                Download professional proposals for DEXs and the Solana Foundation to help spread Solturio
               </p>
               <Button asChild variant="outline" size="sm" data-testid="button-partnerships">
                 <Link href="/partnerships">

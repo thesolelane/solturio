@@ -1,8 +1,8 @@
-# Centurio - Decentralized NFT Logo Protection Platform
+# Solturio - Decentralized NFT Logo Protection Platform
 
 ## Overview
 
-Centurio is a fully decentralized web application that enables users to protect their intellectual property by minting logos as NFTs on the Solana blockchain. It provides immutable, timestamped proof of ownership for trademarks and brand assets, allowing users to upload logo files, store them on the ireg.cooperanth.sol image registry, and mint minimal on-chain NFT metadata. The platform aims to offer blockchain-verified proof of logo ownership for IP disputes and takedown requests on crypto platforms, complemented by IP education and gamified learning.
+Solturio is a fully decentralized web application that enables users to protect their intellectual property by minting logos as NFTs on the Solana blockchain. It provides immutable, timestamped proof of ownership for trademarks and brand assets, allowing users to upload logo files, store them on the ireg.cooperanth.sol image registry, and mint minimal on-chain NFT metadata. The platform aims to offer blockchain-verified proof of logo ownership for IP disputes and takedown requests on crypto platforms, complemented by IP education and gamified learning.
 
 ## User Preferences
 
@@ -19,7 +19,7 @@ Preferred communication style: Simple, everyday language.
 - Real-time verification API for DEX platforms
 - Detects stolen logos by file hash comparison
 - Automated DMCA takedown system for copycats
-- Pre-registration workflow: Register on Centurio FIRST → Get IPFS/blockchain proof → Use verified URLs on DEXs
+- Pre-registration workflow: Register on Solturio FIRST → Get IPFS/blockchain proof → Use verified URLs on DEXs
 - Creates undeniable chain of ownership that predates copycat tokens
 
 ### DEX Platform Integration
@@ -64,26 +64,26 @@ Preferred communication style: Simple, everyday language.
 - **Provider**: Replit Auth (OpenID Connect) via Passport.js.
 - **Method**: Session-based authentication, automatic user provisioning.
 - **Email Verification**: Required before wallet generation and payments (similar to 2FA).
-- **Centurio Wallet**: Auto-generated Solana wallet for each user (created after email verification).
+- **Solturio Wallet**: Auto-generated Solana wallet for each user (created after email verification).
 - **Wallet Security**: Private keys encrypted with AES-256-GCM using unique per-wallet salts, stored in database, exportable for Phantom import.
 - **Wallet Export**: Users can export private key to import into Phantom wallet for full control of NFTs.
 - **Security**: Secure HTTP-only session cookies, CSRF protection, environment-based session secrets, unique encryption salts per wallet.
 
 ### Key Features
 1.  **Email Verification Flow**: Users must verify email before accessing wallet features (security requirement).
-2.  **Centurio Wallet Generation**: Auto-generated Solana wallet created after email verification, with secure private key encryption.
+2.  **Solturio Wallet Generation**: Auto-generated Solana wallet created after email verification, with secure private key encryption.
 3.  **Phantom Import**: Users can export private key in Phantom-compatible format to import wallet into Phantom for full NFT control.
 4.  **Logo Metadata Registration**: Platform stores only JSON metadata - ownership claims, timestamps, complete descriptions, intended use, and IP protection data.
-5.  **User Wallet Storage**: Actual image files stored in user's personal XXXXXXX.centurio.sol wallet (not on platform).
+5.  **User Wallet Storage**: Actual image files stored in user's personal XXXXXXX.solturio.sol wallet (not on platform).
 6.  **IP Protection Tracking**: Pre-filing, pending, or registered status for copyright/trademark/patent with application numbers.
-7.  **NFT Minting (Metaplex)**: JSON-only on-chain metadata with ownership claims and timestamps. NFTs minted to Centurio wallet address.
+7.  **NFT Minting (Metaplex)**: JSON-only on-chain metadata with ownership claims and timestamps. NFTs minted to Solturio wallet address.
 8.  **Authorized Usage Tracking**: Users register official logo usage locations (URLs, platforms) for IP dispute support.
 9.  **IP Education Knowledge Base**: Comprehensive guides from USPTO and U.S. Copyright Office.
 10. **Gamified Learning (IP Quiz)**: Jeopardy-style quiz game rewarding $CATH tokens for correct answers, citing official sources.
 
 ## External Dependencies
 
--   **User Wallets**: XXXXXXX.centurio.sol domains (for user-controlled image storage).
+-   **User Wallets**: XXXXXXX.solturio.sol domains (for user-controlled image storage).
 -   **Blockchain**: Solana (Mainnet/Devnet, Metaplex Token Metadata for NFTs, SOL and $CATH for payments).
 -   **Image Processing**: Sharp (for metadata extraction, color analysis, SHA-256 hashing - no storage).
 -   **UI Framework**: Radix UI (for accessible, unstyled primitives).
