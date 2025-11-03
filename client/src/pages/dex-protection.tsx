@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   Shield, 
   AlertTriangle, 
@@ -20,8 +21,12 @@ import {
   Loader2,
   ShieldAlert,
   Link,
-  Building2
+  Building2,
+  MessageCircle,
+  Globe,
+  Users
 } from "lucide-react";
+import { SiTwitter, SiTelegram, SiDiscord } from "react-icons/si";
 import {
   Select,
   SelectContent,
@@ -47,6 +52,7 @@ export default function DexProtection() {
   const [verificationResult, setVerificationResult] = useState<any>(null);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [selectedLogo, setSelectedLogo] = useState<Logo | null>(null);
+  const [reportType, setReportType] = useState<"token" | "telegram" | "twitter" | "website" | "discord">("token");
 
   // Get user's logos
   const { data: logos = [], isLoading: logosLoading } = useQuery<Logo[]>({
@@ -330,126 +336,256 @@ export default function DexProtection() {
                       <DialogHeader>
                         <DialogTitle>Report IP Theft</DialogTitle>
                         <DialogDescription>
-                          Report contract address or individual stealing your intellectual property: {selectedLogo.fileName}
+                          Report anyone stealing your intellectual property: {selectedLogo.fileName}
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
-                        {/* IP Theft Details */}
+                        {/* Report Type Selection */}
+                        <div className="space-y-4 border rounded-lg p-4">
+                          <h3 className="font-semibold mb-3">What type of IP theft are you reporting?</h3>
+                          <RadioGroup value={reportType} onValueChange={(value: any) => setReportType(value)}>
+                            <div className="grid grid-cols-1 gap-3">
+                              <div className="flex items-center space-x-2 cursor-pointer">
+                                <RadioGroupItem value="token" id="token" />
+                                <Label htmlFor="token" className="cursor-pointer flex items-center gap-2">
+                                  <Building2 className="w-4 h-4" />
+                                  Token/CA using my logo on DEX
+                                </Label>
+                              </div>
+                              <div className="flex items-center space-x-2 cursor-pointer">
+                                <RadioGroupItem value="telegram" id="telegram" />
+                                <Label htmlFor="telegram" className="cursor-pointer flex items-center gap-2">
+                                  <SiTelegram className="w-4 h-4" />
+                                  Telegram channel/group impersonation
+                                </Label>
+                              </div>
+                              <div className="flex items-center space-x-2 cursor-pointer">
+                                <RadioGroupItem value="twitter" id="twitter" />
+                                <Label htmlFor="twitter" className="cursor-pointer flex items-center gap-2">
+                                  <SiTwitter className="w-4 h-4" />
+                                  Twitter/X account using my brand
+                                </Label>
+                              </div>
+                              <div className="flex items-center space-x-2 cursor-pointer">
+                                <RadioGroupItem value="website" id="website" />
+                                <Label htmlFor="website" className="cursor-pointer flex items-center gap-2">
+                                  <Globe className="w-4 h-4" />
+                                  Fraudulent website copying my brand
+                                </Label>
+                              </div>
+                              <div className="flex items-center space-x-2 cursor-pointer">
+                                <RadioGroupItem value="discord" id="discord" />
+                                <Label htmlFor="discord" className="cursor-pointer flex items-center gap-2">
+                                  <SiDiscord className="w-4 h-4" />
+                                  Discord server using my IP
+                                </Label>
+                              </div>
+                            </div>
+                          </RadioGroup>
+                        </div>
+
+                        {/* Dynamic Form Based on Report Type */}
                         <div className="space-y-4 border rounded-lg p-4">
                           <h3 className="font-semibold flex items-center gap-2">
                             <Ban className="w-4 h-4" />
-                            Contract Address (CA) Stealing Your IP
+                            {reportType === "token" && "Contract Address Details"}
+                            {reportType === "telegram" && "Telegram Violation Details"}
+                            {reportType === "twitter" && "Twitter/X Violation Details"}
+                            {reportType === "website" && "Website Violation Details"}
+                            {reportType === "discord" && "Discord Violation Details"}
                           </h3>
-                          <div className="grid md:grid-cols-2 gap-4">
-                            <div>
-                              <Label>Thief's Contract Address*</Label>
-                              <Input
-                                placeholder="CA using your IP without permission"
-                                id="copycat-ca"
-                                data-testid="input-copycat-ca"
-                              />
-                            </div>
-                            <div>
-                              <Label>Token Ticker</Label>
-                              <Input
-                                placeholder="$FAKE"
+
+                          {reportType === "token" && (
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div className="md:col-span-2">
+                                <Label>Contract Address*</Label>
+                                <Input
+                                  placeholder="CA using your logo without permission"
+                                  id="copycat-ca"
+                                  data-testid="input-copycat-ca"
+                                />
+                              </div>
+                              <div>
+                                <Label>Token Ticker</Label>
+                                <Input
+                                  placeholder="$FAKE"
                                 id="copycat-ticker"
                                 data-testid="input-copycat-ticker"
                               />
                             </div>
-                            <div>
-                              <Label>Token Name</Label>
-                              <Input
-                                placeholder="Fake Token Name"
-                                id="copycat-name"
-                                data-testid="input-copycat-name"
-                              />
+                              <div>
+                                <Label>Token Name</Label>
+                                <Input
+                                  placeholder="Fake Token Name"
+                                  id="copycat-name"
+                                  data-testid="input-copycat-name"
+                                />
+                              </div>
+                              <div>
+                                <Label>Found on Platform*</Label>
+                                <Select>
+                                  <SelectTrigger data-testid="select-dex-platform">
+                                    <SelectValue placeholder="Select platform" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="dexscreener">DexScreener</SelectItem>
+                                    <SelectItem value="dextools">DexTools</SelectItem>
+                                    <SelectItem value="birdeye">Birdeye</SelectItem>
+                                    <SelectItem value="raydium">Raydium</SelectItem>
+                                    <SelectItem value="jupiter">Jupiter</SelectItem>
+                                    <SelectItem value="pumpfun">Pump.fun</SelectItem>
+                                    <SelectItem value="other">Other</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
-                            <div>
-                              <Label>Found on Platform*</Label>
-                              <Select>
-                                <SelectTrigger data-testid="select-dex-platform">
-                                  <SelectValue placeholder="Select platform" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="dexscreener">DexScreener</SelectItem>
-                                  <SelectItem value="dextools">DexTools</SelectItem>
-                                  <SelectItem value="birdeye">Birdeye</SelectItem>
-                                  <SelectItem value="raydium">Raydium</SelectItem>
-                                  <SelectItem value="jupiter">Jupiter</SelectItem>
-                                  <SelectItem value="pumpfun">Pump.fun</SelectItem>
-                                  <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                              </Select>
+                          )}
+
+                          {reportType === "telegram" && (
+                            <div className="space-y-4">
+                              <div>
+                                <Label>Telegram URL*</Label>
+                                <Input
+                                  placeholder="https://t.me/fake_channel or @fake_username"
+                                  id="telegram-url"
+                                  data-testid="input-telegram-url"
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Paste the Telegram channel, group, or user link
+                                </p>
+                              </div>
+                              <div>
+                                <Label>Type of Violation</Label>
+                                <Select>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select violation type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="exact">Exact copy of my brand name</SelectItem>
+                                    <SelectItem value="variation">Deceptive variation (e.g., added underscore)</SelectItem>
+                                    <SelectItem value="logo">Using my logo without permission</SelectItem>
+                                    <SelectItem value="impersonation">Full impersonation of my project</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label>Members/Subscribers Count</Label>
+                                <Input
+                                  placeholder="e.g., 5000"
+                                  id="telegram-members"
+                                  type="number"
+                                />
+                              </div>
                             </div>
-                          </div>
+                          )}
+
+                          {reportType === "twitter" && (
+                            <div className="space-y-4">
+                              <div>
+                                <Label>Twitter/X URL*</Label>
+                                <Input
+                                  placeholder="https://twitter.com/fake_account or @fake_handle"
+                                  id="twitter-url"
+                                  data-testid="input-twitter-url"
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Paste the Twitter/X profile or post link
+                                </p>
+                              </div>
+                              <div>
+                                <Label>Type of Violation</Label>
+                                <Select>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select violation type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pfp">Using my logo as profile picture</SelectItem>
+                                    <SelectItem value="handle">Deceptive handle variation</SelectItem>
+                                    <SelectItem value="impersonation">Full account impersonation</SelectItem>
+                                    <SelectItem value="content">Posting my IP without permission</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label>Followers Count</Label>
+                                <Input
+                                  placeholder="e.g., 10000"
+                                  id="twitter-followers"
+                                  type="number"
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {reportType === "website" && (
+                            <div className="space-y-4">
+                              <div>
+                                <Label>Fraudulent Website URL*</Label>
+                                <Input
+                                  placeholder="https://fake-website.com"
+                                  id="website-url"
+                                  data-testid="input-website-url"
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Enter the full URL of the website stealing your IP
+                                </p>
+                              </div>
+                              <div>
+                                <Label>Type of Violation</Label>
+                                <Select>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select violation type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="clone">Complete website clone</SelectItem>
+                                    <SelectItem value="logo">Using my logo/brand assets</SelectItem>
+                                    <SelectItem value="phishing">Phishing/scam site using my brand</SelectItem>
+                                    <SelectItem value="content">Copying my content without permission</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label>Domain Registrar (if known)</Label>
+                                <Input
+                                  placeholder="e.g., GoDaddy, Namecheap"
+                                  id="website-registrar"
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {reportType === "discord" && (
+                            <div className="space-y-4">
+                              <div>
+                                <Label>Discord Server Invite Link*</Label>
+                                <Input
+                                  placeholder="https://discord.gg/fake_server"
+                                  id="discord-url"
+                                  data-testid="input-discord-url"
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Paste the Discord server invite link
+                                </p>
+                              </div>
+                              <div>
+                                <Label>Server Name</Label>
+                                <Input
+                                  placeholder="Fake Project Server"
+                                  id="discord-name"
+                                />
+                              </div>
+                              <div>
+                                <Label>Member Count</Label>
+                                <Input
+                                  placeholder="e.g., 2000"
+                                  id="discord-members"
+                                  type="number"
+                                />
+                              </div>
+                            </div>
+                          )}
                         </div>
 
-                        {/* Social Media Links */}
-                        <div className="space-y-4 border rounded-lg p-4">
-                          <h3 className="font-semibold flex items-center gap-2">
-                            <Link className="w-4 h-4" />
-                            Copycat Social Media Links
-                          </h3>
-                          <div className="grid md:grid-cols-2 gap-4">
-                            <div>
-                              <Label>Twitter/X</Label>
-                              <Input
-                                placeholder="https://twitter.com/..."
-                                id="copycat-twitter"
-                                data-testid="input-copycat-twitter"
-                              />
-                            </div>
-                            <div>
-                              <Label>Telegram</Label>
-                              <Input
-                                placeholder="https://t.me/..."
-                                id="copycat-telegram"
-                                data-testid="input-copycat-telegram"
-                              />
-                            </div>
-                            <div>
-                              <Label>Website</Label>
-                              <Input
-                                placeholder="https://..."
-                                id="copycat-website"
-                                data-testid="input-copycat-website"
-                              />
-                            </div>
-                            <div>
-                              <Label>Discord</Label>
-                              <Input
-                                placeholder="https://discord.gg/..."
-                                id="copycat-discord"
-                                data-testid="input-copycat-discord"
-                              />
-                            </div>
-                            <div>
-                              <Label>TikTok</Label>
-                              <Input
-                                placeholder="https://tiktok.com/..."
-                                id="copycat-tiktok"
-                                data-testid="input-copycat-tiktok"
-                              />
-                            </div>
-                            <div>
-                              <Label>Facebook</Label>
-                              <Input
-                                placeholder="https://facebook.com/..."
-                                id="copycat-facebook"
-                                data-testid="input-copycat-facebook"
-                              />
-                            </div>
-                            <div>
-                              <Label>Instagram</Label>
-                              <Input
-                                placeholder="https://instagram.com/..."
-                                id="copycat-instagram"
-                                data-testid="input-copycat-instagram"
-                              />
-                            </div>
-                          </div>
-                        </div>
 
                         {/* Evidence */}
                         <div className="space-y-4 border rounded-lg p-4">
