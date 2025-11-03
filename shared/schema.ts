@@ -36,7 +36,7 @@ export const users = pgTable("users", {
   walletVerified: boolean("wallet_verified").default(false), // Confirmed via signature
   emailVerified: boolean("email_verified").default(false), // 2FA analog - must verify email
   
-  // Centurio-generated Solana wallet (created after email verification)
+  // Solturio-generated Solana wallet (created after email verification)
   solanaPublicKey: varchar("solana_public_key"), // Public key (wallet address)
   solanaEncryptedPrivateKey: text("solana_encrypted_private_key"), // Encrypted private key
   solanaWalletCreatedAt: timestamp("solana_wallet_created_at"), // When wallet was generated
@@ -66,16 +66,16 @@ export const upsertUserSchema = createInsertSchema(users).pick({
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-// Logo metadata storage (NO file storage - images in user's .centurio.sol wallet)
+// Logo metadata storage (NO file storage - images in user's .solturio.sol wallet)
 export const logos = pgTable("logos", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   collectionId: varchar("collection_id").references(() => collections.id, { onDelete: 'set null' }),
   
-  // File metadata only (actual files in user's XXXXXXX.centurio.sol wallet or external URL)
+  // File metadata only (actual files in user's XXXXXXX.solturio.sol wallet or external URL)
   fileName: text("file_name").notNull(),
   imageUrl: text("image_url"), // URL where image is hosted (user's wallet, IPFS, etc.)
-  userWalletStoragePath: text("user_wallet_storage_path"), // Path in user's .centurio.sol wallet
+  userWalletStoragePath: text("user_wallet_storage_path"), // Path in user's .solturio.sol wallet
   fileSize: integer("file_size").notNull(), // in bytes
   mimeType: varchar("mime_type").notNull(),
   fileHash: varchar("file_hash").notNull(), // SHA-256 hash for verification

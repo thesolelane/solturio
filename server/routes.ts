@@ -176,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Logo metadata registration endpoint (NO file storage - files stored in user's .centurio.sol wallet)
+  // Logo metadata registration endpoint (NO file storage - files stored in user's .solturio.sol wallet)
   app.post('/api/logos/upload', isAuthenticated, upload.array('logos', 50), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -224,10 +224,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Extract metadata from image
           const metadata = await extractImageMetadata(file.buffer, file.mimetype);
 
-          // Generate storage path for user's .centurio.sol wallet
+          // Generate storage path for user's .solturio.sol wallet
           const userWalletDomain = user?.solanaPublicKey ? 
-            `${user.solanaPublicKey.slice(0, 8).toLowerCase()}.centurio.sol` : 
-            'pending.centurio.sol';
+            `${user.solanaPublicKey.slice(0, 8).toLowerCase()}.solturio.sol` : 
+            'pending.solturio.sol';
           const storagePath = `${userWalletDomain}/logos/${randomUUID()}-${file.originalname}`;
 
           // Create logo metadata record (NO file storage)
@@ -327,11 +327,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         collectionId: collection.id,
         logos: registeredLogos,
         message: hasFiles ? 
-          "Logo metadata registered. Please store the image files in your .centurio.sol wallet." :
+          "Logo metadata registered. Please store the image files in your .solturio.sol wallet." :
           "Logo URLs registered successfully.",
         walletDomain: user?.solanaPublicKey ? 
-          `${user.solanaPublicKey.slice(0, 8).toLowerCase()}.centurio.sol` : 
-          'pending.centurio.sol',
+          `${user.solanaPublicKey.slice(0, 8).toLowerCase()}.solturio.sol` : 
+          'pending.solturio.sol',
       });
     } catch (error: any) {
       console.error("Error registering logo metadata:", error);
@@ -831,8 +831,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Generate Centurio Solana wallet (after email verification)
-  app.post('/api/account/generate-centurio-wallet', isAuthenticated, async (req: any, res) => {
+  // Generate Solturio Solana wallet (after email verification)
+  app.post('/api/account/generate-solturio-wallet', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
@@ -852,7 +852,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if wallet already exists
       if (user.solanaPublicKey) {
         return res.status(400).json({ 
-          message: "Centurio wallet already exists",
+          message: "Solturio wallet already exists",
           publicKey: user.solanaPublicKey,
         });
       }
@@ -861,19 +861,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const wallet = generateSolanaWallet();
       
       // Save to database
-      const updatedUser = await storage.createCenturioWallet(
+      const updatedUser = await storage.createSolturioWallet(
         userId,
         wallet.publicKey,
         wallet.encryptedPrivateKey
       );
 
       res.json({ 
-        message: "Centurio wallet created successfully",
+        message: "Solturio wallet created successfully",
         publicKey: wallet.publicKey,
         createdAt: updatedUser.solanaWalletCreatedAt,
       });
     } catch (error: any) {
-      console.error("Error generating Centurio wallet:", error);
+      console.error("Error generating Solturio wallet:", error);
       res.status(500).json({ message: error.message || "Failed to generate wallet" });
     }
   });
@@ -897,7 +897,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (!user.solanaEncryptedPrivateKey) {
-        return res.status(404).json({ message: "No Centurio wallet found" });
+        return res.status(404).json({ message: "No Solturio wallet found" });
       }
 
       // Decrypt and format private key for Phantom
@@ -919,7 +919,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Note: No file serving endpoint - files are stored in user's .centurio.sol wallet
+  // Note: No file serving endpoint - files are stored in user's .solturio.sol wallet
 
   // DEX Verification API endpoints
   app.post("/api/dex/verify", async (req, res) => {
@@ -1017,7 +1017,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pdfBuffer = await generateSolanaFoundationProposal();
       
       res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", "attachment; filename=Centurio-Solana-Foundation-Proposal.pdf");
+      res.setHeader("Content-Disposition", "attachment; filename=Solturio-Solana-Foundation-Proposal.pdf");
       res.send(pdfBuffer);
     } catch (error) {
       console.error("Error generating Solana Foundation proposal:", error);
@@ -1033,7 +1033,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pdfBuffer = await generateDEXPartnershipProposal(dexName || "Your Platform");
       
       res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", `attachment; filename=Centurio-DEX-Partnership-${dexName || "Proposal"}.pdf`);
+      res.setHeader("Content-Disposition", `attachment; filename=Solturio-DEX-Partnership-${dexName || "Proposal"}.pdf`);
       res.send(pdfBuffer);
     } catch (error) {
       console.error("Error generating DEX partnership proposal:", error);
