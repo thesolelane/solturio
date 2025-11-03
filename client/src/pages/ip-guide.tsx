@@ -7,7 +7,7 @@ import { ExternalLink, Shield, FileText, DollarSign, Clock, CheckCircle2 } from 
 
 export default function IPGuide() {
   useEffect(() => {
-    document.title = "IP Protection Guide - Centurio";
+    document.title = "IP Protection Guide - Solturio";
   }, []);
 
   return (

@@ -112,7 +112,7 @@ export default function AuthorizedUsagePage() {
 
   // Set page title
   useEffect(() => {
-    document.title = "Authorized Usage - Centurio";
+    document.title = "Authorized Usage - Solturio";
   }, []);
 
   // Redirect if not authenticated

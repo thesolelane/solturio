@@ -15,6 +15,8 @@ import DexProtection from "@/pages/dex-protection";
 import DexIntroduction from "@/pages/dex-introduction";
 import ContractVerification from "@/pages/contract-verification";
 import Partnerships from "@/pages/partnerships";
+import KnowledgeBase from "@/pages/knowledge-base";
+import IPGuide from "@/pages/ip-guide";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -36,6 +38,8 @@ function Router() {
       <Route path="/dex-intro" component={DexIntroduction} />
       <Route path="/contract-verification" component={ContractVerification} />
       <Route path="/partnerships" component={Partnerships} />
+      <Route path="/knowledge-base" component={KnowledgeBase} />
+      <Route path="/ip-guide" component={IPGuide} />
       <Route component={NotFound} />
     </Switch>
   );

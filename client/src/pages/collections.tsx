@@ -16,7 +16,7 @@ export default function Collections() {
 
   // Set page title
   useEffect(() => {
-    document.title = "My Collections - Centurio";
+    document.title = "My Collections - Solturio";
   }, []);
 
   useEffect(() => {

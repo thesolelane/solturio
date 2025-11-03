@@ -91,7 +91,7 @@ export default function Checkout() {
 
   // Set page title
   useEffect(() => {
-    document.title = "Checkout - Centurio";
+    document.title = "Checkout - Solturio";
   }, []);
 
   useEffect(() => {
