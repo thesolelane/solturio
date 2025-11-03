@@ -31,13 +31,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-// Quiz categories with Jeopardy-style point values
+// Quiz categories from international IP authorities
 const CATEGORIES = [
-  { name: "Trademark Basics", icon: "™️" },
-  { name: "Copyright Law", icon: "©️" },
-  { name: "Patent Protection", icon: "🛡️" },
-  { name: "IP Symbols", icon: "®️" },
-  { name: "Fair Use", icon: "⚖️" },
+  { name: "USPTO Trademarks", icon: "™️", source: "USPTO" },
+  { name: "WIPO Basics", icon: "🌍", source: "WIPO" },
+  { name: "EUIPO Rights", icon: "🇪🇺", source: "EUIPO" },
+  { name: "EPO Patents", icon: "🛡️", source: "EPO" },
+  { name: "Copyright Global", icon: "©️", source: "Multiple" },
+  { name: "IP Enforcement", icon: "⚖️", source: "All" },
 ];
 
 const POINT_VALUES = [100, 200, 300, 400, 500];
