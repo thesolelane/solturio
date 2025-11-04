@@ -1041,6 +1041,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== Quiz API Routes =====
+  
+  // Get quiz questions for the current round
+  app.get("/api/quiz/questions", async (req, res) => {
+    try {
+      const { category, points } = req.query;
+      const questions = await storage.getQuizQuestions(
+        category as string | undefined,
+        points ? Number(points) : undefined
+      );
+      res.json(questions);
+    } catch (error) {
+      console.error("Error fetching quiz questions:", error);
+      res.status(500).json({ error: "Failed to fetch questions" });
+    }
+  });
+
+  // Get user quiz stats
+  app.get("/api/quiz/stats", isAuthenticated, async (req, res) => {
+    try {
+      const stats = await storage.getQuizStats(req.user!.id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching quiz stats:", error);
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
+  });
+
+  // Submit quiz answer
+  app.post("/api/quiz/answer", isAuthenticated, async (req, res) => {
+    try {
+      const { questionId, answer, timeToAnswer, hintUsed, originalPoints } = req.body;
+      
+      const result = await storage.submitQuizAnswer(req.user!.id, {
+        questionId,
+        answer,
+        timeToAnswer,
+        hintUsed,
+        originalPoints,
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error submitting quiz answer:", error);
+      res.status(500).json({ error: "Failed to submit answer" });
+    }
+  });
+
+  // Seed quiz questions (admin only - for development)
+  app.post("/api/quiz/seed", async (req, res) => {
+    try {
+      const { sampleQuestions } = await import("./seed-quiz-questions");
+      await storage.createQuizQuestions(sampleQuestions);
+      res.json({ message: `Successfully seeded ${sampleQuestions.length} quiz questions` });
+    } catch (error) {
+      console.error("Error seeding quiz questions:", error);
+      res.status(500).json({ error: "Failed to seed questions" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

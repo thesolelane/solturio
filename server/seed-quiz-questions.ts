@@ -2,7 +2,7 @@ import { db } from "./db";
 import { quizQuestions } from "@shared/schema";
 
 // Sample questions from international IP authorities
-const sampleQuestions = [
+export const sampleQuestions = [
   // Round 1 - Easy (Questions 1-5)
   {
     category: "USPTO Trademarks",
@@ -267,7 +267,7 @@ export async function seedQuizQuestions() {
 }
 
 // Run if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   seedQuizQuestions()
     .then(() => {
       console.log("Seeding complete!");

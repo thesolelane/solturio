@@ -73,6 +73,12 @@ export interface IStorage {
   getAuthorizedUsagesByUserId(userId: string): Promise<AuthorizedUsage[]>;
   updateAuthorizedUsage(id: string, data: Partial<AuthorizedUsage>): Promise<AuthorizedUsage>;
   deleteAuthorizedUsage(id: string): Promise<void>;
+  
+  // Quiz operations
+  getQuizQuestions(category?: string, points?: number): Promise<any[]>;
+  getQuizStats(userId: string): Promise<any>;
+  submitQuizAnswer(userId: string, data: any): Promise<any>;
+  createQuizQuestions(questions: any[]): Promise<void>;
   verifyAuthorizedUsage(id: string, verifiedAt: Date): Promise<AuthorizedUsage>;
 }
 
@@ -341,6 +347,97 @@ export class DatabaseStorage implements IStorage {
       .where(eq(authorizedUsages.id, id))
       .returning();
     return updated;
+  }
+  
+  // Quiz operations
+  async getQuizQuestions(category?: string, points?: number): Promise<any[]> {
+    const { quizQuestions } = await import("@shared/schema");
+    let query = db.select().from(quizQuestions).where(eq(quizQuestions.isActive, true));
+    
+    // Apply filters if provided
+    if (category) {
+      query = query.where(eq(quizQuestions.category, category));
+    }
+    if (points) {
+      query = query.where(eq(quizQuestions.points, points));
+    }
+    
+    return query;
+  }
+  
+  async getQuizStats(userId: string): Promise<any> {
+    const { quizStats } = await import("@shared/schema");
+    const [stats] = await db.select().from(quizStats).where(eq(quizStats.userId, userId));
+    
+    if (!stats) {
+      // Create initial stats for user
+      const [newStats] = await db
+        .insert(quizStats)
+        .values({ userId, totalPoints: 0, totalCathEarned: '0' })
+        .returning();
+      return newStats;
+    }
+    
+    return stats;
+  }
+  
+  async submitQuizAnswer(userId: string, data: any): Promise<any> {
+    const { quizQuestions, quizAttempts, quizStats } = await import("@shared/schema");
+    
+    // Get the question
+    const [question] = await db
+      .select()
+      .from(quizQuestions)
+      .where(eq(quizQuestions.id, data.questionId));
+    
+    if (!question) {
+      throw new Error("Question not found");
+    }
+    
+    // Check if answer is correct
+    const isCorrect = data.answer === question.answer;
+    let pointsEarned = 0;
+    
+    if (isCorrect) {
+      // Calculate points (reduced by 75% if hint used)
+      pointsEarned = data.hintUsed ? Math.floor(data.originalPoints * 0.25) : data.originalPoints;
+    }
+    
+    // Record the attempt
+    await db.insert(quizAttempts).values({
+      userId,
+      questionId: data.questionId,
+      userAnswer: data.answer,
+      isCorrect,
+      pointsEarned,
+      timeToAnswer: data.timeToAnswer,
+      hintUsed: data.hintUsed,
+    });
+    
+    // Update user stats if correct
+    if (isCorrect) {
+      const [userStats] = await db
+        .select()
+        .from(quizStats)
+        .where(eq(quizStats.userId, userId));
+      
+      if (userStats) {
+        await db
+          .update(quizStats)
+          .set({
+            totalPoints: userStats.totalPoints + pointsEarned,
+            lastQuizAt: new Date(),
+          })
+          .where(eq(quizStats.userId, userId));
+      }
+    }
+    
+    return { isCorrect, pointsEarned, correctAnswer: question.answer };
+  }
+  
+  async createQuizQuestions(questions: any[]): Promise<void> {
+    const { quizQuestions } = await import("@shared/schema");
+    await db.insert(quizQuestions).values(questions);
   }
 }
 
