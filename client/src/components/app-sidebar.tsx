@@ -63,8 +63,8 @@ export function AppSidebar() {
       show: true, // Always show
     },
     {
-      title: "Upload Logo",
-      url: "/upload",
+      title: "Register IP",
+      url: "/register",
       icon: Upload,
       requireAuth: true,
       show: true, // Always show

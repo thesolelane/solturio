@@ -36,10 +36,22 @@ export const users = pgTable("users", {
   walletVerified: boolean("wallet_verified").default(false), // Confirmed via signature
   emailVerified: boolean("email_verified").default(false), // 2FA analog - must verify email
   
-  // Solturio-generated Solana wallet (created after email verification)
+  // Solturio-generated Solana wallet (created when first artwork/logo registered)
+  walletType: varchar("wallet_type", { length: 20 }), // 'standard' or 'premium'
+  walletName: varchar("wallet_name", { length: 50 }), // Full xxx.solturio.sol name
+  customName: varchar("custom_name", { length: 32 }), // Custom portion if premium
   solanaPublicKey: varchar("solana_public_key"), // Public key (wallet address)
   solanaEncryptedPrivateKey: text("solana_encrypted_private_key"), // Encrypted private key
+  walletSalt: varchar("wallet_salt"), // Unique salt for key encryption
   solanaWalletCreatedAt: timestamp("solana_wallet_created_at"), // When wallet was generated
+  walletFundingTxHash: varchar("wallet_funding_tx_hash"), // Transaction hash of 0.1/0.15 SOL payment
+  
+  // Key Handover Ceremony tracking
+  ceremonyCompleted: boolean("ceremony_completed").default(false),
+  ceremonyStages: jsonb("ceremony_stages"), // Track which stages completed with timestamps
+  recoveryPhraseVerified: boolean("recovery_phrase_verified").default(false),
+  verificationAttempts: integer("verification_attempts").default(0),
+  termsAcceptedAt: timestamp("terms_accepted_at"),
   hasExportedPrivateKey: boolean("has_exported_private_key").default(false), // Track if user exported key
   
   // Social media handles (for community engagement)
@@ -90,6 +102,31 @@ export const logos = pgTable("logos", {
   format: varchar("format").notNull(), // PNG, SVG, JPG, etc
   colorPalette: text("color_palette").array(), // Array of hex color codes
   dominantColor: varchar("dominant_color"),
+  
+  // Registration template and questionnaire data
+  registrationType: varchar("registration_type", { length: 20 }), // 'token_launch' or 'artwork'
+  registrationData: jsonb("registration_data"), // Smart questionnaire responses
+  
+  // Token-specific fields (for token_launch registrations)
+  tokenName: text("token_name"),
+  tokenTicker: varchar("token_ticker", { length: 20 }),
+  launchPlatform: varchar("launch_platform", { length: 50 }), // 'pumpfun', 'raydium', 'jupiter', etc.
+  launchTimeline: varchar("launch_timeline", { length: 50 }), // '1_month', '1_2_months', '2plus_months'
+  
+  // 24-Hour Ticker Verification System
+  tickerVerificationUrls: text("ticker_verification_urls").array(), // Social media URLs proving usage
+  tickerVerified: boolean("ticker_verified").default(false),
+  tickerVerificationStartedAt: timestamp("ticker_verification_started_at"),
+  tickerVerificationDeadline: timestamp("ticker_verification_deadline"),
+  botVerificationStatus: varchar("bot_verification_status", { length: 20 }), // 'pending', 'verified', 'failed'
+  
+  // Smart Contract
+  smartContractHash: varchar("smart_contract_hash"),
+  smartContractCreatedAt: timestamp("smart_contract_created_at"),
+  
+  // Thumbnail storage (platform stores only thumbnails, not full images)
+  thumbnailUrl: text("thumbnail_url"), // Solturio-stored thumbnail
+  thumbnailSize: integer("thumbnail_size"), // Thumbnail file size in bytes
   
   // Ownership claim data (timestamped)
   ownershipClaimedAt: timestamp("ownership_claimed_at").notNull().defaultNow(),
