@@ -15,6 +15,28 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (November 2025)
 
+### Complete Onboarding & Wallet System Redesign
+- **Two-Tier Wallet Naming**:
+  - Standard (0.1 SOL): Auto-assigned number-based `042.solturio.sol`
+  - Premium (0.15 SOL): Custom branding `dragoncoin.solturio.sol`
+- **Key Handover Ceremony**: 6-stage security ritual ensuring users take full responsibility for wallet security
+- **Zero Recovery Policy**: Platform never handles wallet recovery - users sign legal acknowledgment
+- **Wallet Restrictions**: xxx.solturio.sol wallets reject SPL tokens, only accept platform-generated certificates/contracts
+- **IPFS Upload Control**: Solturio controls all IPFS uploads to prevent hash-copying abuse
+
+### Registration Template System
+- **Token Launch Template**: Comprehensive form collecting token name, ticker, artwork, launch plans, social media, timeline
+- **Artwork Template**: For individual artists/designers with licensing plans and usage tracking
+- **Smart Questionnaires**: 5-10 legally-focused questions establishing "full intent" for maximum IP protection
+- **24-Hour Ticker Verification**: Users must use ticker 2x on social media within 24 hours, submit proof URLs for bot verification
+
+### Wallet Security & Liability Protection
+- Users fund their own wallet (0.1 SOL) for certificate/contract storage
+- Thumbnails only stored (not full images) to reduce resource strain
+- 12-word recovery phrase revealed ONCE with forced verification (enter 3 random words)
+- No screenshots allowed, pen-and-paper backup required
+- Multi-stage legal acknowledgment creates ironclad audit trail
+
 ### Clear Protection Messaging
 - DEX Protection page now clearly shows "Get Protected" call-to-action
 - "Report" functionality explicitly labeled as "Report IP Theft" for CAs or individuals using intellectual property without permission
@@ -80,20 +102,27 @@ Preferred communication style: Simple, everyday language.
 - **Design Decisions**: UUID primary keys, timestamp fields, JSONB for flexible metadata, indexes for session cleanup, string-based amounts for crypto precision.
 
 ### Authentication & Authorization
-- **Provider**: Replit Auth (OpenID Connect) via Passport.js.
+- **Provider**: Replit Auth (OpenID Connect) via Passport.js - NO passwords needed.
 - **Method**: Session-based authentication, automatic user provisioning.
-- **Email Verification**: Required before wallet generation and payments (similar to 2FA).
-- **Solturio Wallet**: Auto-generated Solana wallet for each user (created after email verification).
-- **Wallet Security**: Private keys encrypted with AES-256-GCM using unique per-wallet salts, stored in database, exportable for Phantom import.
-- **Wallet Export**: Users can export private key to import into Phantom wallet for full control of NFTs.
+- **Wallet Creation Timing**: xxx.solturio.sol wallet created when user registers first artwork/logo (not at login).
+- **Wallet Funding**: User pays 0.1 SOL (Standard) or 0.15 SOL (Premium) to fund wallet for certificate/contract storage.
+- **Wallet Types**:
+  - Standard: Number-based `042.solturio.sol` (account number)
+  - Premium: Custom `brandname.solturio.sol` (3-32 alphanumeric chars)
+- **Wallet Security**: 
+  - BIP39 12-word recovery phrase (Solana-compatible)
+  - Private keys encrypted with AES-256-GCM using unique per-wallet salts
+  - **Zero Recovery Policy**: Platform NEVER recovers lost wallets
+  - Multi-stage Key Handover Ceremony with forced verification
+- **Wallet Restrictions**: xxx.solturio.sol wallets programmatically reject/burn SPL tokens - only accept platform certificates/contracts
 - **Security**: Secure HTTP-only session cookies, CSRF protection, environment-based session secrets, unique encryption salts per wallet.
 
 ### Key Features
-1.  **Email Verification Flow**: Users must verify email before accessing wallet features (security requirement).
-2.  **Solturio Wallet Generation**: Auto-generated Solana wallet created after email verification, with secure private key encryption.
-3.  **Phantom Import**: Users can export private key in Phantom-compatible format to import wallet into Phantom for full NFT control.
-4.  **Logo Metadata Registration**: Platform stores only JSON metadata - ownership claims, timestamps, complete descriptions, intended use, and IP protection data.
-5.  **User Wallet Storage**: Actual image files stored in user's personal XXXXXXX.solturio.sol wallet (not on platform).
+1.  **Key Handover Ceremony**: 6-stage security ritual (warnings → payment → pledge → reveal → verification → terms) ensuring user accountability.
+2.  **Registration Templates**: Token Launch (comprehensive) vs Artwork (simple) with 5-10 smart legal questions per registration.
+3.  **IPFS Control**: Solturio uploads to IPFS (not users) to prevent hash-copying abuse and establish chain of custody.
+4.  **Thumbnail Storage**: Platform stores only thumbnails + JSON metadata (not full images) to reduce resource strain.
+5.  **24-Hour Ticker Verification**: Users must use ticker 2x on social media, submit URLs for bot verification before smart contract creation.
 6.  **IP Protection Tracking**: Pre-filing, pending, or registered status for copyright/trademark/patent with application numbers.
 7.  **NFT Minting (Metaplex)**: JSON-only on-chain metadata with ownership claims and timestamps. NFTs minted to Solturio wallet address.
 8.  **Authorized Usage Tracking**: Users register official logo usage locations (URLs, platforms) for IP dispute support.
@@ -102,9 +131,10 @@ Preferred communication style: Simple, everyday language.
 
 ## External Dependencies
 
--   **User Wallets**: XXXXXXX.solturio.sol domains (for user-controlled image storage).
--   **Blockchain**: Solana (Mainnet/Devnet, Metaplex Token Metadata for NFTs, SOL and $CATH for payments).
--   **Image Processing**: Sharp (for metadata extraction, color analysis, SHA-256 hashing - no storage).
+-   **User Wallets**: xxx.solturio.sol domains (restricted wallets - certificates/contracts only, NO SPL tokens).
+-   **Blockchain**: Solana (Mainnet/Devnet, Metaplex Token Metadata for NFTs, SOL/BONK/Arweave/CATH for payments).
+-   **IPFS**: Platform-controlled uploads for abuse prevention and chain of custody proof.
+-   **Image Processing**: Sharp (for thumbnail generation, metadata extraction, color analysis, SHA-256 hashing).
 -   **UI Framework**: Radix UI (for accessible, unstyled primitives).
--   **Authentication**: Replit Auth (OpenID Connect).
--   **Database**: PostgreSQL (Neon serverless) - stores only JSON metadata, not images.
+-   **Authentication**: Replit Auth (OpenID Connect) - NO passwords.
+-   **Database**: PostgreSQL (Neon serverless) - stores thumbnails + JSON metadata only, not full images.

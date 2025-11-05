@@ -1,0 +1,120 @@
+Revised System Architecture
+1. Default Naming Convention: Account-Based Digits
+Implementation:
+
+Use a deterministic formula based on the user's account number
+
+Example: {incremental_account_number}.solturio.sol → 042.solturio.sol
+
+Advantages: Clean, sequential, easy to manage, zero additional cost to user
+
+Perfect for: Individual creators, small projects, testing purposes
+
+2. Premium Custom Naming: +0.05 SOL
+Implementation:
+
+User pays additional 0.05 SOL for custom subdomain
+
+Examples:
+
+{brand}.solturio.sol → starbucks.solturio.sol
+
+{project}.solturio.sol → dragoncoin.solturio.sol
+
+{name}.solturio.sol → johndoe.solturio.sol
+
+Enhanced User Flow
+Registration Choice Point:
+text
+1. Standard Registration (0.1 SOL)
+   → Get [account_number].solturio.sol
+   → Proceed to wallet creation
+
+2. Premium Registration (0.15 SOL) 
+   → Choose custom *.solturio.sol name
+   → Name availability check
+   → Proceed to wallet creation
+Critical Implementation Considerations
+1. Custom Name Validation & Governance
+Reserved Words: Block trademarked names, offensive terms, common scams ("trustwallet", "official", "support")
+
+Availability System: Real-time check against existing registrations
+
+Length Limits: Minimum 3 characters, maximum 32 characters
+
+Character Set: Alphanumeric only, no special characters
+
+2. Legal & Trademark Protection
+ToS Clause: Users must warrant they have rights to the name they're registering
+
+Takedown Process: Clear DMCA-style process for trademark disputes
+
+Renewal Terms: Clarify if custom names require annual renewal fees
+
+3. Technical Implementation
+javascript
+// Pseudo-code for name generation
+function generateWalletName(accountNumber, paidTier, customName) {
+  if (paidTier === 'premium' && customName !== null) {
+    return `${customName.toLowerCase()}.solturio.sol`;
+  } else {
+    return `${accountNumber.toString().padStart(3, '0')}.solturio.sol`;
+  }
+}
+4. UI/UX Considerations
+Name Preview: Show users exactly what their wallet will be called before payment
+
+Instant Availability: Green checkmark/red X as they type custom names
+
+Suggestions: If preferred name is taken, suggest alternatives
+
+Business Advantages
+Revenue Optimization:
+Base Tier: 0.1 SOL (covers costs + margin)
+
+Premium Tier: 0.15 SOL (50% uplift for high-value feature)
+
+Market Segmentation:
+Budget Users: Get full functionality at lower cost
+
+Business Users: Pay premium for branding and memorability
+
+Network Effects:
+Custom names become status symbols
+
+Drives word-of-mouth as users showcase their branded wallets
+
+Creates searchable directory of verified projects
+
+Recommended Refinements
+1. Graduated Pricing for Desirable Names
+Consider:
+
+0.05 SOL for standard custom names
+
+0.10 SOL for premium/short names (4 characters or less)
+
+Auction system for ultra-premium names
+
+2. Name Transferability
+Allow users to transfer/sell custom names (with platform fee)
+
+Creates secondary market and additional revenue stream
+
+3. Bundle Deals
+"Launch Package": Custom name + expedited verification + featured listing
+
+Final Integrated Flow
+Login with Replit → Dashboard
+
+Choose Template (Token/Artwork) + See naming options
+
+Select Tier:
+
+Standard (0.1 SOL) → Auto-assigned number
+
+Premium (0.15 SOL) → Choose custom name → Availability check
+
+Proceed through Key Handover Ceremony with their chosen name displayed prominently
+
+Bind wallet to ToS and continue with IPFS, verification, etc.
