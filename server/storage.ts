@@ -30,6 +30,7 @@ export interface IStorage {
   updateSocialHandles(userId: string, handles: { twitterHandle?: string; telegramHandle?: string; discordHandle?: string }): Promise<User>;
   createSolturioWallet(userId: string, publicKey: string, encryptedPrivateKey: string): Promise<User>;
   markPrivateKeyExported(userId: string): Promise<User>;
+  getAllUsers(): Promise<User[]>;
   
   // Logo operations
   createLogo(logo: InsertLogo): Promise<Logo>;
@@ -183,6 +184,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return user;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users);
   }
 
   // Logo operations

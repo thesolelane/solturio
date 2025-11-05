@@ -3,6 +3,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { storage } from "./storage";
+import { type User } from "@shared/schema";
 import Stripe from "stripe";
 import multer from "multer";
 import sharp from "sharp";
@@ -10,7 +11,13 @@ import { randomUUID } from "crypto";
 import { createHash } from "crypto";
 import path from "path";
 import fs from "fs/promises";
-import { generateSolanaWallet, formatPrivateKeyForPhantom } from "./solana-wallet";
+import { 
+  generateSolanaWallet as generateSolanaWalletNew, 
+  getNextAccountNumber, 
+  validateCustomName, 
+  isWalletNameTaken,
+  decryptData
+} from "./wallet";
 import { uploadToIPFS, uploadJSONToIPFS, generateLogoMetadata } from "./ipfs";
 import { generatePriorArtCertificate, generateDMCATakedownNotice, generateCeaseAndDesistLetter } from "./legal-documents";
 
@@ -851,8 +858,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Get all users to determine next account number
+      const allUsers = await storage.getAllUsers();
+      const existingWalletNames = allUsers
+        .map((u: User) => u.walletName)
+        .filter(Boolean) as string[];
+      const accountNumber = getNextAccountNumber(existingWalletNames);
+
       // Generate new Solana wallet
-      const wallet = generateSolanaWallet();
+      const wallet = await generateSolanaWalletNew({
+        walletType: 'standard',
+        accountNumber,
+      });
       
       // Save to database
       const updatedUser = await storage.createSolturioWallet(
@@ -890,12 +907,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      if (!user.solanaEncryptedPrivateKey) {
-        return res.status(404).json({ message: "No Solturio wallet found" });
+      if (!user.solanaEncryptedPrivateKey || !user.walletSalt) {
+        return res.status(404).json({ message: "No Solturio wallet found or missing wallet salt" });
       }
 
-      // Decrypt and format private key for Phantom
-      const privateKeyArray = formatPrivateKeyForPhantom(user.solanaEncryptedPrivateKey);
+      // Decrypt private key
+      const privateKeyHex = await decryptData(user.solanaEncryptedPrivateKey, user.walletSalt);
+      const privateKeyArray = Array.from(Buffer.from(privateKeyHex, 'hex'));
 
       // Mark as exported
       if (!user.hasExportedPrivateKey) {
@@ -1098,6 +1116,186 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================
+  // SOLANA WALLET CREATION & MANAGEMENT
+  // =====================================
+
+  // Create xxx.solturio.sol wallet for user
+  app.post("/api/wallet/create", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { walletType, customName, paymentTxHash } = req.body;
+
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Check if user already has a wallet
+      if (user.solanaPublicKey) {
+        return res.status(400).json({ 
+          error: "User already has a wallet",
+          walletName: user.walletName,
+          publicKey: user.solanaPublicKey,
+        });
+      }
+
+      // Validate wallet type
+      if (walletType !== 'standard' && walletType !== 'premium') {
+        return res.status(400).json({ error: "Invalid wallet type. Must be 'standard' or 'premium'" });
+      }
+
+      // TODO: Verify payment transaction on Solana blockchain
+      // For now, accept any non-empty paymentTxHash as placeholder
+      if (!paymentTxHash || typeof paymentTxHash !== 'string') {
+        return res.status(400).json({ 
+          error: "Payment verification required",
+          requiredAmount: walletType === 'standard' ? '0.1 SOL' : '0.15 SOL',
+        });
+      }
+
+      // Get all existing wallets to determine next account number or check custom name
+      const allUsers = await storage.getAllUsers();
+      const existingWalletNames = allUsers
+        .map((u: User) => u.walletName)
+        .filter(Boolean) as string[];
+
+      let accountNumber: number | undefined;
+      let finalCustomName: string | undefined;
+
+      if (walletType === 'standard') {
+        accountNumber = getNextAccountNumber(existingWalletNames);
+      } else {
+        // Premium wallet - validate custom name
+        if (!customName || !validateCustomName(customName)) {
+          return res.status(400).json({ 
+            error: "Premium wallet requires custom name (3-32 alphanumeric characters)",
+          });
+        }
+
+        const proposedWalletName = `${customName.toLowerCase().replace(/[^a-z0-9]/g, '')}.solturio.sol`;
+        if (isWalletNameTaken(proposedWalletName, existingWalletNames)) {
+          return res.status(409).json({ 
+            error: "Wallet name already taken",
+            suggestion: `${customName}${Math.floor(Math.random() * 999)}`,
+          });
+        }
+
+        finalCustomName = customName;
+      }
+
+      // Generate Solana wallet
+      const walletResult = await generateSolanaWalletNew({
+        walletType,
+        customName: finalCustomName,
+        accountNumber,
+      });
+
+      // Update user with wallet information
+      await storage.updateUser(userId, {
+        solanaPublicKey: walletResult.publicKey,
+        solanaEncryptedPrivateKey: walletResult.encryptedPrivateKey,
+        walletSalt: walletResult.salt,
+        walletType: walletResult.walletType,
+        walletName: walletResult.walletName,
+        customName: finalCustomName,
+        solanaWalletCreatedAt: new Date(),
+        walletFundingTxHash: paymentTxHash,
+        encryptedRecoveryPhrase: walletResult.encryptedMnemonic,
+      });
+
+      res.json({
+        success: true,
+        wallet: {
+          publicKey: walletResult.publicKey,
+          walletName: walletResult.walletName,
+          walletType: walletResult.walletType,
+        },
+        message: "Wallet created successfully. Please complete the Key Handover Ceremony.",
+      });
+    } catch (error: any) {
+      console.error("Error creating wallet:", error);
+      res.status(500).json({ 
+        error: "Failed to create wallet",
+        details: error.message,
+      });
+    }
+  });
+
+  // Get current user's wallet information
+  app.get("/api/wallet/info", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserById(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      if (!user.solanaPublicKey) {
+        return res.json({ 
+          hasWallet: false,
+          message: "No wallet created yet",
+        });
+      }
+
+      res.json({
+        hasWallet: true,
+        wallet: {
+          publicKey: user.solanaPublicKey,
+          walletName: user.walletName,
+          walletType: user.walletType,
+          customName: user.customName,
+          createdAt: user.solanaWalletCreatedAt,
+          fundingTxHash: user.walletFundingTxHash,
+        },
+        ceremony: {
+          completed: user.ceremonyCompleted,
+          recoveryPhraseVerified: user.recoveryPhraseVerified,
+          termsAcceptedAt: user.termsAcceptedAt,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching wallet info:", error);
+      res.status(500).json({ error: "Failed to fetch wallet information" });
+    }
+  });
+
+  // Check if wallet name is available (for premium wallets)
+  app.post("/api/wallet/check-name", isAuthenticated, async (req, res) => {
+    try {
+      const { customName } = req.body;
+
+      if (!customName || typeof customName !== 'string') {
+        return res.status(400).json({ error: "Custom name required" });
+      }
+
+      if (!validateCustomName(customName)) {
+        return res.status(400).json({ 
+          available: false,
+          error: "Custom name must be 3-32 alphanumeric characters",
+        });
+      }
+
+      const allUsers = await storage.getAllUsers();
+      const existingWalletNames = allUsers
+        .map((u: User) => u.walletName)
+        .filter(Boolean) as string[];
+
+      const cleanName = customName.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const proposedWalletName = `${cleanName}.solturio.sol`;
+      const taken = isWalletNameTaken(proposedWalletName, existingWalletNames);
+
+      res.json({
+        available: !taken,
+        walletName: proposedWalletName,
+        suggestion: taken ? `${cleanName}${Math.floor(Math.random() * 999)}` : undefined,
+      });
+    } catch (error) {
+      console.error("Error checking wallet name:", error);
+      res.status(500).json({ error: "Failed to check wallet name availability" });
+    }
+  });
+
   // KEY HANDOVER CEREMONY - Legal Audit Trail
   // ============================================
 
@@ -1163,6 +1361,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // STAGE 4: Reveal recovery phrase (ONE TIME ONLY!)
+  app.get("/api/ceremony/recovery-phrase", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserById(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Check if user has a wallet with encrypted recovery phrase
+      if (!user.encryptedRecoveryPhrase || !user.walletSalt) {
+        return res.status(404).json({ 
+          error: "No recovery phrase found. Create a wallet first.",
+        });
+      }
+
+      // Decrypt the recovery phrase
+      const recoveryPhrase = await decryptData(
+        user.encryptedRecoveryPhrase,
+        user.walletSalt
+      );
+
+      // Split into array of 12 words
+      const words = recoveryPhrase.split(' ');
+
+      if (words.length !== 12) {
+        console.error(`Invalid recovery phrase length: ${words.length}`);
+        return res.status(500).json({ error: "Invalid recovery phrase format" });
+      }
+
+      // Record that phrase was shown (Stage 4 audit trail)
+      await storage.updateUser(userId, {
+        recoveryPhraseShownAt: new Date(),
+      });
+
+      res.json({ 
+        words,
+        warning: "This recovery phrase will NEVER be shown again. Write it down NOW!",
+      });
+    } catch (error) {
+      console.error("Error revealing recovery phrase:", error);
+      res.status(500).json({ error: "Failed to reveal recovery phrase" });
+    }
+  });
+
   // Generate verification challenge (positions only, no words sent to client!)
   app.get("/api/ceremony/challenge", isAuthenticated, async (req: any, res) => {
     try {
@@ -1170,6 +1414,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUserById(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
+      }
+
+      // Check if user has encrypted recovery phrase
+      if (!user.encryptedRecoveryPhrase || !user.walletSalt) {
+        return res.status(400).json({ error: "No recovery phrase found. Please complete wallet creation first." });
       }
 
       // Generate 3 random positions (1-12)
@@ -1242,11 +1491,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No active challenge found" });
       }
 
-      // Mock recovery phrase (in production, this would be the actual generated phrase)
-      const correctPhrase = [
-        "abandon", "ability", "able", "about", "above", "absent",
-        "absorb", "abstract", "absurd", "abuse", "access", "accident"
-      ];
+      // Check if user has encrypted recovery phrase
+      if (!user.encryptedRecoveryPhrase || !user.walletSalt) {
+        return res.status(400).json({ error: "No recovery phrase found. Please complete wallet creation first." });
+      }
+
+      // Decrypt the REAL user's recovery phrase for verification
+      const recoveryPhrase = await decryptData(
+        user.encryptedRecoveryPhrase,
+        user.walletSalt
+      );
+      
+      const correctPhrase = recoveryPhrase.split(' ');
+      
+      if (correctPhrase.length !== 12) {
+        console.error(`Invalid recovery phrase length: ${correctPhrase.length}`);
+        return res.status(500).json({ error: "Invalid recovery phrase format" });
+      }
 
       // Verify each word matches the correct position
       const positions = challenge.positions;
