@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,18 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, Shield, XCircle, AlertTriangle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function CeremonyStage5Verification() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
+  // Fetch ceremony progress from backend to get current attempt count
+  const { data: progress } = useQuery({
+    queryKey: ["/api/ceremony/progress"],
+  });
+
   // Mock recovery phrase (in production, comes from backend session)
   const correctPhrase = [
     "abandon", "ability", "able", "about", "above", "absent",
@@ -32,42 +39,81 @@ export default function CeremonyStage5Verification() {
   });
 
   const [userInputs, setUserInputs] = useState<Record<number, string>>({});
-  const [attempts, setAttempts] = useState(0);
   const [verificationStatus, setVerificationStatus] = useState<"pending" | "success" | "failed">("pending");
+  const [attemptsRemaining, setAttemptsRemaining] = useState(3);
   const maxAttempts = 3;
 
-  const handleVerify = () => {
-    const allCorrect = randomPositions.every((pos: number) => {
-      const userWord = userInputs[pos]?.trim().toLowerCase();
-      const correctWord = correctPhrase[pos - 1];
-      return userWord === correctWord;
-    });
-
-    if (allCorrect) {
-      setVerificationStatus("success");
-      toast({
-        title: "Verification Successful!",
-        description: "You've correctly verified your recovery phrase.",
-      });
-      // Proceed to next stage after brief delay
-      setTimeout(() => {
-        setLocation("/ceremony/stage-6-terms");
-      }, 2000);
-    } else {
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
-
-      if (newAttempts >= maxAttempts) {
+  // Update attempts remaining from backend data
+  useEffect(() => {
+    if (progress) {
+      const usedAttempts = progress.verificationAttempts || 0;
+      setAttemptsRemaining(Math.max(0, maxAttempts - usedAttempts));
+      if (usedAttempts >= maxAttempts) {
         setVerificationStatus("failed");
+      }
+      if (progress.recoveryPhraseVerified) {
+        setVerificationStatus("success");
+      }
+    }
+  }, [progress]);
+
+  const verifyPhraseMutation = useMutation({
+    mutationFn: async (data: { word1: string; word2: string; word3: string; positions: number[] }) => {
+      return await apiRequest("/api/ceremony/verify-phrase", "POST", data);
+    },
+  });
+
+  const handleVerify = async () => {
+    try {
+      const result = await verifyPhraseMutation.mutateAsync({
+        word1: userInputs[randomPositions[0]],
+        word2: userInputs[randomPositions[1]],
+        word3: userInputs[randomPositions[2]],
+        positions: randomPositions,
+      });
+
+      if (result.verified) {
+        setVerificationStatus("success");
         toast({
-          title: "Verification Failed",
+          title: "Verification Successful!",
+          description: "You've correctly verified your recovery phrase.",
+        });
+        // Proceed to next stage after brief delay
+        setTimeout(() => {
+          setLocation("/ceremony/stage-6-terms");
+        }, 2000);
+      } else {
+        setAttemptsRemaining(result.attemptsRemaining || 0);
+        
+        if (result.locked) {
+          setVerificationStatus("failed");
+          toast({
+            title: "Verification Failed",
+            description: "Maximum attempts exceeded. You must restart the ceremony.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Incorrect Words",
+            description: `${result.attemptsRemaining} attempt(s) remaining. Please check your written phrase.`,
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error: any) {
+      // Handle server-side lockout
+      if (error.status === 403) {
+        setVerificationStatus("failed");
+        setAttemptsRemaining(0);
+        toast({
+          title: "Account Locked",
           description: "Maximum attempts exceeded. You must restart the ceremony.",
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Incorrect Words",
-          description: `${maxAttempts - newAttempts} attempt(s) remaining. Please check your written phrase.`,
+          title: "Error",
+          description: "Failed to verify recovery phrase. Please try again.",
           variant: "destructive",
         });
       }
@@ -113,7 +159,7 @@ export default function CeremonyStage5Verification() {
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
                   Enter the exact words from your written recovery phrase. 
-                  You have <span className="font-bold">{maxAttempts - attempts} attempt(s)</span> remaining.
+                  You have <span className="font-bold">{attemptsRemaining} attempt(s)</span> remaining.
                 </AlertDescription>
               </Alert>
 
@@ -145,7 +191,7 @@ export default function CeremonyStage5Verification() {
                 ))}
               </div>
 
-              {attempts > 0 && (
+              {attemptsRemaining < maxAttempts && (
                 <Alert variant="destructive">
                   <XCircle className="h-4 w-4" />
                   <AlertDescription>
