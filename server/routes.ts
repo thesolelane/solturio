@@ -1106,9 +1106,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============================================
 
   // Get ceremony progress for current user
-  app.get("/api/ceremony/progress", isAuthenticated, async (req, res) => {
+  app.get("/api/ceremony/progress", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserById(req.user!.id);
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserById(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
@@ -1127,15 +1128,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Record ceremony stage completion (creates legal audit trail)
-  app.post("/api/ceremony/stage", isAuthenticated, async (req, res) => {
+  app.post("/api/ceremony/stage", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { stage, data } = req.body;
       
       if (!stage || typeof stage !== 'string') {
         return res.status(400).json({ error: "Stage name is required" });
       }
 
-      const user = await storage.getUserById(req.user!.id);
+      const user = await storage.getUserById(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
@@ -1150,7 +1152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // Update user with new ceremony stage
-      await storage.updateUser(req.user!.id, {
+      await storage.updateUser(userId, {
         ceremonyStages,
       });
 
@@ -1165,12 +1167,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Verify recovery phrase (server-side attempt tracking)
-  app.post("/api/ceremony/verify-phrase", isAuthenticated, async (req, res) => {
+  // Generate verification challenge (positions only, no words sent to client!)
+  app.get("/api/ceremony/challenge", isAuthenticated, async (req: any, res) => {
     try {
-      const { word1, word2, word3, positions } = req.body;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
 
-      const user = await storage.getUserById(req.user!.id);
+      // Generate 3 random positions (1-12)
+      const positions: number[] = [];
+      while (positions.length < 3) {
+        const num = Math.floor(Math.random() * 12) + 1;
+        if (!positions.includes(num)) {
+          positions.push(num);
+        }
+      }
+      positions.sort((a, b) => a - b);
+
+      // Store challenge in user's ceremony data
+      const ceremonyStages = (user.ceremonyStages as Record<string, any>) || {};
+      ceremonyStages.verificationChallenge = {
+        positions,
+        generatedAt: new Date().toISOString(),
+      };
+
+      await storage.updateUser(userId, {
+        ceremonyStages,
+      });
+
+      // Send ONLY positions to client, never the actual words!
+      res.json({ 
+        positions,
+        attemptsRemaining: Math.max(0, 3 - (user.verificationAttempts || 0)),
+      });
+    } catch (error) {
+      console.error("Error generating challenge:", error);
+      res.status(500).json({ error: "Failed to generate challenge" });
+    }
+  });
+
+  // Verify recovery phrase (server-side attempt tracking)
+  app.post("/api/ceremony/verify-phrase", isAuthenticated, async (req: any, res) => {
+    try {
+      const { word1, word2, word3 } = req.body;
+
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserById(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
@@ -1178,7 +1222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if already verified
       if (user.recoveryPhraseVerified) {
         return res.json({ 
-          success: true, 
+          verified: true,
           alreadyVerified: true,
           message: "Recovery phrase already verified" 
         });
@@ -1194,34 +1238,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // TODO: In production, verify against actual stored recovery phrase
-      // For now, we'll accept any non-empty words as valid
-      const isValid = word1 && word2 && word3 && positions;
+      // Get stored challenge positions
+      const ceremonyStages = (user.ceremonyStages as Record<string, any>) || {};
+      const challenge = ceremonyStages.verificationChallenge;
+      
+      if (!challenge || !challenge.positions) {
+        return res.status(400).json({ error: "No active challenge found" });
+      }
+
+      // Mock recovery phrase (in production, this would be the actual generated phrase)
+      const correctPhrase = [
+        "abandon", "ability", "able", "about", "above", "absent",
+        "absorb", "abstract", "absurd", "abuse", "access", "accident"
+      ];
+
+      // Verify each word matches the correct position
+      const positions = challenge.positions;
+      const correctWord1 = correctPhrase[positions[0] - 1];
+      const correctWord2 = correctPhrase[positions[1] - 1];
+      const correctWord3 = correctPhrase[positions[2] - 1];
+
+      const isValid = 
+        word1?.trim().toLowerCase() === correctWord1 &&
+        word2?.trim().toLowerCase() === correctWord2 &&
+        word3?.trim().toLowerCase() === correctWord3;
 
       // Increment attempt counter
       const newAttempts = currentAttempts + 1;
 
       if (isValid) {
         // Success - mark as verified
-        await storage.updateUser(req.user!.id, {
+        await storage.updateUser(userId, {
           recoveryPhraseVerified: true,
           verificationAttempts: newAttempts,
         });
 
         res.json({ 
-          success: true, 
           verified: true,
           attemptsUsed: newAttempts,
         });
       } else {
         // Failure - increment attempts
-        await storage.updateUser(req.user!.id, {
+        await storage.updateUser(userId, {
           verificationAttempts: newAttempts,
         });
 
         const attemptsRemaining = 3 - newAttempts;
         res.json({ 
-          success: false, 
           verified: false,
           attemptsRemaining,
           attemptsUsed: newAttempts,
@@ -1235,9 +1298,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Complete ceremony and record final terms acceptance
-  app.post("/api/ceremony/complete", isAuthenticated, async (req, res) => {
+  app.post("/api/ceremony/complete", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUserById(req.user!.id);
+      const userId = req.user.claims.sub;
+      const user = await storage.getUserById(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
@@ -1248,7 +1312,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const now = new Date();
-      await storage.updateUser(req.user!.id, {
+      await storage.updateUser(userId, {
         ceremonyCompleted: true,
         termsAcceptedAt: now,
       });
@@ -1265,9 +1329,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Reset ceremony (development/testing only - should be admin-only in production)
-  app.post("/api/ceremony/reset", isAuthenticated, async (req, res) => {
+  app.post("/api/ceremony/reset", isAuthenticated, async (req: any, res) => {
     try {
-      await storage.updateUser(req.user!.id, {
+      const userId = req.user.claims.sub;
+      await storage.updateUser(userId, {
         ceremonyCompleted: false,
         ceremonyStages: {},
         recoveryPhraseVerified: false,

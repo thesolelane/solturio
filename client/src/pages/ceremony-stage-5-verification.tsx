@@ -20,23 +20,12 @@ export default function CeremonyStage5Verification() {
     queryKey: ["/api/ceremony/progress"],
   });
 
-  // Mock recovery phrase (in production, comes from backend session)
-  const correctPhrase = [
-    "abandon", "ability", "able", "about", "above", "absent",
-    "absorb", "abstract", "absurd", "abuse", "access", "accident"
-  ];
-
-  // Generate 3 random word positions (1-12)
-  const [randomPositions] = useState(() => {
-    const positions: number[] = [];
-    while (positions.length < 3) {
-      const num = Math.floor(Math.random() * 12) + 1;
-      if (!positions.includes(num)) {
-        positions.push(num);
-      }
-    }
-    return positions.sort((a, b) => a - b);
+  // Fetch verification challenge from backend (positions only, NO words!)
+  const { data: challenge, isLoading: challengeLoading } = useQuery({
+    queryKey: ["/api/ceremony/challenge"],
   });
+
+  const randomPositions = challenge?.positions || [];
 
   const [userInputs, setUserInputs] = useState<Record<number, string>>({});
   const [verificationStatus, setVerificationStatus] = useState<"pending" | "success" | "failed">("pending");
@@ -58,18 +47,26 @@ export default function CeremonyStage5Verification() {
   }, [progress]);
 
   const verifyPhraseMutation = useMutation({
-    mutationFn: async (data: { word1: string; word2: string; word3: string; positions: number[] }) => {
+    mutationFn: async (data: { word1: string; word2: string; word3: string }) => {
       return await apiRequest("/api/ceremony/verify-phrase", "POST", data);
     },
   });
 
   const handleVerify = async () => {
+    if (!randomPositions || randomPositions.length !== 3) {
+      toast({
+        title: "Error",
+        description: "Challenge not loaded. Please refresh the page.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const result = await verifyPhraseMutation.mutateAsync({
         word1: userInputs[randomPositions[0]],
         word2: userInputs[randomPositions[1]],
         word3: userInputs[randomPositions[2]],
-        positions: randomPositions,
       });
 
       if (result.verified) {
@@ -128,9 +125,34 @@ export default function CeremonyStage5Verification() {
     setLocation("/ceremony/stage-4-reveal");
   };
 
-  const isFormValid = randomPositions.every((pos: number) => 
+  const isFormValid = randomPositions && randomPositions.length === 3 && randomPositions.every((pos: number) => 
     userInputs[pos]?.trim().length > 0
   );
+
+  // Show loading while challenge is being fetched
+  if (challengeLoading || !randomPositions || randomPositions.length !== 3) {
+    return (
+      <div className="container max-w-4xl mx-auto py-8 px-4">
+        <Card className="border-primary">
+          <CardHeader className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-full bg-primary/10">
+                <Shield className="h-8 w-8 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl">Verification Gauntlet</CardTitle>
+                <CardDescription>Stage 5 of 6: Generating Challenge...</CardDescription>
+              </div>
+            </div>
+            <Progress value={(5 / 6) * 100} className="h-2" />
+          </CardHeader>
+          <CardContent className="py-12 flex items-center justify-center">
+            <p className="text-muted-foreground">Loading verification challenge...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4">
