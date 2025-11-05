@@ -12,7 +12,8 @@ import {
   BarChart3,
   Building2,
   Users,
-  Brain
+  Brain,
+  Award
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -61,6 +62,12 @@ export function AppSidebar() {
       title: "My Collections",
       url: "/collections",
       icon: Package,
+      requireAuth: true,
+    },
+    {
+      title: "Artwork Licensing",
+      url: "/artwork-licensing",
+      icon: Award,
       requireAuth: true,
     },
     {
