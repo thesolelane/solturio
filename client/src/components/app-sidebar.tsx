@@ -13,7 +13,8 @@ import {
   Building2,
   Users,
   Brain,
-  Award
+  Award,
+  KeyRound
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,6 +32,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 // Admin email whitelist - should match admin-dashboard.tsx
 const ADMIN_EMAILS = [
@@ -142,6 +144,12 @@ export function AppSidebar() {
       title: "IP Quiz Game",
       url: "/ip-quiz",
       icon: Brain,
+      requireAuth: false,
+    },
+    {
+      title: "Wallet Recovery",
+      url: "/wallet-recovery",
+      icon: KeyRound,
       requireAuth: false,
     },
   ];
@@ -280,7 +288,7 @@ export function AppSidebar() {
         {isAuthenticated ? (
           <div className="flex items-center justify-between">
             <div className="text-sm">
-              <p className="font-medium truncate">{user?.name || 'User'}</p>
+              <p className="font-medium truncate">{user?.firstName || user?.email || 'User'}</p>
               <p className="text-xs text-muted-foreground truncate">
                 {user?.email || 'No email'}
               </p>
@@ -307,5 +315,3 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
-
-import { Button } from "@/components/ui/button";

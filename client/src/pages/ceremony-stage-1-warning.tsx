@@ -93,7 +93,7 @@ export default function CeremonyStage1Warning() {
                 <h3 className="font-semibold text-lg">Your Responsibility</h3>
                 <p className="text-sm text-muted-foreground">
                   You will receive a <span className="font-bold">12-word recovery phrase</span> that you must write down on paper (no screenshots allowed). 
-                  This phrase is the <span className="font-bold">ONLY</span> way to recover your wallet. Keep it safe, keep it secret, and keep it offline.
+                  This phrase is the <span className="font-bold">best way</span> to recover your wallet instantly and for free. Keep it safe, keep it secret, and keep it offline.
                 </p>
               </div>
             </div>

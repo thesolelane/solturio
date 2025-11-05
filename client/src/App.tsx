@@ -35,6 +35,7 @@ import CeremonyStage3Pledge from "@/pages/ceremony-stage-3-pledge";
 import CeremonyStage4Reveal from "@/pages/ceremony-stage-4-reveal";
 import CeremonyStage5Verification from "@/pages/ceremony-stage-5-verification";
 import CeremonyStage6Terms from "@/pages/ceremony-stage-6-terms";
+import WalletRecovery from "@/pages/wallet-recovery";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -72,6 +73,7 @@ function Router() {
       <Route path="/ceremony/stage-4-reveal" component={CeremonyStage4Reveal} />
       <Route path="/ceremony/stage-5-verification" component={CeremonyStage5Verification} />
       <Route path="/ceremony/stage-6-terms" component={CeremonyStage6Terms} />
+      <Route path="/wallet-recovery" component={WalletRecovery} />
       <Route component={NotFound} />
     </Switch>
   );

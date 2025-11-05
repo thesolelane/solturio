@@ -30,7 +30,7 @@ Preferred communication style: Simple, everyday language.
   - Standard (0.1 SOL): Auto-assigned number-based `042.solturio.sol`
   - Premium (0.15 SOL): Custom branding `dragoncoin.solturio.sol`
 - **Key Handover Ceremony**: 6-stage security ritual ensuring users take full responsibility for wallet security
-- **Zero Recovery Policy**: Platform never handles wallet recovery - users sign legal acknowledgment
+- **Recovery Service Available**: $100 + identity verification (Replit/GitHub/Google) - wallets hold certificates not financial assets
 - **Wallet Restrictions**: xxx.solturio.sol wallets reject SPL tokens, only accept platform-generated certificates/contracts
 - **IPFS Upload Control**: Solturio controls all IPFS uploads to prevent hash-copying abuse
 
@@ -122,7 +122,7 @@ Preferred communication style: Simple, everyday language.
 - **Wallet Security**: 
   - BIP39 12-word recovery phrase (Solana-compatible)
   - Private keys encrypted with AES-256-GCM using unique per-wallet salts
-  - **Zero Recovery Policy**: Platform NEVER recovers lost wallets
+  - **Recovery Service**: $100 + identity verification (Replit/GitHub/Google) for certificate wallets
   - Multi-stage Key Handover Ceremony with forced verification
 - **Wallet Restrictions**: xxx.solturio.sol wallets programmatically reject/burn SPL tokens - only accept platform certificates/contracts
 - **Security**: Secure HTTP-only session cookies, CSRF protection, environment-based session secrets, unique encryption salts per wallet.

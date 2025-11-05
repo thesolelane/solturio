@@ -418,6 +418,24 @@ export default function AccountPage() {
                 <h3 className="text-lg font-semibold">Solturio Wallet</h3>
                 <Badge variant="outline">Auto-Generated</Badge>
               </div>
+
+              <Alert className="mb-4 bg-primary/5 border-primary/20">
+                <Key className="h-4 w-4 text-primary" />
+                <AlertTitle>Lost Access to Your Wallet?</AlertTitle>
+                <AlertDescription className="flex items-center justify-between gap-4">
+                  <span className="text-sm">
+                    Recovery service available for $100 + identity verification. Your certificates are safe.
+                  </span>
+                  <Button size="sm" variant="outline" asChild data-testid="button-wallet-recovery">
+                    <Link href="/wallet-recovery">
+                      <a href="/wallet-recovery" className="flex items-center gap-2">
+                        Recover Wallet
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </Link>
+                  </Button>
+                </AlertDescription>
+              </Alert>
               
               {!isEmailVerified ? (
                 <Alert className="mb-4">
