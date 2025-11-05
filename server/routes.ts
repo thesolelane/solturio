@@ -1101,6 +1101,190 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================
+  // KEY HANDOVER CEREMONY - Legal Audit Trail
+  // ============================================
+
+  // Get ceremony progress for current user
+  app.get("/api/ceremony/progress", isAuthenticated, async (req, res) => {
+    try {
+      const user = await storage.getUserById(req.user!.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json({
+        ceremonyCompleted: user.ceremonyCompleted || false,
+        ceremonyStages: user.ceremonyStages || {},
+        verificationAttempts: user.verificationAttempts || 0,
+        recoveryPhraseVerified: user.recoveryPhraseVerified || false,
+        termsAcceptedAt: user.termsAcceptedAt || null,
+      });
+    } catch (error) {
+      console.error("Error fetching ceremony progress:", error);
+      res.status(500).json({ error: "Failed to fetch ceremony progress" });
+    }
+  });
+
+  // Record ceremony stage completion (creates legal audit trail)
+  app.post("/api/ceremony/stage", isAuthenticated, async (req, res) => {
+    try {
+      const { stage, data } = req.body;
+      
+      if (!stage || typeof stage !== 'string') {
+        return res.status(400).json({ error: "Stage name is required" });
+      }
+
+      const user = await storage.getUserById(req.user!.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Get existing ceremony stages or create new object
+      const ceremonyStages = (user.ceremonyStages as Record<string, any>) || {};
+      
+      // Record stage completion with timestamp
+      ceremonyStages[stage] = {
+        completedAt: new Date().toISOString(),
+        data: data || {},
+      };
+
+      // Update user with new ceremony stage
+      await storage.updateUser(req.user!.id, {
+        ceremonyStages,
+      });
+
+      res.json({ 
+        success: true, 
+        stage,
+        timestamp: ceremonyStages[stage].completedAt,
+      });
+    } catch (error) {
+      console.error("Error recording ceremony stage:", error);
+      res.status(500).json({ error: "Failed to record ceremony stage" });
+    }
+  });
+
+  // Verify recovery phrase (server-side attempt tracking)
+  app.post("/api/ceremony/verify-phrase", isAuthenticated, async (req, res) => {
+    try {
+      const { word1, word2, word3, positions } = req.body;
+
+      const user = await storage.getUserById(req.user!.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Check if already verified
+      if (user.recoveryPhraseVerified) {
+        return res.json({ 
+          success: true, 
+          alreadyVerified: true,
+          message: "Recovery phrase already verified" 
+        });
+      }
+
+      // Check attempt limit (server-side enforcement)
+      const currentAttempts = user.verificationAttempts || 0;
+      if (currentAttempts >= 3) {
+        return res.status(403).json({ 
+          error: "Maximum verification attempts exceeded",
+          attemptsRemaining: 0,
+          locked: true,
+        });
+      }
+
+      // TODO: In production, verify against actual stored recovery phrase
+      // For now, we'll accept any non-empty words as valid
+      const isValid = word1 && word2 && word3 && positions;
+
+      // Increment attempt counter
+      const newAttempts = currentAttempts + 1;
+
+      if (isValid) {
+        // Success - mark as verified
+        await storage.updateUser(req.user!.id, {
+          recoveryPhraseVerified: true,
+          verificationAttempts: newAttempts,
+        });
+
+        res.json({ 
+          success: true, 
+          verified: true,
+          attemptsUsed: newAttempts,
+        });
+      } else {
+        // Failure - increment attempts
+        await storage.updateUser(req.user!.id, {
+          verificationAttempts: newAttempts,
+        });
+
+        const attemptsRemaining = 3 - newAttempts;
+        res.json({ 
+          success: false, 
+          verified: false,
+          attemptsRemaining,
+          attemptsUsed: newAttempts,
+          locked: attemptsRemaining === 0,
+        });
+      }
+    } catch (error) {
+      console.error("Error verifying recovery phrase:", error);
+      res.status(500).json({ error: "Failed to verify recovery phrase" });
+    }
+  });
+
+  // Complete ceremony and record final terms acceptance
+  app.post("/api/ceremony/complete", isAuthenticated, async (req, res) => {
+    try {
+      const user = await storage.getUserById(req.user!.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Verify all prerequisites
+      if (!user.recoveryPhraseVerified) {
+        return res.status(400).json({ error: "Recovery phrase must be verified first" });
+      }
+
+      const now = new Date();
+      await storage.updateUser(req.user!.id, {
+        ceremonyCompleted: true,
+        termsAcceptedAt: now,
+      });
+
+      res.json({ 
+        success: true, 
+        completedAt: now.toISOString(),
+        message: "Key Handover Ceremony completed successfully",
+      });
+    } catch (error) {
+      console.error("Error completing ceremony:", error);
+      res.status(500).json({ error: "Failed to complete ceremony" });
+    }
+  });
+
+  // Reset ceremony (development/testing only - should be admin-only in production)
+  app.post("/api/ceremony/reset", isAuthenticated, async (req, res) => {
+    try {
+      await storage.updateUser(req.user!.id, {
+        ceremonyCompleted: false,
+        ceremonyStages: {},
+        recoveryPhraseVerified: false,
+        verificationAttempts: 0,
+        termsAcceptedAt: null,
+      });
+
+      res.json({ 
+        success: true, 
+        message: "Ceremony reset successfully",
+      });
+    } catch (error) {
+      console.error("Error resetting ceremony:", error);
+      res.status(500).json({ error: "Failed to reset ceremony" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

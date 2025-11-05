@@ -5,13 +5,35 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertTriangle, ShieldAlert, Lock, XCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CeremonyStage1Warning() {
   const [, setLocation] = useLocation();
   const [agreedToWarnings, setAgreedToWarnings] = useState(false);
+  const { toast } = useToast();
 
-  const handleProceed = () => {
-    setLocation("/ceremony/stage-2-payment");
+  const recordStageMutation = useMutation({
+    mutationFn: async (data: { stage: string; data?: any }) => {
+      return await apiRequest("/api/ceremony/stage", "POST", data);
+    },
+  });
+
+  const handleProceed = async () => {
+    try {
+      await recordStageMutation.mutateAsync({
+        stage: "warning",
+        data: { agreedToWarnings: true },
+      });
+      setLocation("/ceremony/stage-2-payment");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to record your acceptance. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -118,11 +140,11 @@ export default function CeremonyStage1Warning() {
           </Button>
           <Button
             onClick={handleProceed}
-            disabled={!agreedToWarnings}
+            disabled={!agreedToWarnings || recordStageMutation.isPending}
             data-testid="button-proceed-to-payment"
             className="min-w-[200px]"
           >
-            I Understand - Proceed to Payment
+            {recordStageMutation.isPending ? "Recording..." : "I Understand - Proceed to Payment"}
           </Button>
         </CardFooter>
       </Card>
