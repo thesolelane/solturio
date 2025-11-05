@@ -5,13 +5,35 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Shield, Sparkles } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CeremonyStage3Pledge() {
   const [, setLocation] = useLocation();
   const [pledgeAccepted, setPledgeAccepted] = useState(false);
+  const { toast } = useToast();
 
-  const handleProceed = () => {
-    setLocation("/ceremony/stage-4-reveal");
+  const recordStageMutation = useMutation({
+    mutationFn: async (data: { stage: string; data?: any }) => {
+      return await apiRequest("/api/ceremony/stage", "POST", data);
+    },
+  });
+
+  const handleProceed = async () => {
+    try {
+      await recordStageMutation.mutateAsync({
+        stage: "pledge",
+        data: { pledgeAccepted: true },
+      });
+      setLocation("/ceremony/stage-4-reveal");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to record your pledge. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleGoBack = () => {
@@ -109,11 +131,11 @@ export default function CeremonyStage3Pledge() {
           </Button>
           <Button
             onClick={handleProceed}
-            disabled={!pledgeAccepted}
+            disabled={!pledgeAccepted || recordStageMutation.isPending}
             data-testid="button-proceed-to-reveal"
             className="min-w-[200px]"
           >
-            I Accept - Reveal Recovery Phrase
+            {recordStageMutation.isPending ? "Recording..." : "I Accept - Reveal Recovery Phrase"}
           </Button>
         </CardFooter>
       </Card>
