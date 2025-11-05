@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SolturioLicensingBadge, LicensingTermsDisplay, generateLicenseBadgeSVG } from '@/components/solturio-licensing-badge';
-import { Download, Shield, FileText, Image, AlertCircle, Copy, CheckCircle } from 'lucide-react';
+import { Download, Shield, FileText, Image, AlertCircle, Copy, CheckCircle, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ArtworkLicensing() {
@@ -24,13 +24,42 @@ export default function ArtworkLicensing() {
   const [badgeOpacity, setBadgeOpacity] = useState(0.8);
   const [includeQR, setIncludeQR] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [badgeStyle, setBadgeStyle] = useState<'minimal' | 'detailed' | 'premium' | 'invisible'>('detailed');
+  const [colorTheme, setColorTheme] = useState<'light' | 'dark' | 'gold' | 'holographic'>('dark');
+  const [customText, setCustomText] = useState('');
   
   // Fetch user's registered logos
-  const { data: logos } = useQuery<any[]>({
+  const { data: logos, isLoading } = useQuery<any[]>({
     queryKey: ['/api/logos']
   });
 
   const selectedLogoData = logos?.find((logo: any) => logo.id === selectedLogo);
+
+  // Show empty state if user has no logos
+  if (!isLoading && (!logos || logos.length === 0)) {
+    return (
+      <div className="container mx-auto p-6 max-w-4xl">
+        <div className="text-center py-12">
+          <Shield className="w-20 h-20 text-muted-foreground mx-auto mb-6" />
+          <h1 className="text-3xl font-bold mb-2">No Artwork to License Yet</h1>
+          <p className="text-lg text-muted-foreground mb-6">
+            You need to register your logos and artwork first before you can create licensed versions.
+          </p>
+          <p className="text-muted-foreground mb-8">
+            The Artwork Licensing feature allows you to embed transparent Solturio badges 
+            into your work when selling or licensing it to clients, providing proof of authenticity 
+            and registration.
+          </p>
+          <Button size="lg" asChild>
+            <a href="/upload">
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Your First Artwork
+            </a>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const handleGenerateLicensedArtwork = () => {
     if (!selectedLogoData || !buyerName || !buyerEmail) {
