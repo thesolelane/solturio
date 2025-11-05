@@ -13,6 +13,9 @@ interface SolturioLicensingBadgeProps {
   size?: 'sm' | 'md' | 'lg';
   opacity?: number;
   includeQR?: boolean;
+  style?: 'minimal' | 'detailed' | 'premium' | 'invisible';
+  colorTheme?: 'light' | 'dark' | 'gold' | 'holographic';
+  customText?: string;
 }
 
 export function SolturioLicensingBadge({ 
@@ -25,14 +28,17 @@ export function SolturioLicensingBadge({
   position = 'bottom-right',
   size = 'md',
   opacity = 0.8,
-  includeQR = false
+  includeQR = false,
+  style = 'detailed',
+  colorTheme = 'dark',
+  customText
 }: SolturioLicensingBadgeProps) {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   
   const sizeClasses = {
-    sm: 'w-48 min-h-[60px] text-xs',
-    md: 'w-64 min-h-[80px] text-sm',
-    lg: 'w-80 min-h-[100px] text-base'
+    sm: style === 'minimal' ? 'w-32 min-h-[40px] text-xs' : 'w-48 min-h-[60px] text-xs',
+    md: style === 'minimal' ? 'w-40 min-h-[50px] text-sm' : 'w-64 min-h-[80px] text-sm',
+    lg: style === 'minimal' ? 'w-52 min-h-[65px] text-base' : 'w-80 min-h-[100px] text-base'
   };
 
   const positionClasses = {
@@ -57,6 +63,39 @@ export function SolturioLicensingBadge({
     nft: 'text-yellow-400'
   };
 
+  const colorThemes = {
+    light: {
+      bg: 'bg-black/10',
+      border: 'border-black/20',
+      text: 'text-black',
+      subtext: 'text-black/80',
+      qrDark: '#000000'
+    },
+    dark: {
+      bg: 'bg-white/10',
+      border: 'border-white/20',
+      text: 'text-white',
+      subtext: 'text-white/80',
+      qrDark: '#FFFFFF'
+    },
+    gold: {
+      bg: 'bg-yellow-500/20',
+      border: 'border-yellow-400/40',
+      text: 'text-yellow-100',
+      subtext: 'text-yellow-200/80',
+      qrDark: '#FFD700'
+    },
+    holographic: {
+      bg: 'bg-gradient-to-br from-purple-500/20 via-blue-500/20 to-pink-500/20',
+      border: 'border-purple-400/30',
+      text: 'text-white',
+      subtext: 'text-white/90',
+      qrDark: '#FFFFFF'
+    }
+  };
+
+  const theme = colorThemes[colorTheme];
+
   useEffect(() => {
     if (includeQR && registrationId) {
       const verifyUrl = `${window.location.origin}/verify/${registrationId}`;
@@ -64,22 +103,103 @@ export function SolturioLicensingBadge({
         width: 60,
         margin: 0,
         color: {
-          dark: '#FFFFFF',
+          dark: theme.qrDark,
           light: '#00000000' // Transparent background
         }
       }).then(setQrCodeUrl);
     }
-  }, [includeQR, registrationId]);
+  }, [includeQR, registrationId, theme.qrDark]);
 
+  // Invisible style - only metadata embedded, no visual badge
+  if (style === 'invisible') {
+    return (
+      <div 
+        className="hidden"
+        data-solturio-id={registrationId}
+        data-artist={artistName}
+        data-license={licenseType}
+      />
+    );
+  }
+
+  // Minimal style - just logo and ID
+  if (style === 'minimal') {
+    return (
+      <div 
+        className={`absolute ${positionClasses[position]} ${sizeClasses[size]} p-2`}
+        style={{ opacity }}
+      >
+        <div className={`absolute inset-0 ${theme.bg} backdrop-blur-sm rounded-md ${theme.border} border`} />
+        <div className="relative flex items-center gap-2">
+          <Shield className={`w-4 h-4 ${theme.text} drop-shadow`} />
+          <div>
+            <span className={`font-bold ${theme.text} drop-shadow text-[0.9em]`}>SOLTURIO</span>
+            {isVerified && <CheckCircle className={`w-3 h-3 text-yellow-400 inline ml-1`} />}
+            <div className={`${theme.subtext} text-[0.7em] font-mono`}>
+              #{registrationId.slice(0, 6)}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Premium style - enhanced visuals
+  if (style === 'premium') {
+    return (
+      <div 
+        className={`absolute ${positionClasses[position]} ${sizeClasses[size]} p-4`}
+        style={{ opacity }}
+      >
+        <div className={`absolute inset-0 ${theme.bg} backdrop-blur-lg rounded-xl ${theme.border} border-2 shadow-2xl`} />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+        <div className="relative">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="relative">
+              <Shield className={`w-6 h-6 ${theme.text} drop-shadow-lg`} />
+              {isVerified && (
+                <CheckCircle className="w-4 h-4 text-yellow-400 absolute -top-1 -right-1" />
+              )}
+            </div>
+            <div>
+              <div className={`font-black text-lg ${theme.text} drop-shadow-lg tracking-wider`}>
+                SOLTURIO
+              </div>
+              <div className={`text-[0.7em] ${theme.subtext} font-light tracking-widest`}>
+                PROTECTED
+              </div>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className={`${theme.text} font-medium`}>{artistName}</div>
+            {artworkTitle && (
+              <div className={`${theme.subtext} text-[0.9em] italic`}>"{artworkTitle}"</div>
+            )}
+            {customText && (
+              <div className={`${theme.subtext} text-[0.85em] mt-2`}>{customText}</div>
+            )}
+            <div className="flex items-center justify-between mt-2">
+              <div className={`text-[0.75em] font-mono ${theme.subtext}`}>
+                #{registrationId.slice(0, 8)}
+              </div>
+              {includeQR && qrCodeUrl && (
+                <img src={qrCodeUrl} alt="Verify" className="w-12 h-12 rounded" />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default detailed style
   return (
     <div 
       className={`absolute ${positionClasses[position]} ${sizeClasses[size]} p-3`}
       style={{ opacity }}
     >
-      {/* Glass morphism background */}
-      <div className="absolute inset-0 bg-white/5 backdrop-blur-md rounded-lg border border-white/20 shadow-2xl" />
+      <div className={`absolute inset-0 ${theme.bg} backdrop-blur-md rounded-lg ${theme.border} border shadow-2xl`} />
       
-      {/* Content */}
       <div className="relative flex items-start gap-3">
         <div className="flex-1">
           {/* Header */}

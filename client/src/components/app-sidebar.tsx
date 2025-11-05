@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
 import {
   Sidebar,
   SidebarContent,
@@ -44,51 +45,66 @@ export function AppSidebar() {
   const isAdmin = isAuthenticated && user?.email && 
     ADMIN_EMAILS.includes(user.email.toLowerCase());
 
-  // User menu items
+  // Fetch user's logos to determine if they have collections
+  const { data: logos } = useQuery<any[]>({
+    queryKey: ['/api/logos'],
+    enabled: isAuthenticated, // Only fetch if authenticated
+  });
+
+  const hasCollections = logos && logos.length > 0;
+
+  // User menu items (dynamically filtered)
   const userItems = [
     {
       title: "Dashboard",
       url: "/dashboard",
       icon: Home,
       requireAuth: true,
+      show: true, // Always show
     },
     {
       title: "Upload Logo",
       url: "/upload",
       icon: Upload,
       requireAuth: true,
+      show: true, // Always show
     },
     {
       title: "My Collections",
       url: "/collections",
       icon: Package,
       requireAuth: true,
+      show: true, // Always show
     },
     {
       title: "Artwork Licensing",
       url: "/artwork-licensing",
       icon: Award,
       requireAuth: true,
+      show: hasCollections, // Only show if user has collections
     },
     {
       title: "Authorized Usage",
       url: "/authorized-usage",
       icon: CheckCircle,
       requireAuth: true,
+      show: true, // Always show
     },
     {
       title: "Contract Verification",
       url: "/contract-verification",
       icon: Shield,
       requireAuth: true,
+      show: true, // Always show
     },
     {
       title: "Account Settings",
       url: "/account",
       icon: Settings,
       requireAuth: true,
+      show: true, // Always show
     },
-  ];
+  ].filter(item => item.show !== false); // Filter out items that shouldn't be shown
 
   // Public menu items
   const publicItems = [
