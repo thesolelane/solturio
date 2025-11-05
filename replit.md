@@ -13,6 +13,16 @@ Solturio is a fully decentralized web application that enables users to protect 
 
 Preferred communication style: Simple, everyday language.
 
+## Payment Policy
+
+**Crypto-Only (DeFi Principles):**
+- **NO FIAT PAYMENTS**: Solturio does not accept credit cards, bank transfers, or any fiat currency
+- **NO STRIPE**: Stripe integration completely removed - pure decentralized finance
+- **Accepted Cryptocurrencies**: SOL, BONK, Arweave, CATH (50% discount when using CATH)
+- **Future Consideration**: USDC may be added later for stablecoin payments
+- **Wallet Ceremony**: 0.1 SOL (Standard) or 0.15 SOL (Premium) paid directly to platform wallet
+- **Philosophy**: Fully decentralized platform aligned with DeFi principles - no third-party payment processors
+
 ## Recent Updates (November 2025)
 
 ### Complete Onboarding & Wallet System Redesign
