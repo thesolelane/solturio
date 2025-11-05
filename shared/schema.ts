@@ -53,6 +53,8 @@ export const users = pgTable("users", {
   verificationAttempts: integer("verification_attempts").default(0),
   termsAcceptedAt: timestamp("terms_accepted_at"),
   hasExportedPrivateKey: boolean("has_exported_private_key").default(false), // Track if user exported key
+  encryptedRecoveryPhrase: text("encrypted_recovery_phrase"), // Temporarily stored during ceremony, cleared after completion
+  recoveryPhraseShownAt: timestamp("recovery_phrase_shown_at"), // When phrase was displayed (Stage 4 audit trail)
   
   // Social media handles (for community engagement)
   twitterHandle: varchar("twitter_handle"),
