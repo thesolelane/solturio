@@ -30,6 +30,12 @@ import RegisterSelect from "@/pages/register-select";
 import RegisterTokenLaunch from "@/pages/register-token-launch";
 import RegisterArtwork from "@/pages/register-artwork";
 import WalletTierSelection from "@/pages/wallet-tier-selection";
+import CeremonyStage1Warning from "@/pages/ceremony-stage-1-warning";
+import CeremonyStage2Payment from "@/pages/ceremony-stage-2-payment";
+import CeremonyStage3Pledge from "@/pages/ceremony-stage-3-pledge";
+import CeremonyStage4Reveal from "@/pages/ceremony-stage-4-reveal";
+import CeremonyStage5Verification from "@/pages/ceremony-stage-5-verification";
+import CeremonyStage6Terms from "@/pages/ceremony-stage-6-terms";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -62,6 +68,12 @@ function Router() {
       <Route path="/register/token-launch" component={RegisterTokenLaunch} />
       <Route path="/register/artwork" component={RegisterArtwork} />
       <Route path="/register/wallet-tier" component={WalletTierSelection} />
+      <Route path="/ceremony/stage-1-warning" component={CeremonyStage1Warning} />
+      <Route path="/ceremony/stage-2-payment" component={CeremonyStage2Payment} />
+      <Route path="/ceremony/stage-3-pledge" component={CeremonyStage3Pledge} />
+      <Route path="/ceremony/stage-4-reveal" component={CeremonyStage4Reveal} />
+      <Route path="/ceremony/stage-5-verification" component={CeremonyStage5Verification} />
+      <Route path="/ceremony/stage-6-terms" component={CeremonyStage6Terms} />
       <Route component={NotFound} />
     </Switch>
   );
