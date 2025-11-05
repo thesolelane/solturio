@@ -450,10 +450,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Generate and upload metadata
         const metadata = generateLogoMetadata({
           fileName: logo.fileName,
-          description: logo.description,
-          ownershipDescription: logo.ownershipDescription,
+          description: logo.description || '',
+          ownershipDescription: logo.ownershipDescription || '',
           userId,
-          timestamp: logo.createdAt,
+          timestamp: logo.createdAt || new Date(),
           copyrightStatus: logo.copyrightStatus,
           trademarkStatus: logo.trademarkStatus,
           patentStatus: logo.patentStatus,
@@ -506,29 +506,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const collection = logo.collectionId ? 
         await storage.getCollection(logo.collectionId) : null;
       
-      const registration = {
+      const certificatePdf = await generatePriorArtCertificate({
         id: logo.id,
         fileName: logo.fileName,
         fileHash: logo.fileHash,
-        ipfsHash: logo.ipfsHash,
+        ipfsHash: logo.ipfsHash ?? undefined,
         userId,
         userEmail: user.email || 'Not provided',
         companyName: collection?.companyName || 'Not specified',
-        description: logo.description,
-        ownershipDescription: logo.ownershipDescription,
-        intendedUse: logo.intendedUse,
-        registrationDate: logo.createdAt,
-        copyrightStatus: logo.copyrightStatus,
-        copyrightApplicationNumber: logo.copyrightApplicationNumber,
-        trademarkStatus: logo.trademarkStatus,
-        trademarkApplicationNumber: logo.trademarkApplicationNumber,
-        patentStatus: logo.patentStatus,
-        patentApplicationNumber: logo.patentApplicationNumber,
-        transactionHash: logo.transactionHash,
-        blockNumber: undefined, // Will be set when minted
-      };
-      
-      const certificatePdf = await generatePriorArtCertificate(registration);
+        description: logo.description || '',
+        ownershipDescription: logo.ownershipDescription || '',
+        intendedUse: logo.intendedUse || '',
+        registrationDate: logo.createdAt || new Date(),
+        copyrightStatus: logo.copyrightStatus ?? undefined,
+        copyrightApplicationNumber: logo.copyrightApplicationNumber ?? undefined,
+        trademarkStatus: logo.trademarkStatus ?? undefined,
+        trademarkApplicationNumber: logo.trademarkApplicationNumber ?? undefined,
+        patentStatus: logo.patentStatus ?? undefined,
+        patentApplicationNumber: logo.patentApplicationNumber ?? undefined,
+        transactionHash: logo.transactionHash ?? undefined,
+        blockNumber: undefined,
+      });
       
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="certificate-${logo.id}.pdf"`);
@@ -558,29 +556,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const collection = logo.collectionId ? 
         await storage.getCollection(logo.collectionId) : null;
       
-      const registration = {
+      const dmcaPdf = await generateDMCATakedownNotice({
         id: logo.id,
         fileName: logo.fileName,
         fileHash: logo.fileHash,
-        ipfsHash: logo.ipfsHash,
+        ipfsHash: logo.ipfsHash ?? undefined,
         userId,
         userEmail: user?.email || 'Not provided',
         companyName: collection?.companyName || req.body.companyName || 'Not specified',
-        description: logo.description,
-        ownershipDescription: logo.ownershipDescription,
-        intendedUse: logo.intendedUse,
-        registrationDate: logo.createdAt,
-        copyrightStatus: logo.copyrightStatus,
-        copyrightApplicationNumber: logo.copyrightApplicationNumber,
-        trademarkStatus: logo.trademarkStatus,
-        trademarkApplicationNumber: logo.trademarkApplicationNumber,
-        patentStatus: logo.patentStatus,
-        patentApplicationNumber: logo.patentApplicationNumber,
-        transactionHash: logo.transactionHash,
+        description: logo.description || '',
+        ownershipDescription: logo.ownershipDescription || '',
+        intendedUse: logo.intendedUse || '',
+        registrationDate: logo.createdAt || new Date(),
+        copyrightStatus: logo.copyrightStatus ?? undefined,
+        copyrightApplicationNumber: logo.copyrightApplicationNumber ?? undefined,
+        trademarkStatus: logo.trademarkStatus ?? undefined,
+        trademarkApplicationNumber: logo.trademarkApplicationNumber ?? undefined,
+        patentStatus: logo.patentStatus ?? undefined,
+        patentApplicationNumber: logo.patentApplicationNumber ?? undefined,
+        transactionHash: logo.transactionHash ?? undefined,
         blockNumber: undefined,
-      };
-      
-      const dmcaPdf = await generateDMCATakedownNotice(registration, {
+      }, {
         infringingSite: req.body.infringingSite || 'Unknown Site',
         infringementUrl: req.body.infringementUrl || '',
         infringementDescription: req.body.infringementDescription || 'Unauthorized use of copyrighted material',
@@ -616,12 +612,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const usage = await storage.createAuthorizedUsage({
         logoId,
         userId,
-        platform: req.body.platform,
-        platformName: req.body.platformName,
+        usageUrl: req.body.url,
         usageType: req.body.usageType,
-        url: req.body.url,
-        description: req.body.description,
-        isActive: true,
+        usagePlatform: req.body.platform,
+        notes: req.body.description,
       });
       
       res.json(usage);
@@ -1059,9 +1053,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user quiz stats
-  app.get("/api/quiz/stats", isAuthenticated, async (req, res) => {
+  app.get("/api/quiz/stats", isAuthenticated, async (req: any, res) => {
     try {
-      const stats = await storage.getQuizStats(req.user!.id);
+      const userId = req.user.claims.sub;
+      const stats = await storage.getQuizStats(userId);
       res.json(stats);
     } catch (error) {
       console.error("Error fetching quiz stats:", error);
@@ -1070,11 +1065,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Submit quiz answer
-  app.post("/api/quiz/answer", isAuthenticated, async (req, res) => {
+  app.post("/api/quiz/answer", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { questionId, answer, timeToAnswer, hintUsed, originalPoints } = req.body;
       
-      const result = await storage.submitQuizAnswer(req.user!.id, {
+      const result = await storage.submitQuizAnswer(userId, {
         questionId,
         answer,
         timeToAnswer,

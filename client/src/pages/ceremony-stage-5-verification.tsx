@@ -11,17 +11,35 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
+interface CeremonyProgress {
+  ceremonyCompleted: boolean;
+  ceremonyStages: Record<string, any>;
+  verificationAttempts: number;
+  recoveryPhraseVerified: boolean;
+  termsAcceptedAt: Date | null;
+}
+
+interface ChallengeResponse {
+  positions: number[];
+}
+
+interface VerifyResponse {
+  verified: boolean;
+  attemptsRemaining?: number;
+  locked?: boolean;
+}
+
 export default function CeremonyStage5Verification() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
   // Fetch ceremony progress from backend to get current attempt count
-  const { data: progress } = useQuery({
+  const { data: progress } = useQuery<CeremonyProgress>({
     queryKey: ["/api/ceremony/progress"],
   });
 
   // Fetch verification challenge from backend (positions only, NO words!)
-  const { data: challenge, isLoading: challengeLoading } = useQuery({
+  const { data: challenge, isLoading: challengeLoading } = useQuery<ChallengeResponse>({
     queryKey: ["/api/ceremony/challenge"],
   });
 
@@ -46,9 +64,10 @@ export default function CeremonyStage5Verification() {
     }
   }, [progress]);
 
-  const verifyPhraseMutation = useMutation({
+  const verifyPhraseMutation = useMutation<VerifyResponse, any, { word1: string; word2: string; word3: string }>({
     mutationFn: async (data: { word1: string; word2: string; word3: string }) => {
-      return await apiRequest("/api/ceremony/verify-phrase", "POST", data);
+      const response = await apiRequest("/api/ceremony/verify-phrase", "POST", data);
+      return response as unknown as VerifyResponse;
     },
   });
 
