@@ -134,7 +134,7 @@ export default function DexProtection() {
       <div className="mb-8 text-center">
         <h1 className="text-4xl font-bold mb-2">Get Protected on DEX Platforms</h1>
         <p className="text-lg text-muted-foreground mb-4">
-          Register your logos and tickers BEFORE launching to prevent copycats
+          Register your logos and tickers BEFORE launching to stand out from copycats
         </p>
         <div className="flex gap-4 justify-center">
           <Button size="lg" asChild className="gap-2">
@@ -781,7 +781,7 @@ export default function DexProtection() {
                 <p className="font-mono text-sm">• $CATH → Protects: $C.A.T.H, $C-A-T-H, $C4TH</p>
                 <p className="font-mono text-sm">• Solturio → Protects: S0lturio, Sol-turio, SOLTURIO</p>
               </div>
-              <p className="mt-2">This feature prevents copycats from using confusingly similar names.</p>
+              <p className="mt-2">This feature helps you establish priority over copycats using confusingly similar names.</p>
             </AlertDescription>
           </Alert>
           <Badge variant="secondary" className="mt-4">Coming Soon</Badge>
