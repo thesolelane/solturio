@@ -11,7 +11,6 @@ import { Menu } from "lucide-react";
 import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import Upload from "@/pages/upload";
-import Checkout from "@/pages/checkout";
 import Collections from "@/pages/collections";
 import AccountPage from "@/pages/account";
 import AuthorizedUsage from "@/pages/authorized-usage";
@@ -49,7 +48,6 @@ function Router() {
       <Route path="/" component={HomePage} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/upload" component={Upload} />
-      <Route path="/checkout" component={Checkout} />
       <Route path="/collections" component={Collections} />
       <Route path="/account" component={AccountPage} />
       <Route path="/authorized-usage" component={AuthorizedUsage} />

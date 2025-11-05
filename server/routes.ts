@@ -1,10 +1,9 @@
-// Reference: blueprint:javascript_log_in_with_replit, blueprint:javascript_stripe
+// Reference: blueprint:javascript_log_in_with_replit
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { storage } from "./storage";
 import { type User } from "@shared/schema";
-import Stripe from "stripe";
 import multer from "multer";
 import sharp from "sharp";
 import { randomUUID } from "crypto";
@@ -20,13 +19,6 @@ import {
 } from "./wallet";
 import { uploadToIPFS, uploadJSONToIPFS, generateLogoMetadata } from "./ipfs";
 import { generatePriorArtCertificate, generateDMCATakedownNotice, generateCeaseAndDesistLetter } from "./legal-documents";
-
-// Stripe is optional in development - only required for payment endpoints
-const stripe = process.env.STRIPE_SECRET_KEY 
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2025-09-30.clover",
-    })
-  : null;
 
 // Setup file upload
 const upload = multer({ 
