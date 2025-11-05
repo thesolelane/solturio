@@ -7,6 +7,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { CheckCircle2, FileText, Sparkles } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function CeremonyStage6Terms() {
   const [, setLocation] = useLocation();
@@ -14,6 +16,12 @@ export default function CeremonyStage6Terms() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
   const [ceremonyComplete, setCeremonyComplete] = useState(false);
+
+  const completeCeremonyMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("/api/ceremony/complete", "POST", {});
+    },
+  });
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const element = e.currentTarget;
@@ -23,16 +31,25 @@ export default function CeremonyStage6Terms() {
     }
   };
 
-  const handleComplete = () => {
-    setCeremonyComplete(true);
-    toast({
-      title: "Wallet Creation Complete!",
-      description: "Your Solturio wallet is ready to use.",
-    });
-    // Redirect to dashboard after brief delay
-    setTimeout(() => {
-      setLocation("/dashboard");
-    }, 2000);
+  const handleComplete = async () => {
+    try {
+      await completeCeremonyMutation.mutateAsync();
+      setCeremonyComplete(true);
+      toast({
+        title: "Wallet Creation Complete!",
+        description: "Your Solturio wallet is ready to use.",
+      });
+      // Redirect to dashboard after brief delay
+      setTimeout(() => {
+        setLocation("/dashboard");
+      }, 2000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to complete ceremony. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleGoBack = () => {
