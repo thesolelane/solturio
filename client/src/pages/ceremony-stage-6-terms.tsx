@@ -83,25 +83,25 @@ export default function CeremonyStage6Terms() {
                   data-testid="scroll-terms"
                 >
                   <div className="prose prose-sm max-w-none dark:prose-invert space-y-4">
-                    <h4 className="font-semibold text-base">1. Zero Recovery Policy</h4>
+                    <h4 className="font-semibold text-base">1. Wallet Purpose & Recovery Service</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      I acknowledge and agree that Solturio operates under a strict <span className="font-semibold">Zero Recovery Policy</span>. 
-                      This means that Solturio does not store, back up, have access to, or possess any means of recovering 
-                      my wallet's private keys or recovery phrase.
+                      I acknowledge that my xxx.solturio.sol wallet is a <span className="font-semibold">certificate storage wallet</span> designed 
+                      to hold legal documents, IP certificates, smart contracts, and IPFS metadata hashes—<span className="font-semibold">not financial assets</span>. 
+                      Because this wallet contains legal documents rather than money, Solturio offers a <span className="font-semibold">$100 recovery service</span> 
+                      requiring identity verification (via Replit, GitHub, or Google authentication) with a 24-48 hour processing time.
                     </p>
 
-                    <h4 className="font-semibold text-base">2. Sole Responsibility for Security</h4>
+                    <h4 className="font-semibold text-base">2. Recovery Phrase Best Practice</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      I accept <span className="font-semibold">full and sole responsibility</span> for securing my 12-word recovery phrase. 
-                      I understand that this phrase is the only method to recover my wallet, and that losing it will result 
-                      in permanent, irreversible loss of access to my wallet and all its contents.
+                      While recovery is available, I understand that <span className="font-semibold">writing down my 12-word recovery phrase is FREE and instant</span>. 
+                      The recovery service is for emergencies only. I accept responsibility for securing my recovery phrase to avoid the $100 fee and 2-day wait.
                     </p>
 
-                    <h4 className="font-semibold text-base">3. No Customer Support for Recovery</h4>
+                    <h4 className="font-semibold text-base">3. Recovery Service Terms</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      I understand that Solturio's customer support team <span className="font-semibold">cannot and will not</span> assist 
-                      with wallet recovery under any circumstances. There are no exceptions, regardless of the value 
-                      of assets in the wallet or the circumstances of loss.
+                      I understand that the recovery service requires: (a) payment of $100 in cryptocurrency, (b) identity verification 
+                      matching my registered authentication provider, (c) 24-48 hour processing time, and (d) may be denied if 
+                      identity cannot be verified or if fraudulent activity is suspected.
                     </p>
 
                     <h4 className="font-semibold text-base">4. Wallet Restrictions</h4>
@@ -117,17 +117,16 @@ export default function CeremonyStage6Terms() {
                       documenting my full understanding of wallet security requirements and my acceptance of personal responsibility.
                     </p>
 
-                    <h4 className="font-semibold text-base">6. Release of Liability</h4>
+                    <h4 className="font-semibold text-base">6. Limited Liability</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      I hereby <span className="font-semibold">release, waive, and forever discharge</span> Solturio, its officers, 
-                      employees, agents, and affiliates from any and all claims, liabilities, demands, or causes of action 
-                      arising from or related to:
+                      I understand that Solturio provides reasonable recovery services but cannot guarantee successful recovery 
+                      in all cases. I hereby <span className="font-semibold">release and discharge</span> Solturio from liability for:
                     </p>
                     <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside ml-4">
-                      <li>Loss of access to my wallet due to lost recovery phrase</li>
-                      <li>Inability to recover my wallet through any means</li>
-                      <li>Loss of assets, certificates, or contracts stored in my wallet</li>
-                      <li>Any consequences resulting from my failure to secure my recovery phrase</li>
+                      <li>Delays in recovery service beyond the estimated 24-48 hour timeframe</li>
+                      <li>Denial of recovery requests due to failed identity verification</li>
+                      <li>Loss of certificates or contracts if recovery is unsuccessful</li>
+                      <li>Any consequences of choosing not to save my recovery phrase</li>
                     </ul>
 
                     <h4 className="font-semibold text-base">7. Security Best Practices Acknowledgment</h4>
@@ -185,8 +184,8 @@ export default function CeremonyStage6Terms() {
                     className="text-sm leading-relaxed cursor-pointer font-semibold"
                     data-testid="label-accept-terms"
                   >
-                    I have read and agree to all terms and conditions above. I accept full responsibility 
-                    for my wallet security and release Solturio from any liability for wallet recovery.
+                    I have read and agree to all terms and conditions above. I understand that recovery is available 
+                    for $100 + ID verification, but I will save my recovery phrase to avoid this fee.
                   </label>
                 </div>
               </div>

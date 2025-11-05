@@ -64,24 +64,25 @@ export default function CeremonyStage1Warning() {
           </Alert>
 
           <div className="space-y-4">
-            <div className="flex gap-4 p-4 border border-destructive/20 rounded-lg bg-destructive/5">
-              <Lock className="h-6 w-6 text-destructive shrink-0 mt-1" />
+            <div className="flex gap-4 p-4 border border-primary/20 rounded-lg bg-primary/5">
+              <Lock className="h-6 w-6 text-primary shrink-0 mt-1" />
               <div className="space-y-2">
-                <h3 className="font-semibold text-lg">Zero Recovery Policy</h3>
+                <h3 className="font-semibold text-lg">Recovery Service Available</h3>
                 <p className="text-sm text-muted-foreground">
-                  Solturio <span className="font-bold text-destructive">NEVER</span> stores, backs up, or has the ability to recover your wallet. 
-                  If you lose your 12-word recovery phrase, your wallet and all contents are <span className="font-bold">permanently lost forever</span>.
+                  Your xxx.solturio.sol wallet holds <span className="font-bold">certificates and legal documents</span>, not financial assets. 
+                  If you lose access, Solturio offers a <span className="font-bold text-primary">$100 recovery service</span> with identity verification 
+                  (Replit, GitHub, or Google auth). Recovery takes 24-48 hours.
                 </p>
               </div>
             </div>
 
-            <div className="flex gap-4 p-4 border border-destructive/20 rounded-lg bg-destructive/5">
-              <XCircle className="h-6 w-6 text-destructive shrink-0 mt-1" />
+            <div className="flex gap-4 p-4 border border-amber-600/20 rounded-lg bg-amber-600/5">
+              <AlertTriangle className="h-6 w-6 text-amber-600 shrink-0 mt-1" />
               <div className="space-y-2">
-                <h3 className="font-semibold text-lg">No Customer Support for Lost Wallets</h3>
+                <h3 className="font-semibold text-lg text-amber-600">Save Your Recovery Phrase Anyway</h3>
                 <p className="text-sm text-muted-foreground">
-                  Our support team <span className="font-bold text-destructive">cannot</span> help you recover a lost wallet. 
-                  There are no "forgot password" options, no email recovery, and no backup keys.
+                  While recovery is available, <span className="font-bold">writing down your 12-word phrase is FREE and instant</span>. 
+                  The recovery service is for emergencies only. Save yourself $100 and 2 days by keeping your phrase safe!
                 </p>
               </div>
             </div>
@@ -122,9 +123,9 @@ export default function CeremonyStage1Warning() {
                 className="text-sm leading-relaxed cursor-pointer"
                 data-testid="label-agree-warnings"
               >
-                I understand that Solturio has <span className="font-bold">ZERO ability to recover my wallet</span>, 
-                and I take full responsibility for securing my 12-word recovery phrase. I acknowledge that losing this phrase 
-                means permanent loss of my wallet and all contents.
+                I understand that my xxx.solturio.sol wallet holds certificates and legal documents. 
+                I will <span className="font-bold">write down my 12-word recovery phrase</span> to avoid paying the $100 recovery fee. 
+                I acknowledge that my wallet is restricted and will reject all SPL tokens and financial assets.
               </label>
             </div>
           </div>
