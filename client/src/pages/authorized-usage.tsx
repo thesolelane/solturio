@@ -130,13 +130,13 @@ export default function AuthorizedUsagePage() {
   }, [isAuthenticated, authLoading, toast]);
 
   // Fetch user's logos
-  const { data: logos = [], isLoading: logosLoading } = useQuery({
+  const { data: logos = [], isLoading: logosLoading } = useQuery<Logo[]>({
     queryKey: ['/api/logos'],
     enabled: isAuthenticated,
   });
 
   // Fetch authorized usages
-  const { data: usages = [], isLoading: usagesLoading } = useQuery({
+  const { data: usages = [], isLoading: usagesLoading } = useQuery<AuthorizedUsage[]>({
     queryKey: selectedLogoId ? 
       [`/api/logos/${selectedLogoId}/authorized-usage`] : 
       ['/api/authorized-usages'],
@@ -149,11 +149,7 @@ export default function AuthorizedUsagePage() {
       if (!selectedLogoId) {
         throw new Error("Please select a logo first");
       }
-      return apiRequest(`/api/logos/${selectedLogoId}/authorized-usage`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return apiRequest('POST', `/api/logos/${selectedLogoId}/authorized-usage`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
@@ -180,11 +176,7 @@ export default function AuthorizedUsagePage() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<AuthorizedUsageForm> }) => {
-      return apiRequest(`/api/authorized-usage/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return apiRequest('PATCH', `/api/authorized-usage/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
@@ -210,9 +202,7 @@ export default function AuthorizedUsagePage() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/authorized-usage/${id}`, {
-        method: 'DELETE',
-      });
+      return apiRequest('DELETE', `/api/authorized-usage/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
