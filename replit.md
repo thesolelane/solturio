@@ -35,10 +35,31 @@ Preferred communication style: Simple, everyday language.
 - **IPFS Upload Control**: Solturio controls all IPFS uploads to prevent hash-copying abuse
 
 ### Registration Template System
-- **Token Launch Template**: Comprehensive form collecting token name, ticker, artwork, launch plans, social media, timeline
-- **Artwork Template**: For individual artists/designers with licensing plans and usage tracking
-- **Smart Questionnaires**: 5-10 legally-focused questions establishing "full intent" for maximum IP protection
+
+**Token Launch Template (7 Questions):**
+- When will you launch? (timeline)
+- Where will you launch? (platform)
+- Meme or utility token?
+- Total circulating supply
+- Tokenomics breakdown
+- Supply locked 1+ years?
+- Brief summary (max 300 chars)
+- Twitter handle for 24-hour ticker verification
 - **24-Hour Ticker Verification**: Users must use ticker 2x on social media within 24 hours, submit proof URLs for bot verification
+
+**Artwork Template (10 Questions + Social Media):**
+1. Who created this? (self/work-for-hire/team)
+2. Is this work for hire? (yes/no) - with payment/contract documentation
+3. When was it created? (date)
+4. Is this exclusive (1 of 1)? - tracks variations planned
+5. Will you sell variations?
+6. Will you give away variations?
+7. Plan to license? - with license type (limited/revocable/perpetuity) and terms
+8. Plan to mint as NFT?
+9. Is this a custom PFP? - if yes, collects client's Twitter & Telegram handles
+10. How will you use this artwork?
+- **Social Media Presence**: Portfolio URL, Twitter, Telegram, Instagram, Discord, other platforms
+- **Strict Validation**: Zod superRefine enforces all conditional required fields (work-for-hire details, licensing terms, PFP client handles, variation descriptions)
 
 ### Wallet Security & Liability Protection
 - Users fund their own wallet (0.1 SOL) for certificate/contract storage
