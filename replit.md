@@ -47,19 +47,22 @@ Preferred communication style: Simple, everyday language.
 - Twitter handle for 24-hour ticker verification
 - **24-Hour Ticker Verification**: Users must use ticker 2x on social media within 24 hours, submit proof URLs for bot verification
 
-**Artwork Template (10 Questions + Social Media):**
+**Artwork Template (11 Questions + Social Media) - Checkbox-Based:**
 1. Who created this? (self/work-for-hire/team)
-2. Is this work for hire? (yes/no) - with payment/contract documentation
-3. When was it created? (date)
-4. Is this exclusive (1 of 1)? - tracks variations planned
-5. Will you sell variations?
-6. Will you give away variations?
-7. Plan to license? - with license type (limited/revocable/perpetuity) and terms
-8. Plan to mint as NFT?
-9. Is this a custom PFP? - if yes, collects client's Twitter & Telegram handles
-10. How will you use this artwork?
+2. Is this work for hire? ☑ - if checked: payment amount REQUIRED, payment/contract documentation REQUIRED
+3. Is this for individual or community? (radio: individual/community)
+4. Will this be bonded to a specific contract address? ☑ - if checked: contract address REQUIRED
+5. Is this exclusive (1 of 1)? ☑ - if NOT checked: variations description REQUIRED
+6. Will you sell variations? ☑
+7. Will you give away variations? ☑
+8. Plan to license? ☑ - if checked: license type REQUIRED (limited/revocable/perpetuity), licensing details REQUIRED
+9. Plan to mint as NFT? ☑
+10. Is this a custom PFP? ☑ - if checked: client's Twitter & Telegram handles REQUIRED
+11. How will you use this artwork? (textarea)
+- **Payment Amount**: Required field for work-for-hire (e.g., "$500 USD" or "2 SOL")
+- **Contract Bonding**: Tracks if artwork is tied to specific smart contract address
 - **Social Media Presence**: Portfolio URL, Twitter, Telegram, Instagram, Discord, other platforms
-- **Strict Validation**: Zod superRefine enforces all conditional required fields (work-for-hire details, licensing terms, PFP client handles, variation descriptions)
+- **Strict Validation**: Zod superRefine enforces all conditional required fields based on checkbox states
 
 ### Wallet Security & Liability Protection
 - Users fund their own wallet (0.1 SOL) for certificate/contract storage

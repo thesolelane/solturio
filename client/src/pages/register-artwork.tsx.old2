@@ -390,6 +390,9 @@ export default function RegisterArtwork() {
           <Card>
             <CardHeader>
               <CardTitle>Artwork Information</CardTitle>
+              <CardDescription>
+                Basic details about your artwork
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField
@@ -401,6 +404,7 @@ export default function RegisterArtwork() {
                     <FormControl>
                       <Input placeholder="e.g., Cyber Dragon Logo" {...field} data-testid="input-artwork-title" />
                     </FormControl>
+                    <FormDescription>The title or name of this artwork</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -414,7 +418,7 @@ export default function RegisterArtwork() {
                     <FormLabel>Brief Summary *</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Quick description (max 300 characters)..."
+                        placeholder="Quick description of your artwork (max 300 characters)..."
                         rows={3}
                         maxLength={300}
                         {...field}
@@ -422,22 +426,8 @@ export default function RegisterArtwork() {
                       />
                     </FormControl>
                     <FormDescription>
-                      {field.value?.length || 0}/300 characters
+                      Maximum 300 characters - {field.value?.length || 0}/300
                     </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="whenCreated"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>When was this created? *</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} data-testid="input-when-created" />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -448,14 +438,14 @@ export default function RegisterArtwork() {
           {/* Legal Questionnaire */}
           <Card className="border-primary/20">
             <CardHeader>
-              <CardTitle className="text-primary">Legal & Ownership Questions</CardTitle>
+              <CardTitle className="text-primary">Legal & IP Protection Questionnaire</CardTitle>
               <CardDescription>
                 These questions establish comprehensive ownership and usage rights
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               
-              {/* Who Created */}
+              {/* Creation & Work for Hire */}
               <FormField
                 control={form.control}
                 name="createdBy"
@@ -466,7 +456,7 @@ export default function RegisterArtwork() {
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="flex flex-col space-y-2"
+                        className="flex flex-col space-y-3"
                       >
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="self" id="created-self" data-testid="radio-created-self" />
@@ -499,15 +489,16 @@ export default function RegisterArtwork() {
                   name="creatorDetails"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Provide details about who created this *</FormLabel>
+                      <FormLabel>Provide details about who created this</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="E.g., Hired designer John Doe, signed rights transfer agreement..."
+                          placeholder="E.g., Hired designer John Doe, signed rights transfer agreement on Jan 1, 2025..."
                           rows={3}
                           {...field}
                           data-testid="textarea-creator-details"
                         />
                       </FormControl>
+                      <FormDescription>Include any contracts or rights agreements</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -516,64 +507,74 @@ export default function RegisterArtwork() {
 
               <Separator />
 
-              {/* Work for Hire */}
+              {/* Work for Hire Status */}
               <FormField
                 control={form.control}
                 name="isWorkForHire"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormItem>
+                    <FormLabel className="font-semibold">2. Is this a work for hire? *</FormLabel>
                     <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-work-for-hire"
-                      />
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-3"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="hire-yes" data-testid="radio-hire-yes" />
+                          <Label htmlFor="hire-yes" className="font-normal cursor-pointer">
+                            Yes, this is work for hire
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="hire-no" data-testid="radio-hire-no" />
+                          <Label htmlFor="hire-no" className="font-normal cursor-pointer">
+                            No, I own all rights
+                          </Label>
+                        </div>
+                      </RadioGroup>
                     </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="font-semibold">
-                        2. Is this work for hire?
-                      </FormLabel>
-                      <FormDescription>
-                        Check if you created this for a client who owns the rights
-                      </FormDescription>
-                    </div>
+                    <FormDescription>
+                      Work for hire means you created this for a client who owns the rights
+                    </FormDescription>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {isWorkForHire && (
+              {isWorkForHire === "yes" && (
                 <>
                   <FormField
                     control={form.control}
                     name="receivedPayment"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 ml-6">
+                      <FormItem>
+                        <FormLabel className="font-semibold">Did you receive payment for this work? *</FormLabel>
                         <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            data-testid="checkbox-received-payment"
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Did you receive payment for this work?</FormLabel>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="paymentAmount"
-                    render={({ field }) => (
-                      <FormItem className="ml-6">
-                        <FormLabel>Payment Amount *</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g., $500 USD or 2 SOL"
-                            {...field}
-                            data-testid="input-payment-amount"
-                          />
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col space-y-3"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id="payment-yes" data-testid="radio-payment-yes" />
+                              <Label htmlFor="payment-yes" className="font-normal cursor-pointer">
+                                Yes, payment received
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="pending" id="payment-pending" data-testid="radio-payment-pending" />
+                              <Label htmlFor="payment-pending" className="font-normal cursor-pointer">
+                                Payment pending
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id="payment-no" data-testid="radio-payment-no" />
+                              <Label htmlFor="payment-no" className="font-normal cursor-pointer">
+                                No payment (pro bono/gift)
+                              </Label>
+                            </div>
+                          </RadioGroup>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -584,11 +585,11 @@ export default function RegisterArtwork() {
                     control={form.control}
                     name="paymentDetails"
                     render={({ field }) => (
-                      <FormItem className="ml-6">
-                        <FormLabel>Payment and Contract Details *</FormLabel>
+                      <FormItem>
+                        <FormLabel>Payment and contract details</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Provide payment details, contract information, dates..."
+                            placeholder="E.g., $500 paid on Jan 1, 2025, full rights transfer signed..."
                             rows={3}
                             {...field}
                             data-testid="textarea-payment-details"
@@ -603,29 +604,53 @@ export default function RegisterArtwork() {
 
               <Separator />
 
-              {/* Individual or Community */}
+              {/* When Created */}
               <FormField
                 control={form.control}
-                name="workFor"
+                name="whenCreated"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold">3. Is this work for an individual or community? *</FormLabel>
+                    <FormLabel className="font-semibold">3. When was this artwork created? *</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} data-testid="input-when-created" />
+                    </FormControl>
+                    <FormDescription>This establishes your creation timeline</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Separator />
+
+              {/* Exclusivity */}
+              <FormField
+                control={form.control}
+                name="isExclusive"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">4. Is this work exclusive (1 of 1)? *</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="flex flex-col space-y-2"
+                        className="flex flex-col space-y-3"
                       >
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="individual" id="work-individual" data-testid="radio-work-individual" />
-                          <Label htmlFor="work-individual" className="font-normal cursor-pointer">
-                            Individual (personal project, client work)
+                          <RadioGroupItem value="yes_one_of_one" id="exclusive-yes" data-testid="radio-exclusive-yes" />
+                          <Label htmlFor="exclusive-yes" className="font-normal cursor-pointer">
+                            Yes, this is 1 of 1 (exclusive, no variations)
                           </Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="community" id="work-community" data-testid="radio-work-community" />
-                          <Label htmlFor="work-community" className="font-normal cursor-pointer">
-                            Community (DAO, collective, open-source project)
+                          <RadioGroupItem value="no_variations_exist" id="exclusive-variations-exist" data-testid="radio-exclusive-variations-exist" />
+                          <Label htmlFor="exclusive-variations-exist" className="font-normal cursor-pointer">
+                            No, variations already exist
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no_will_create_variations" id="exclusive-will-create" data-testid="radio-exclusive-will-create" />
+                          <Label htmlFor="exclusive-will-create" className="font-normal cursor-pointer">
+                            No, I plan to create variations
                           </Label>
                         </div>
                       </RadioGroup>
@@ -635,88 +660,13 @@ export default function RegisterArtwork() {
                 )}
               />
 
-              <Separator />
-
-              {/* Contract Address Bonding */}
-              <FormField
-                control={form.control}
-                name="bondedToContract"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-bonded-to-contract"
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="font-semibold">
-                        4. Will this work be bonded to a specific contract address?
-                      </FormLabel>
-                      <FormDescription>
-                        Check if this artwork will be tied to a specific smart contract (NFT collection, token, etc.)
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              {bondedToContract && (
-                <FormField
-                  control={form.control}
-                  name="contractAddress"
-                  render={({ field }) => (
-                    <FormItem className="ml-6">
-                      <FormLabel>Contract Address *</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g., 0x... or Solana address"
-                          {...field}
-                          data-testid="input-contract-address"
-                        />
-                      </FormControl>
-                      <FormDescription>The blockchain contract address this work will be bonded to</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              <Separator />
-
-              {/* Exclusivity */}
-              <FormField
-                control={form.control}
-                name="isExclusive"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-exclusive"
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="font-semibold">
-                        5. Is this work exclusive (1 of 1)?
-                      </FormLabel>
-                      <FormDescription>
-                        Check if this is a unique piece with no variations
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              {!isExclusive && (
+              {(isExclusive === "no_variations_exist" || isExclusive === "no_will_create_variations") && (
                 <FormField
                   control={form.control}
                   name="variationsPlanned"
                   render={({ field }) => (
-                    <FormItem className="ml-6">
-                      <FormLabel>Describe the variations *</FormLabel>
+                    <FormItem>
+                      <FormLabel>Describe the variations</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="E.g., Color variations, size variations, alternative backgrounds..."
@@ -733,24 +683,40 @@ export default function RegisterArtwork() {
 
               <Separator />
 
-              {/* Variations Distribution */}
+              {/* Selling/Giving Away Variations */}
               <FormField
                 control={form.control}
                 name="planToSellVariations"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormItem>
+                    <FormLabel className="font-semibold">5. Will you be selling variations of this work? *</FormLabel>
                     <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-sell-variations"
-                      />
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-3"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="sell-yes" data-testid="radio-sell-yes" />
+                          <Label htmlFor="sell-yes" className="font-normal cursor-pointer">
+                            Yes, I plan to sell variations
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="sell-no" data-testid="radio-sell-no" />
+                          <Label htmlFor="sell-no" className="font-normal cursor-pointer">
+                            No, not selling variations
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="unsure" id="sell-unsure" data-testid="radio-sell-unsure" />
+                          <Label htmlFor="sell-unsure" className="font-normal cursor-pointer">
+                            Unsure
+                          </Label>
+                        </div>
+                      </RadioGroup>
                     </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="font-semibold">
-                        6. Will you sell variations of this work?
-                      </FormLabel>
-                    </div>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -759,19 +725,35 @@ export default function RegisterArtwork() {
                 control={form.control}
                 name="planToGiveAwayVariations"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormItem>
+                    <FormLabel className="font-semibold">6. Will you be giving away variations of this work? *</FormLabel>
                     <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-giveaway-variations"
-                      />
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-3"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="giveaway-yes" data-testid="radio-giveaway-yes" />
+                          <Label htmlFor="giveaway-yes" className="font-normal cursor-pointer">
+                            Yes, I plan to give away variations
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="giveaway-no" data-testid="radio-giveaway-no" />
+                          <Label htmlFor="giveaway-no" className="font-normal cursor-pointer">
+                            No, not giving away variations
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="unsure" id="giveaway-unsure" data-testid="radio-giveaway-unsure" />
+                          <Label htmlFor="giveaway-unsure" className="font-normal cursor-pointer">
+                            Unsure
+                          </Label>
+                        </div>
+                      </RadioGroup>
                     </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="font-semibold">
-                        7. Will you give away variations of this work?
-                      </FormLabel>
-                    </div>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -783,43 +765,79 @@ export default function RegisterArtwork() {
                 control={form.control}
                 name="planToLicense"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormItem>
+                    <FormLabel className="font-semibold">7. Do you plan to license this artwork to others? *</FormLabel>
                     <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-plan-to-license"
-                      />
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-3"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="license-yes" data-testid="radio-license-yes" />
+                          <Label htmlFor="license-yes" className="font-normal cursor-pointer">
+                            Yes, I plan to license it
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="license-no" data-testid="radio-license-no" />
+                          <Label htmlFor="license-no" className="font-normal cursor-pointer">
+                            No, for my exclusive use only
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="unsure" id="license-unsure" data-testid="radio-license-unsure" />
+                          <Label htmlFor="license-unsure" className="font-normal cursor-pointer">
+                            Unsure / Considering options
+                          </Label>
+                        </div>
+                      </RadioGroup>
                     </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="font-semibold">
-                        8. Do you plan to license this artwork to others?
-                      </FormLabel>
-                    </div>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {planToLicense && (
+              {planToLicense === "yes" && (
                 <>
                   <FormField
                     control={form.control}
                     name="licenseType"
                     render={({ field }) => (
-                      <FormItem className="ml-6">
-                        <FormLabel>License Type *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-license-type">
-                              <SelectValue placeholder="Select license type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="limited">Limited (time-bound or usage-restricted)</SelectItem>
-                            <SelectItem value="revocable">Revocable (can be cancelled)</SelectItem>
-                            <SelectItem value="perpetuity">Perpetuity (permanent, irrevocable)</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <FormItem>
+                        <FormLabel className="font-semibold">What type of license? *</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col space-y-3"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="limited" id="license-limited" data-testid="radio-license-limited" />
+                              <Label htmlFor="license-limited" className="font-normal cursor-pointer">
+                                Limited license (time-bound or usage-restricted)
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="revocable" id="license-revocable" data-testid="radio-license-revocable" />
+                              <Label htmlFor="license-revocable" className="font-normal cursor-pointer">
+                                Revocable license (can be cancelled)
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="perpetuity" id="license-perpetuity" data-testid="radio-license-perpetuity" />
+                              <Label htmlFor="license-perpetuity" className="font-normal cursor-pointer">
+                                Perpetuity license (permanent, irrevocable)
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="unsure" id="license-type-unsure" data-testid="radio-license-type-unsure" />
+                              <Label htmlFor="license-type-unsure" className="font-normal cursor-pointer">
+                                Unsure / Need to decide
+                              </Label>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -829,11 +847,11 @@ export default function RegisterArtwork() {
                     control={form.control}
                     name="licensingDetails"
                     render={({ field }) => (
-                      <FormItem className="ml-6">
-                        <FormLabel>Licensing Details and Terms *</FormLabel>
+                      <FormItem>
+                        <FormLabel>Describe your licensing plans</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Describe your licensing plans, pricing, restrictions..."
+                            placeholder="E.g., Will offer commercial licenses for $500, personal use licenses for $50, planning to use on Creative Market..."
                             rows={3}
                             {...field}
                             data-testid="textarea-licensing-details"
@@ -853,58 +871,84 @@ export default function RegisterArtwork() {
                 control={form.control}
                 name="planToMintNFT"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormItem>
+                    <FormLabel className="font-semibold">8. Do you plan to mint this as an NFT? *</FormLabel>
                     <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-plan-to-mint-nft"
-                      />
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-3"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="nft-yes" data-testid="radio-nft-yes" />
+                          <Label htmlFor="nft-yes" className="font-normal cursor-pointer">
+                            Yes, I plan to mint this as NFT
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="nft-no" data-testid="radio-nft-no" />
+                          <Label htmlFor="nft-no" className="font-normal cursor-pointer">
+                            No, not planning to mint
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="unsure" id="nft-unsure" data-testid="radio-nft-unsure" />
+                          <Label htmlFor="nft-unsure" className="font-normal cursor-pointer">
+                            Unsure / Considering options
+                          </Label>
+                        </div>
+                      </RadioGroup>
                     </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="font-semibold">
-                        9. Do you plan to mint this as an NFT?
-                      </FormLabel>
-                    </div>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
 
               <Separator />
 
-              {/* Custom PFP */}
+              {/* Customized PFP */}
               <FormField
                 control={form.control}
                 name="isCustomPFP"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormItem>
+                    <FormLabel className="font-semibold">9. Is this a customized PFP for someone specific? *</FormLabel>
                     <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-custom-pfp"
-                      />
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-3"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="pfp-yes" data-testid="radio-pfp-yes" />
+                          <Label htmlFor="pfp-yes" className="font-normal cursor-pointer">
+                            Yes, this is a custom PFP for a specific client
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="pfp-no" data-testid="radio-pfp-no" />
+                          <Label htmlFor="pfp-no" className="font-normal cursor-pointer">
+                            No, this is general artwork
+                          </Label>
+                        </div>
+                      </RadioGroup>
                     </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="font-semibold">
-                        10. Is this a customized PFP for someone specific?
-                      </FormLabel>
-                      <FormDescription>
-                        Check if this is a profile picture created for a specific person/project
-                      </FormDescription>
-                    </div>
+                    <FormDescription>
+                      If this is a profile picture created for a specific person/project
+                    </FormDescription>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {isCustomPFP && (
+              {isCustomPFP === "yes" && (
                 <>
                   <FormField
                     control={form.control}
                     name="pfpClientTwitter"
                     render={({ field }) => (
-                      <FormItem className="ml-6">
-                        <FormLabel>Client's Twitter/X Handle *</FormLabel>
+                      <FormItem>
+                        <FormLabel>Client's Twitter/X Handle</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="@username"
@@ -912,6 +956,7 @@ export default function RegisterArtwork() {
                             data-testid="input-pfp-client-twitter"
                           />
                         </FormControl>
+                        <FormDescription>The client's Twitter/X handle</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -921,8 +966,8 @@ export default function RegisterArtwork() {
                     control={form.control}
                     name="pfpClientTelegram"
                     render={({ field }) => (
-                      <FormItem className="ml-6">
-                        <FormLabel>Client's Telegram Handle *</FormLabel>
+                      <FormItem>
+                        <FormLabel>Client's Telegram Handle</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="@username"
@@ -930,6 +975,7 @@ export default function RegisterArtwork() {
                             data-testid="input-pfp-client-telegram"
                           />
                         </FormControl>
+                        <FormDescription>The client's Telegram handle</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -945,10 +991,10 @@ export default function RegisterArtwork() {
                 name="intendedUse"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold">11. How will you use this artwork? *</FormLabel>
+                    <FormLabel className="font-semibold">10. How do you plan to use this artwork? *</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Portfolio display, client projects, merchandise, social media branding, NFT marketplace..."
+                        placeholder="E.g., Portfolio display, client projects, merchandise, social media branding, NFT marketplace..."
                         rows={4}
                         {...field}
                         data-testid="textarea-intended-use"
@@ -964,12 +1010,12 @@ export default function RegisterArtwork() {
             </CardContent>
           </Card>
 
-          {/* Social Media */}
+          {/* Social Media Presence */}
           <Card>
             <CardHeader>
               <CardTitle>Your Social Media Presence</CardTitle>
               <CardDescription>
-                Provide your social media accounts for verification
+                Provide your social media accounts for verification and contact
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -1071,7 +1117,7 @@ export default function RegisterArtwork() {
                     <FormLabel>Other Social Media</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="List any other social media accounts"
+                        placeholder="List any other social media accounts (LinkedIn, TikTok, etc.)"
                         rows={2}
                         {...field}
                         data-testid="textarea-other-social"
