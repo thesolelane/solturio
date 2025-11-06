@@ -338,6 +338,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Token Launch Template Registration
+  app.post('/api/logos/upload-token', isAuthenticated, upload.single('file'), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      const file = req.file as Express.Multer.File;
+
+      if (!file) {
+        return res.status(400).json({ message: "No file provided" });
+      }
+
+      // Parse registration data from form
+      const registrationData = JSON.parse(req.body.registrationData || '{}');
+      
+      // Extract metadata from image
+      const metadata = await extractImageMetadata(file.buffer, file.mimetype);
+
+      // Generate storage path for user's .solturio.sol wallet
+      const userWalletDomain = user?.solanaPublicKey ? 
+        `${user.solanaPublicKey.slice(0, 8).toLowerCase()}.solturio.sol` : 
+        'pending.solturio.sol';
+      const storagePath = `${userWalletDomain}/tokens/${randomUUID()}-${file.originalname}`;
+
+      // Create logo with token launch template data
+      const logo = await storage.createLogo({
+        userId,
+        collectionId: null,
+        fileName: file.originalname,
+        userWalletStoragePath: storagePath,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        fileHash: metadata.fileHash,
+        width: metadata.width,
+        height: metadata.height,
+        format: metadata.format,
+        colorPalette: metadata.colorPalette,
+        dominantColor: metadata.dominantColor,
+        
+        // Registration template data
+        registrationType: 'token_launch',
+        registrationData,
+        
+        // Token-specific fields
+        tokenName: req.body.tokenName,
+        tokenTicker: req.body.tokenTicker,
+        launchPlatform: req.body.launchPlatform,
+        launchTimeline: req.body.launchTimeline,
+        
+        // 24-hour ticker verification (starts after registration)
+        tickerVerified: false,
+        tickerVerificationStartedAt: new Date(),
+        tickerVerificationDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+        botVerificationStatus: 'pending',
+        
+        description: req.body.description,
+        intendedUse: req.body.intendedUse,
+        tags: [],
+      });
+
+      res.json({
+        id: logo.id,
+        message: "Token registered successfully! Please complete 24-hour ticker verification.",
+        tickerVerificationDeadline: logo.tickerVerificationDeadline,
+        logo,
+      });
+    } catch (error: any) {
+      console.error("Error registering token:", error);
+      res.status(500).json({ message: error.message || "Failed to register token" });
+    }
+  });
+
+  // Artwork Template Registration
+  app.post('/api/logos/upload-artwork', isAuthenticated, upload.single('file'), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      const file = req.file as Express.Multer.File;
+
+      if (!file) {
+        return res.status(400).json({ message: "No file provided" });
+      }
+
+      // Parse registration data from form
+      const registrationData = JSON.parse(req.body.registrationData || '{}');
+      
+      // Extract metadata from image
+      const metadata = await extractImageMetadata(file.buffer, file.mimetype);
+
+      // Generate storage path for user's .solturio.sol wallet
+      const userWalletDomain = user?.solanaPublicKey ? 
+        `${user.solanaPublicKey.slice(0, 8).toLowerCase()}.solturio.sol` : 
+        'pending.solturio.sol';
+      const storagePath = `${userWalletDomain}/artwork/${randomUUID()}-${file.originalname}`;
+
+      // Create logo with artwork template data
+      const logo = await storage.createLogo({
+        userId,
+        collectionId: null,
+        fileName: file.originalname,
+        userWalletStoragePath: storagePath,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        fileHash: metadata.fileHash,
+        width: metadata.width,
+        height: metadata.height,
+        format: metadata.format,
+        colorPalette: metadata.colorPalette,
+        dominantColor: metadata.dominantColor,
+        
+        // Registration template data
+        registrationType: 'artwork',
+        registrationData,
+        
+        description: req.body.description,
+        intendedUse: req.body.intendedUse,
+        tags: [],
+      });
+
+      res.json({
+        id: logo.id,
+        message: "Artwork registered successfully!",
+        logo,
+      });
+    } catch (error: any) {
+      console.error("Error registering artwork:", error);
+      res.status(500).json({ message: error.message || "Failed to register artwork" });
+    }
+  });
+
   // Get logos
   app.get('/api/logos', isAuthenticated, async (req: any, res) => {
     try {

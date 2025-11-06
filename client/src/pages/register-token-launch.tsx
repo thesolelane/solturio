@@ -1,584 +1,569 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocation } from "wouter";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Upload as UploadIcon, Rocket } from "lucide-react";
+import { Rocket, Upload, AlertTriangle, ArrowLeft, Loader2 } from "lucide-react";
 
 const tokenLaunchSchema = z.object({
-  // Token basics
-  tokenName: z.string().min(1, "Token name is required").max(100),
-  tokenTicker: z.string().min(1, "Ticker is required").max(20).regex(/^[A-Z]+$/, "Ticker must be uppercase letters only"),
+  file: z.any().refine((files) => files?.length > 0, "Please upload your token artwork"),
   
-  // Launch details
-  launchPlatform: z.string().min(1, "Please select a launch platform"),
-  launchTimeline: z.string().min(1, "Please select launch timeline"),
+  tokenName: z.string().min(2, "Token name must be at least 2 characters").max(100),
+  tokenTicker: z.string().min(1, "Ticker is required").max(10, "Ticker must be 10 characters or less").regex(/^[A-Z0-9]+$/, "Ticker must be uppercase letters and numbers only"),
   
-  // Social media
-  twitterUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-  telegramUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-  discordUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-  websiteUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  projectSummary: z.string().min(10, "Summary must be at least 10 characters").max(300, "Summary must be 300 characters or less"),
   
-  // Smart questions for legal protection
-  tokenType: z.enum(["meme", "utility", "governance", "other"]),
-  hasWhitepaper: z.enum(["yes", "no"]),
-  artworkCreator: z.enum(["self", "hired", "ai", "other"]),
-  trademarkConflict: z.enum(["no_conflicts", "checked_no_conflicts", "unsure"]),
-  presaleType: z.enum(["fair_launch", "presale", "airdrop", "other", "undecided"]),
+  launchTimeline: z.string().min(1, "Please select when you will launch"),
+  launchPlatform: z.string().min(1, "Please select where you will launch"),
   
-  // Project description
-  projectDescription: z.string().min(50, "Please provide at least 50 characters").max(1000),
-  intendedUse: z.string().min(20, "Please describe intended use (min 20 characters)").max(500),
+  tokenType: z.enum(["meme", "utility"], { required_error: "Please select token type" }),
   
-  // Artwork file
-  artworkFile: z.any().optional(), // Will handle file validation separately
+  totalSupply: z.string().min(1, "Please specify total supply"),
+  tokenomicsDetails: z.string().min(30, "Please describe tokenomics (minimum 30 characters)"),
+  
+  supplyLocked: z.enum(["yes", "no"], { required_error: "Please specify if supply will be locked" }),
+  lockDuration: z.string().optional(),
+  
+  twitterHandle: z.string().min(1, "Twitter/X handle is required for verification").regex(/^@?[A-Za-z0-9_]+$/, "Invalid Twitter handle"),
 });
 
-type TokenLaunchForm = z.infer<typeof tokenLaunchSchema>;
+type TokenLaunchFormValues = z.infer<typeof tokenLaunchSchema>;
 
 export default function RegisterTokenLaunch() {
   const [, setLocation] = useLocation();
-  const [step, setStep] = useState(1);
-  const totalSteps = 4;
+  const { toast } = useToast();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const [filePreview, setFilePreview] = useState<string | null>(null);
 
-  const form = useForm<TokenLaunchForm>({
+  useEffect(() => {
+    document.title = "Token Launch Registration - Solturio";
+  }, []);
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to register a token.",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+    }
+  }, [isAuthenticated, authLoading, toast]);
+
+  const form = useForm<TokenLaunchFormValues>({
     resolver: zodResolver(tokenLaunchSchema),
     defaultValues: {
-      tokenName: "",
-      tokenTicker: "",
-      launchPlatform: "",
-      launchTimeline: "",
-      twitterUrl: "",
-      telegramUrl: "",
-      discordUrl: "",
-      websiteUrl: "",
-      projectDescription: "",
-      intendedUse: "",
+      supplyLocked: "no",
+      twitterHandle: user?.twitterHandle || "",
     },
   });
 
-  const onSubmit = async (data: TokenLaunchForm) => {
-    console.log("Token Launch Registration:", data);
-    // This will proceed to wallet tier selection
-    setLocation("/register/wallet-tier");
-  };
+  const uploadMutation = useMutation({
+    mutationFn: async (data: FormData) => {
+      const response = await fetch("/api/logos/upload-token", {
+        method: "POST",
+        body: data,
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error);
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/logos"] });
+      toast({
+        title: "Token Registered Successfully!",
+        description: "Your token has been registered. Starting 24-hour ticker verification...",
+      });
+      setLocation(`/dashboard`);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Registration Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
-  const nextStep = async () => {
-    // Validate current step fields before proceeding
-    let fieldsToValidate: (keyof TokenLaunchForm)[] = [];
+  const onSubmit = (values: TokenLaunchFormValues) => {
+    const formData = new FormData();
     
-    if (step === 1) {
-      fieldsToValidate = ["tokenName", "tokenTicker", "launchPlatform", "launchTimeline"];
-    } else if (step === 2) {
-      fieldsToValidate = ["tokenType", "hasWhitepaper", "artworkCreator", "trademarkConflict", "presaleType"];
-    } else if (step === 3) {
-      fieldsToValidate = ["projectDescription", "intendedUse"];
+    if (values.file?.[0]) {
+      formData.append("file", values.file[0]);
     }
     
-    const isValid = await form.trigger(fieldsToValidate);
-    if (isValid) {
-      setStep(step + 1);
+    formData.append("tokenName", values.tokenName);
+    formData.append("tokenTicker", values.tokenTicker.toUpperCase());
+    formData.append("launchPlatform", values.launchPlatform);
+    formData.append("launchTimeline", values.launchTimeline);
+    
+    const registrationData = {
+      projectSummary: values.projectSummary,
+      tokenType: values.tokenType,
+      totalSupply: values.totalSupply,
+      tokenomicsDetails: values.tokenomicsDetails,
+      supplyLocked: values.supplyLocked,
+      lockDuration: values.lockDuration || null,
+      twitterHandle: values.twitterHandle,
+    };
+    
+    formData.append("registrationData", JSON.stringify(registrationData));
+    formData.append("description", values.projectSummary);
+    formData.append("intendedUse", `Token launch on ${values.launchPlatform}. ${values.tokenomicsDetails}`);
+    
+    uploadMutation.mutate(formData);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFilePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const progress = (step / totalSteps) * 100;
+  const supplyLocked = form.watch("supplyLocked");
+
+  if (authLoading || !isAuthenticated) {
+    return null;
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="mb-8">
-        <Button
-          variant="ghost"
-          onClick={() => setLocation("/register")}
-          className="mb-4"
-          data-testid="button-back-to-templates"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Templates
-        </Button>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Rocket className="w-6 h-6 text-primary" />
+    <div className="container max-w-4xl mx-auto py-8 px-4">
+      <Button
+        variant="ghost"
+        className="mb-6"
+        onClick={() => setLocation("/register")}
+        data-testid="button-back"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Template Selection
+      </Button>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Rocket className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl">Token Launch Registration</CardTitle>
+              <CardDescription>
+                Register your token with comprehensive IP protection
+              </CardDescription>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold">Token Launch Registration</h1>
-            <p className="text-muted-foreground">Complete protection for your new token project</p>
-          </div>
-        </div>
-        
-        {/* Progress */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Step {step} of {totalSteps}</span>
-            <span>{Math.round(progress)}% Complete</span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-      </div>
+        </CardHeader>
+      </Card>
+
+      <Alert className="mb-6 bg-primary/5 border-primary/20">
+        <AlertTriangle className="h-4 w-4 text-primary" />
+        <AlertTitle>24-Hour Ticker Verification Required</AlertTitle>
+        <AlertDescription className="text-sm">
+          After registration, you must post your ticker 2 times on social media within 24 hours and submit proof URLs for verification.
+        </AlertDescription>
+      </Alert>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           
-          {/* Step 1: Basic Information */}
-          {step === 1 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Basic Token Information</CardTitle>
-                <CardDescription>
-                  Provide the core details of your token project
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="tokenName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Token Name *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Dragon Coin" {...field} data-testid="input-token-name" />
-                      </FormControl>
-                      <FormDescription>The full name of your token</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="tokenTicker"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Token Ticker *</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="e.g., DRGN" 
-                          {...field} 
-                          onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                          data-testid="input-token-ticker"
+          {/* File Upload */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Token Artwork</CardTitle>
+              <CardDescription>
+                Upload your token logo or artwork (PNG, JPG, or SVG)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="file"
+                render={({ field: { onChange, value, ...field } }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="space-y-4">
+                        <Input
+                          type="file"
+                          accept="image/png,image/jpeg,image/svg+xml"
+                          onChange={(e) => {
+                            onChange(e.target.files);
+                            handleFileChange(e);
+                          }}
+                          {...field}
+                          data-testid="input-file-upload"
                         />
-                      </FormControl>
-                      <FormDescription>
-                        Uppercase letters only (e.g., BTC, ETH, DOGE). You'll need to use this ticker 2x on social media within 24 hours.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        {filePreview && (
+                          <div className="flex justify-center">
+                            <img
+                              src={filePreview}
+                              alt="Preview"
+                              className="max-w-xs max-h-64 rounded border"
+                              data-testid="img-file-preview"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
 
-                <FormField
-                  control={form.control}
-                  name="launchPlatform"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Where will you launch? *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-launch-platform">
-                            <SelectValue placeholder="Select launch platform" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="pumpfun">Pump.fun</SelectItem>
-                          <SelectItem value="raydium">Raydium</SelectItem>
-                          <SelectItem value="jupiter">Jupiter</SelectItem>
-                          <SelectItem value="dexscreener">DexScreener</SelectItem>
-                          <SelectItem value="dextools">DexTools</SelectItem>
-                          <SelectItem value="birdeye">Birdeye</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          {/* Basic Token Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Token Information</CardTitle>
+              <CardDescription>
+                Basic details about your token
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="tokenName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Token Name *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Dragon Coin" {...field} data-testid="input-token-name" />
+                    </FormControl>
+                    <FormDescription>The full name of your token</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="launchTimeline"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>When do you plan to launch? *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-launch-timeline">
-                            <SelectValue placeholder="Select timeline" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="1_month">Within 1 month</SelectItem>
-                          <SelectItem value="1_2_months">1-2 months</SelectItem>
-                          <SelectItem value="2plus_months">More than 2 months</SelectItem>
-                          <SelectItem value="already_launched">Already launched</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-          )}
+              <FormField
+                control={form.control}
+                name="tokenTicker"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Token Ticker/Symbol *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="e.g., DRGN" 
+                        {...field} 
+                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                        maxLength={10}
+                        data-testid="input-token-ticker"
+                      />
+                    </FormControl>
+                    <FormDescription>Uppercase letters and numbers only (max 10 characters)</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Step 2: Legal & Smart Questions */}
-          {step === 2 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Legal Protection Questions</CardTitle>
-                <CardDescription>
-                  These questions establish "full intent" and strengthen your IP protection
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="tokenType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>What type of token is this? *</FormLabel>
+              <FormField
+                control={form.control}
+                name="projectSummary"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Brief Project Summary *</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Quick summary of your token project (max 300 characters)..."
+                        rows={3}
+                        maxLength={300}
+                        {...field}
+                        data-testid="textarea-project-summary"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Maximum 300 characters - {field.value?.length || 0}/300
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Legal Questionnaire */}
+          <Card className="border-primary/20">
+            <CardHeader>
+              <CardTitle className="text-primary">Legal Protection Questionnaire</CardTitle>
+              <CardDescription>
+                These questions establish "full intent" for maximum IP protection
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              
+              {/* When */}
+              <FormField
+                control={form.control}
+                name="launchTimeline"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">1. When will you launch this token? *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="space-y-3">
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="meme" id="meme" data-testid="radio-token-type-meme" />
-                            <Label htmlFor="meme" className="font-normal cursor-pointer">Meme token (community-driven, fun)</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="utility" id="utility" data-testid="radio-token-type-utility" />
-                            <Label htmlFor="utility" className="font-normal cursor-pointer">Utility token (provides specific function/access)</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="governance" id="governance" data-testid="radio-token-type-governance" />
-                            <Label htmlFor="governance" className="font-normal cursor-pointer">Governance token (voting rights)</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="other" id="other" data-testid="radio-token-type-other" />
-                            <Label htmlFor="other" className="font-normal cursor-pointer">Other</Label>
-                          </div>
-                        </RadioGroup>
+                        <SelectTrigger data-testid="select-launch-timeline">
+                          <SelectValue placeholder="Select timeline" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <SelectContent>
+                        <SelectItem value="within_7_days">Within 7 days</SelectItem>
+                        <SelectItem value="1_month">Within 1 month</SelectItem>
+                        <SelectItem value="1_2_months">1-2 months</SelectItem>
+                        <SelectItem value="2plus_months">More than 2 months</SelectItem>
+                        <SelectItem value="already_launched">Already launched</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="hasWhitepaper"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Do you have a whitepaper or documentation? *</FormLabel>
+              <Separator />
+
+              {/* Where */}
+              <FormField
+                control={form.control}
+                name="launchPlatform"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">2. Where will you launch this token? *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="space-y-3">
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="yes" id="whitepaper-yes" data-testid="radio-whitepaper-yes" />
-                            <Label htmlFor="whitepaper-yes" className="font-normal cursor-pointer">Yes, I have documentation</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="no" id="whitepaper-no" data-testid="radio-whitepaper-no" />
-                            <Label htmlFor="whitepaper-no" className="font-normal cursor-pointer">No, planning to create one</Label>
-                          </div>
-                        </RadioGroup>
+                        <SelectTrigger data-testid="select-launch-platform">
+                          <SelectValue placeholder="Select platform" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <SelectContent>
+                        <SelectItem value="pumpfun">Pump.fun</SelectItem>
+                        <SelectItem value="raydium">Raydium</SelectItem>
+                        <SelectItem value="jupiter">Jupiter</SelectItem>
+                        <SelectItem value="orca">Orca</SelectItem>
+                        <SelectItem value="moonshot">Moonshot</SelectItem>
+                        <SelectItem value="dexscreener">DexScreener</SelectItem>
+                        <SelectItem value="dextools">DexTools</SelectItem>
+                        <SelectItem value="birdeye">Birdeye</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
+              <Separator />
+
+              {/* Token Type */}
+              <FormField
+                control={form.control}
+                name="tokenType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">3. Is this a meme token or utility token? *</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-3"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="meme" id="type-meme" data-testid="radio-token-type-meme" />
+                          <Label htmlFor="type-meme" className="font-normal cursor-pointer">
+                            Meme token (community-driven, entertainment value)
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="utility" id="type-utility" data-testid="radio-token-type-utility" />
+                          <Label htmlFor="type-utility" className="font-normal cursor-pointer">
+                            Utility token (provides specific function, service, or access)
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Separator />
+
+              {/* Total Supply */}
+              <FormField
+                control={form.control}
+                name="totalSupply"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">4. What is the total circulating supply? *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="e.g., 1,000,000,000 or 1 billion" 
+                        {...field} 
+                        data-testid="input-total-supply"
+                      />
+                    </FormControl>
+                    <FormDescription>Total number of tokens that will exist</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Separator />
+
+              {/* Tokenomics */}
+              <FormField
+                control={form.control}
+                name="tokenomicsDetails"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">5. Describe your tokenomics distribution *</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="E.g., 80% liquidity pool, 10% team (vested 12 months), 5% marketing, 5% community rewards..."
+                        rows={4}
+                        {...field}
+                        data-testid="textarea-tokenomics"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      How will tokens be distributed? Include percentages for liquidity, team, marketing, etc. (minimum 30 characters)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Separator />
+
+              {/* Supply Lock */}
+              <FormField
+                control={form.control}
+                name="supplyLocked"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">6. Will any portion of the supply be locked for longer than 1 year? *</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-3"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="locked-yes" data-testid="radio-supply-locked-yes" />
+                          <Label htmlFor="locked-yes" className="font-normal cursor-pointer">
+                            Yes, some supply will be locked for 1+ years
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="locked-no" data-testid="radio-supply-locked-no" />
+                          <Label htmlFor="locked-no" className="font-normal cursor-pointer">
+                            No, no long-term locks
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {supplyLocked === "yes" && (
                 <FormField
                   control={form.control}
-                  name="artworkCreator"
+                  name="lockDuration"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Who created the token artwork/logo? *</FormLabel>
-                      <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="space-y-3">
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="self" id="creator-self" data-testid="radio-creator-self" />
-                            <Label htmlFor="creator-self" className="font-normal cursor-pointer">I created it myself</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="hired" id="creator-hired" data-testid="radio-creator-hired" />
-                            <Label htmlFor="creator-hired" className="font-normal cursor-pointer">I hired a designer</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="ai" id="creator-ai" data-testid="radio-creator-ai" />
-                            <Label htmlFor="creator-ai" className="font-normal cursor-pointer">AI-generated</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="other" id="creator-other" data-testid="radio-creator-other" />
-                            <Label htmlFor="creator-other" className="font-normal cursor-pointer">Other</Label>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="trademarkConflict"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Are you aware of trademark conflicts with this name/ticker? *</FormLabel>
-                      <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="space-y-3">
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="checked_no_conflicts" id="checked-no" data-testid="radio-trademark-checked" />
-                            <Label htmlFor="checked-no" className="font-normal cursor-pointer">I checked, no conflicts found</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="no_conflicts" id="no-conflicts" data-testid="radio-trademark-none" />
-                            <Label htmlFor="no-conflicts" className="font-normal cursor-pointer">Not aware of any conflicts</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="unsure" id="unsure" data-testid="radio-trademark-unsure" />
-                            <Label htmlFor="unsure" className="font-normal cursor-pointer">Unsure / Need to check</Label>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormDescription>
-                        Checking for trademark conflicts strengthens your legal claim
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="presaleType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>What type of launch are you planning? *</FormLabel>
-                      <FormControl>
-                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="space-y-3">
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="fair_launch" id="fair-launch" data-testid="radio-presale-fair" />
-                            <Label htmlFor="fair-launch" className="font-normal cursor-pointer">Fair launch (no presale)</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="presale" id="presale" data-testid="radio-presale-presale" />
-                            <Label htmlFor="presale" className="font-normal cursor-pointer">Presale / ICO</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="airdrop" id="airdrop" data-testid="radio-presale-airdrop" />
-                            <Label htmlFor="airdrop" className="font-normal cursor-pointer">Airdrop</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="other" id="launch-other" data-testid="radio-presale-other" />
-                            <Label htmlFor="launch-other" className="font-normal cursor-pointer">Other</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="undecided" id="undecided" data-testid="radio-presale-undecided" />
-                            <Label htmlFor="undecided" className="font-normal cursor-pointer">Still deciding</Label>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Step 3: Project Description & Intent */}
-          {step === 3 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Details</CardTitle>
-                <CardDescription>
-                  Detailed descriptions strengthen your ownership claim and establish clear intent
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="projectDescription"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Project Description *</FormLabel>
+                      <FormLabel>Specify lock duration and amount</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Describe your token project, its purpose, community, and vision..."
-                          className="min-h-[150px]"
+                          placeholder="E.g., 10% of team tokens locked for 2 years with 6-month vesting cliff..."
+                          rows={3}
                           {...field}
-                          data-testid="textarea-project-description"
+                          data-testid="textarea-lock-duration"
                         />
                       </FormControl>
-                      <FormDescription>
-                        Minimum 50 characters. Be specific about your project's goals and unique features.
-                      </FormDescription>
+                      <FormDescription>Describe which tokens are locked and for how long</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
-                <FormField
-                  control={form.control}
-                  name="intendedUse"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Intended Use of Logo/Artwork *</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Where will you use this logo? DEX listings, social media, merchandise, etc..."
-                          className="min-h-[100px]"
-                          {...field}
-                          data-testid="textarea-intended-use"
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        List all platforms and uses (e.g., DexScreener, Twitter, Discord, merchandise)
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="twitterUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Twitter/X URL</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://x.com/yourproject" {...field} data-testid="input-twitter-url" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="telegramUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Telegram URL</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://t.me/yourproject" {...field} data-testid="input-telegram-url" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="discordUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Discord URL</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://discord.gg/yourproject" {...field} data-testid="input-discord-url" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="websiteUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Website URL</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://yourproject.com" {...field} data-testid="input-website-url" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Step 4: Upload Artwork */}
-          {step === 4 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Upload Token Artwork</CardTitle>
-                <CardDescription>
-                  Upload your token logo or artwork. We'll generate a secure IPFS hash and blockchain timestamp.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="border-2 border-dashed rounded-lg p-12 text-center hover-elevate cursor-pointer">
-                  <UploadIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">Drop your artwork here</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Supported formats: PNG, JPG, SVG • Max size: 10MB
-                  </p>
-                  <Button type="button" variant="outline" data-testid="button-browse-files">
-                    Browse Files
-                  </Button>
-                </div>
-
-                <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                  <h4 className="font-semibold text-sm">Important:</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                    <li>Solturio will upload to IPFS (you don't upload yourself)</li>
-                    <li>We store only thumbnails + JSON metadata</li>
-                    <li>This prevents copycat abuse via hash-copying</li>
-                    <li>Your IPFS hash proves you registered first</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-between items-center pt-6 border-t">
-            <div>
-              {step > 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setStep(step - 1)}
-                  data-testid="button-previous-step"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Previous
-                </Button>
               )}
-            </div>
 
-            <div className="flex gap-3">
-              {step < totalSteps ? (
-                <Button
-                  type="button"
-                  onClick={nextStep}
-                  data-testid="button-next-step"
-                >
-                  Next Step
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+              <Separator />
+
+              {/* Twitter Verification */}
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Social Media Required for Verification</AlertTitle>
+                <AlertDescription className="text-sm">
+                  Twitter/X is required for the 24-hour ticker verification system. You'll need to post your ticker twice within 24 hours.
+                </AlertDescription>
+              </Alert>
+
+              <FormField
+                control={form.control}
+                name="twitterHandle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">7. Twitter/X Handle (for 24-hour verification) *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="@yourusername" {...field} data-testid="input-twitter" />
+                    </FormControl>
+                    <FormDescription>Required for ticker verification process</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Submit */}
+          <div className="flex gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setLocation("/register")}
+              data-testid="button-cancel"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="flex-1"
+              disabled={uploadMutation.isPending}
+              data-testid="button-submit-token-registration"
+            >
+              {uploadMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Registering Token...
+                </>
               ) : (
-                <Button
-                  type="submit"
-                  size="lg"
-                  data-testid="button-continue-to-wallet"
-                >
-                  Continue to Wallet Selection
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+                <>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Register Token & Start Verification
+                </>
               )}
-            </div>
+            </Button>
           </div>
         </form>
       </Form>
