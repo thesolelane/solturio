@@ -24,19 +24,134 @@ const artworkSchema = z.object({
   
   artworkSummary: z.string().min(10, "Summary must be at least 10 characters").max(300, "Summary must be 300 characters or less"),
   
-  createdBy: z.enum(["self", "hired", "team"], { required_error: "Please specify who created this" }),
+  createdBy: z.enum(["self", "work_for_hire", "team"], { required_error: "Please specify who created this" }),
   creatorDetails: z.string().optional(),
   
   whenCreated: z.string().min(1, "Please specify when this was created"),
   
+  // Work for hire questions
+  isWorkForHire: z.enum(["yes", "no"], { required_error: "Please specify if this is work for hire" }),
+  receivedPayment: z.enum(["yes", "no", "pending"], { required_error: "Required for work for hire" }).optional(),
+  paymentDetails: z.string().optional(),
+  
+  // Exclusivity
+  isExclusive: z.enum(["yes_one_of_one", "no_variations_exist", "no_will_create_variations"], { required_error: "Please specify exclusivity" }),
+  variationsPlanned: z.string().optional(),
+  
+  // Licensing
   planToLicense: z.enum(["yes", "no", "unsure"], { required_error: "Please specify licensing plans" }),
+  licenseType: z.enum(["limited", "revocable", "perpetuity", "unsure"], { required_error: "Required if licensing" }).optional(),
   licensingDetails: z.string().optional(),
   
+  // NFT & Distribution
   planToMintNFT: z.enum(["yes", "no", "unsure"], { required_error: "Please specify NFT plans" }),
+  planToSellVariations: z.enum(["yes", "no", "unsure"], { required_error: "Please specify if selling variations" }),
+  planToGiveAwayVariations: z.enum(["yes", "no", "unsure"], { required_error: "Please specify if giving away variations" }),
   
+  // Customized PFP
+  isCustomPFP: z.enum(["yes", "no"], { required_error: "Please specify if this is a custom PFP" }),
+  pfpClientTelegram: z.string().optional(),
+  pfpClientTwitter: z.string().optional(),
+  
+  // Intended use
   intendedUse: z.string().min(20, "Please describe intended use (minimum 20 characters)"),
   
+  // Social media
   portfolioUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  twitterHandle: z.string().optional(),
+  telegramHandle: z.string().optional(),
+  instagramHandle: z.string().optional(),
+  discordHandle: z.string().optional(),
+  otherSocial: z.string().optional(),
+}).superRefine((data, ctx) => {
+  // Work for hire strict validation - must be consistent
+  if (data.isWorkForHire === "yes" && data.createdBy !== "work_for_hire") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "If this is work for hire, please select 'Work for hire' as the creator",
+      path: ["createdBy"],
+    });
+  }
+  
+  if (data.createdBy === "work_for_hire" && data.isWorkForHire !== "yes") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "If created by work for hire, must confirm work for hire status is 'yes'",
+      path: ["isWorkForHire"],
+    });
+  }
+  
+  // Work for hire requires payment status
+  if (data.isWorkForHire === "yes" && !data.receivedPayment) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify if payment was received for work for hire",
+      path: ["receivedPayment"],
+    });
+  }
+  
+  // Work for hire requires payment/contract details
+  if (data.isWorkForHire === "yes" && (!data.paymentDetails || data.paymentDetails.trim().length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please provide payment and contract details for work for hire",
+      path: ["paymentDetails"],
+    });
+  }
+  
+  // Creator details required for work_for_hire and team
+  if ((data.createdBy === "work_for_hire" || data.createdBy === "team") && (!data.creatorDetails || data.creatorDetails.trim().length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please provide details about who created this work",
+      path: ["creatorDetails"],
+    });
+  }
+  
+  // Variations description required if variations exist or planned
+  if ((data.isExclusive === "no_variations_exist" || data.isExclusive === "no_will_create_variations") && (!data.variationsPlanned || data.variationsPlanned.trim().length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please describe the variations",
+      path: ["variationsPlanned"],
+    });
+  }
+  
+  // License type required if planning to license
+  if (data.planToLicense === "yes" && !data.licenseType) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please specify the license type",
+      path: ["licenseType"],
+    });
+  }
+  
+  // Licensing details required if planning to license
+  if (data.planToLicense === "yes" && (!data.licensingDetails || data.licensingDetails.trim().length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please provide licensing details and terms",
+      path: ["licensingDetails"],
+    });
+  }
+  
+  // Custom PFP client handles required
+  if (data.isCustomPFP === "yes") {
+    if (!data.pfpClientTwitter || data.pfpClientTwitter.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please provide client's Twitter handle",
+        path: ["pfpClientTwitter"],
+      });
+    }
+    if (!data.pfpClientTelegram || data.pfpClientTelegram.trim().length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please provide client's Telegram handle",
+        path: ["pfpClientTelegram"],
+      });
+    }
+  }
 });
 
 type ArtworkFormValues = z.infer<typeof artworkSchema>;
@@ -68,8 +183,13 @@ export default function RegisterArtwork() {
     resolver: zodResolver(artworkSchema),
     defaultValues: {
       createdBy: "self",
+      isWorkForHire: "no",
+      isExclusive: "yes_one_of_one",
       planToLicense: "unsure",
       planToMintNFT: "unsure",
+      planToSellVariations: "unsure",
+      planToGiveAwayVariations: "unsure",
+      isCustomPFP: "no",
     },
   });
 
@@ -114,10 +234,26 @@ export default function RegisterArtwork() {
       createdBy: values.createdBy,
       creatorDetails: values.creatorDetails || null,
       whenCreated: values.whenCreated,
+      isWorkForHire: values.isWorkForHire,
+      receivedPayment: values.receivedPayment || null,
+      paymentDetails: values.paymentDetails || null,
+      isExclusive: values.isExclusive,
+      variationsPlanned: values.variationsPlanned || null,
       planToLicense: values.planToLicense,
+      licenseType: values.licenseType || null,
       licensingDetails: values.licensingDetails || null,
       planToMintNFT: values.planToMintNFT,
+      planToSellVariations: values.planToSellVariations,
+      planToGiveAwayVariations: values.planToGiveAwayVariations,
+      isCustomPFP: values.isCustomPFP,
+      pfpClientTelegram: values.pfpClientTelegram || null,
+      pfpClientTwitter: values.pfpClientTwitter || null,
       portfolioUrl: values.portfolioUrl || null,
+      twitterHandle: values.twitterHandle || null,
+      telegramHandle: values.telegramHandle || null,
+      instagramHandle: values.instagramHandle || null,
+      discordHandle: values.discordHandle || null,
+      otherSocial: values.otherSocial || null,
     };
     
     formData.append("registrationData", JSON.stringify(registrationData));
@@ -139,7 +275,10 @@ export default function RegisterArtwork() {
   };
 
   const createdBy = form.watch("createdBy");
+  const isWorkForHire = form.watch("isWorkForHire");
+  const isExclusive = form.watch("isExclusive");
   const planToLicense = form.watch("planToLicense");
+  const isCustomPFP = form.watch("isCustomPFP");
 
   if (authLoading || !isAuthenticated) {
     return null;
@@ -166,7 +305,7 @@ export default function RegisterArtwork() {
             <div>
               <CardTitle className="text-2xl">Artwork Registration</CardTitle>
               <CardDescription>
-                Protect your creative work with blockchain-verified proof of ownership
+                Comprehensive IP protection for your creative work
               </CardDescription>
             </div>
           </div>
@@ -273,14 +412,14 @@ export default function RegisterArtwork() {
           {/* Legal Questionnaire */}
           <Card className="border-primary/20">
             <CardHeader>
-              <CardTitle className="text-primary">Proof of Creation Questionnaire</CardTitle>
+              <CardTitle className="text-primary">Legal & IP Protection Questionnaire</CardTitle>
               <CardDescription>
-                These questions establish your ownership and creative rights
+                These questions establish comprehensive ownership and usage rights
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               
-              {/* Who Created */}
+              {/* Creation & Work for Hire */}
               <FormField
                 control={form.control}
                 name="createdBy"
@@ -300,9 +439,9 @@ export default function RegisterArtwork() {
                           </Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="hired" id="created-hired" data-testid="radio-created-hired" />
-                          <Label htmlFor="created-hired" className="font-normal cursor-pointer">
-                            I hired/commissioned a designer
+                          <RadioGroupItem value="work_for_hire" id="created-hire" data-testid="radio-created-hire" />
+                          <Label htmlFor="created-hire" className="font-normal cursor-pointer">
+                            Work for hire (I hired/commissioned a designer)
                           </Label>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -318,7 +457,7 @@ export default function RegisterArtwork() {
                 )}
               />
 
-              {(createdBy === "hired" || createdBy === "team") && (
+              {(createdBy === "work_for_hire" || createdBy === "team") && (
                 <FormField
                   control={form.control}
                   name="creatorDetails"
@@ -342,13 +481,110 @@ export default function RegisterArtwork() {
 
               <Separator />
 
+              {/* Work for Hire Status */}
+              <FormField
+                control={form.control}
+                name="isWorkForHire"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">2. Is this a work for hire? *</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-3"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="hire-yes" data-testid="radio-hire-yes" />
+                          <Label htmlFor="hire-yes" className="font-normal cursor-pointer">
+                            Yes, this is work for hire
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="hire-no" data-testid="radio-hire-no" />
+                          <Label htmlFor="hire-no" className="font-normal cursor-pointer">
+                            No, I own all rights
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormDescription>
+                      Work for hire means you created this for a client who owns the rights
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {isWorkForHire === "yes" && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="receivedPayment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-semibold">Did you receive payment for this work? *</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col space-y-3"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="yes" id="payment-yes" data-testid="radio-payment-yes" />
+                              <Label htmlFor="payment-yes" className="font-normal cursor-pointer">
+                                Yes, payment received
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="pending" id="payment-pending" data-testid="radio-payment-pending" />
+                              <Label htmlFor="payment-pending" className="font-normal cursor-pointer">
+                                Payment pending
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id="payment-no" data-testid="radio-payment-no" />
+                              <Label htmlFor="payment-no" className="font-normal cursor-pointer">
+                                No payment (pro bono/gift)
+                              </Label>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="paymentDetails"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Payment and contract details</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="E.g., $500 paid on Jan 1, 2025, full rights transfer signed..."
+                            rows={3}
+                            {...field}
+                            data-testid="textarea-payment-details"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              <Separator />
+
               {/* When Created */}
               <FormField
                 control={form.control}
                 name="whenCreated"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold">2. When was this artwork created? *</FormLabel>
+                    <FormLabel className="font-semibold">3. When was this artwork created? *</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} data-testid="input-when-created" />
                     </FormControl>
@@ -360,13 +596,151 @@ export default function RegisterArtwork() {
 
               <Separator />
 
-              {/* Licensing Plans */}
+              {/* Exclusivity */}
+              <FormField
+                control={form.control}
+                name="isExclusive"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">4. Is this work exclusive (1 of 1)? *</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-3"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes_one_of_one" id="exclusive-yes" data-testid="radio-exclusive-yes" />
+                          <Label htmlFor="exclusive-yes" className="font-normal cursor-pointer">
+                            Yes, this is 1 of 1 (exclusive, no variations)
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no_variations_exist" id="exclusive-variations-exist" data-testid="radio-exclusive-variations-exist" />
+                          <Label htmlFor="exclusive-variations-exist" className="font-normal cursor-pointer">
+                            No, variations already exist
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no_will_create_variations" id="exclusive-will-create" data-testid="radio-exclusive-will-create" />
+                          <Label htmlFor="exclusive-will-create" className="font-normal cursor-pointer">
+                            No, I plan to create variations
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {(isExclusive === "no_variations_exist" || isExclusive === "no_will_create_variations") && (
+                <FormField
+                  control={form.control}
+                  name="variationsPlanned"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Describe the variations</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="E.g., Color variations, size variations, alternative backgrounds..."
+                          rows={3}
+                          {...field}
+                          data-testid="textarea-variations-planned"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              <Separator />
+
+              {/* Selling/Giving Away Variations */}
+              <FormField
+                control={form.control}
+                name="planToSellVariations"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">5. Will you be selling variations of this work? *</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-3"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="sell-yes" data-testid="radio-sell-yes" />
+                          <Label htmlFor="sell-yes" className="font-normal cursor-pointer">
+                            Yes, I plan to sell variations
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="sell-no" data-testid="radio-sell-no" />
+                          <Label htmlFor="sell-no" className="font-normal cursor-pointer">
+                            No, not selling variations
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="unsure" id="sell-unsure" data-testid="radio-sell-unsure" />
+                          <Label htmlFor="sell-unsure" className="font-normal cursor-pointer">
+                            Unsure
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="planToGiveAwayVariations"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">6. Will you be giving away variations of this work? *</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-3"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="giveaway-yes" data-testid="radio-giveaway-yes" />
+                          <Label htmlFor="giveaway-yes" className="font-normal cursor-pointer">
+                            Yes, I plan to give away variations
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="giveaway-no" data-testid="radio-giveaway-no" />
+                          <Label htmlFor="giveaway-no" className="font-normal cursor-pointer">
+                            No, not giving away variations
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="unsure" id="giveaway-unsure" data-testid="radio-giveaway-unsure" />
+                          <Label htmlFor="giveaway-unsure" className="font-normal cursor-pointer">
+                            Unsure
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Separator />
+
+              {/* Licensing */}
               <FormField
                 control={form.control}
                 name="planToLicense"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold">3. Do you plan to license this artwork to others? *</FormLabel>
+                    <FormLabel className="font-semibold">7. Do you plan to license this artwork to others? *</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
@@ -399,24 +773,69 @@ export default function RegisterArtwork() {
               />
 
               {planToLicense === "yes" && (
-                <FormField
-                  control={form.control}
-                  name="licensingDetails"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Describe your licensing plans</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="E.g., Will offer commercial licenses for $500, personal use licenses for $50, planning to use on Creative Market..."
-                          rows={3}
-                          {...field}
-                          data-testid="textarea-licensing-details"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <>
+                  <FormField
+                    control={form.control}
+                    name="licenseType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-semibold">What type of license? *</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col space-y-3"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="limited" id="license-limited" data-testid="radio-license-limited" />
+                              <Label htmlFor="license-limited" className="font-normal cursor-pointer">
+                                Limited license (time-bound or usage-restricted)
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="revocable" id="license-revocable" data-testid="radio-license-revocable" />
+                              <Label htmlFor="license-revocable" className="font-normal cursor-pointer">
+                                Revocable license (can be cancelled)
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="perpetuity" id="license-perpetuity" data-testid="radio-license-perpetuity" />
+                              <Label htmlFor="license-perpetuity" className="font-normal cursor-pointer">
+                                Perpetuity license (permanent, irrevocable)
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="unsure" id="license-type-unsure" data-testid="radio-license-type-unsure" />
+                              <Label htmlFor="license-type-unsure" className="font-normal cursor-pointer">
+                                Unsure / Need to decide
+                              </Label>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="licensingDetails"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Describe your licensing plans</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="E.g., Will offer commercial licenses for $500, personal use licenses for $50, planning to use on Creative Market..."
+                            rows={3}
+                            {...field}
+                            data-testid="textarea-licensing-details"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
               )}
 
               <Separator />
@@ -427,7 +846,7 @@ export default function RegisterArtwork() {
                 name="planToMintNFT"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold">4. Do you plan to mint this as an NFT? *</FormLabel>
+                    <FormLabel className="font-semibold">8. Do you plan to mint this as an NFT? *</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
@@ -461,13 +880,92 @@ export default function RegisterArtwork() {
 
               <Separator />
 
+              {/* Customized PFP */}
+              <FormField
+                control={form.control}
+                name="isCustomPFP"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">9. Is this a customized PFP for someone specific? *</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-3"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="pfp-yes" data-testid="radio-pfp-yes" />
+                          <Label htmlFor="pfp-yes" className="font-normal cursor-pointer">
+                            Yes, this is a custom PFP for a specific client
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="pfp-no" data-testid="radio-pfp-no" />
+                          <Label htmlFor="pfp-no" className="font-normal cursor-pointer">
+                            No, this is general artwork
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormDescription>
+                      If this is a profile picture created for a specific person/project
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {isCustomPFP === "yes" && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="pfpClientTwitter"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Client's Twitter/X Handle</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="@username"
+                            {...field}
+                            data-testid="input-pfp-client-twitter"
+                          />
+                        </FormControl>
+                        <FormDescription>The client's Twitter/X handle</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="pfpClientTelegram"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Client's Telegram Handle</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="@username"
+                            {...field}
+                            data-testid="input-pfp-client-telegram"
+                          />
+                        </FormControl>
+                        <FormDescription>The client's Telegram handle</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              <Separator />
+
               {/* Intended Use */}
               <FormField
                 control={form.control}
                 name="intendedUse"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold">5. How do you plan to use this artwork? *</FormLabel>
+                    <FormLabel className="font-semibold">10. How do you plan to use this artwork? *</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="E.g., Portfolio display, client projects, merchandise, social media branding, NFT marketplace..."
@@ -483,16 +981,24 @@ export default function RegisterArtwork() {
                   </FormItem>
                 )}
               />
+            </CardContent>
+          </Card>
 
-              <Separator />
-
-              {/* Portfolio URL */}
+          {/* Social Media Presence */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Social Media Presence</CardTitle>
+              <CardDescription>
+                Provide your social media accounts for verification and contact
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <FormField
                 control={form.control}
                 name="portfolioUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Portfolio or Website URL (Optional)</FormLabel>
+                    <FormLabel>Portfolio or Website URL</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="https://yourportfolio.com" 
@@ -500,7 +1006,97 @@ export default function RegisterArtwork() {
                         data-testid="input-portfolio-url"
                       />
                     </FormControl>
-                    <FormDescription>Where can people see your other work?</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="twitterHandle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Twitter/X Handle</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="@yourusername" 
+                        {...field} 
+                        data-testid="input-twitter-handle"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="telegramHandle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Telegram Handle</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="@yourusername" 
+                        {...field} 
+                        data-testid="input-telegram-handle"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="instagramHandle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Instagram Handle</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="@yourusername" 
+                        {...field} 
+                        data-testid="input-instagram-handle"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="discordHandle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Discord Handle</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="username#1234" 
+                        {...field} 
+                        data-testid="input-discord-handle"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="otherSocial"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Other Social Media</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="List any other social media accounts (LinkedIn, TikTok, etc.)"
+                        rows={2}
+                        {...field}
+                        data-testid="textarea-other-social"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
