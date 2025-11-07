@@ -2,6 +2,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { csrfProtection } from "./csrf";
 import { storage } from "./storage";
 import { type User } from "@shared/schema";
 import multer from "multer";
@@ -19,6 +20,8 @@ import {
 } from "./wallet";
 import { uploadToIPFS, uploadJSONToIPFS, generateLogoMetadata } from "./ipfs";
 import { generatePriorArtCertificate, generateDMCATakedownNotice, generateCeaseAndDesistLetter } from "./legal-documents";
+import { isSolturioWallet, getRestrictionErrorMessage } from "./wallet-restrictions";
+import { verifyPayment, isTransactionUsed } from "./payment-verification";
 
 // Setup file upload
 const upload = multer({ 
@@ -150,6 +153,9 @@ import { PRICING, isEligibleForFreeUpload, getRemainingFreeUploads } from "@shar
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication
   await setupAuth(app);
+  
+  // Apply CSRF protection to all routes (automatically skips GET/HEAD/OPTIONS)
+  app.use(csrfProtection);
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
@@ -1238,13 +1244,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============================================
   // SOLANA WALLET CREATION & MANAGEMENT
-  // =====================================
+  // ============================================
+  //
+  // CRITICAL SECURITY POLICY FOR xxx.solturio.sol WALLETS:
+  //
+  // All platform wallets (001.solturio.sol, brandname.solturio.sol) are RESTRICTED wallets
+  // that can ONLY hold:
+  // - Platform-issued certificates (artwork/token registrations)
+  // - Platform-issued smart contracts
+  // - IPFS content hashes
+  // - SOL (for transaction fees only)
+  //
+  // These wallets CANNOT accept:
+  // - SPL tokens (fungible tokens)
+  // - External NFTs
+  // - Any cryptocurrency other than SOL
+  //
+  // Enforcement: See wallet-restrictions.ts for validation logic
+  // ============================================
 
   // Create xxx.solturio.sol wallet for user
   app.post("/api/wallet/create", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { walletType, customName, paymentTxHash } = req.body;
+      const { walletType, customName, paymentTxHash, currency = 'SOL' } = req.body;
 
       const user = await storage.getUserById(userId);
       if (!user) {
@@ -1265,14 +1288,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid wallet type. Must be 'standard' or 'premium'" });
       }
 
-      // TODO: Verify payment transaction on Solana blockchain
-      // For now, accept any non-empty paymentTxHash as placeholder
+      // Validate payment transaction hash
       if (!paymentTxHash || typeof paymentTxHash !== 'string') {
         return res.status(400).json({ 
-          error: "Payment verification required",
+          error: "Payment transaction hash required",
           requiredAmount: walletType === 'standard' ? '0.1 SOL' : '0.15 SOL',
         });
       }
+
+      // CRITICAL SECURITY: Verify payment on blockchain before creating wallet
+      // Prevents users from bypassing payment or using fake transaction hashes
+      
+      // Check if transaction hash has already been used (prevent double-spending)
+      const txAlreadyUsed = await isTransactionUsed(paymentTxHash, storage);
+      if (txAlreadyUsed) {
+        return res.status(400).json({ 
+          error: "This transaction has already been used",
+          details: "Each payment can only be used once. Please make a new payment.",
+        });
+      }
+
+      // Verify payment on blockchain
+      const paymentType = walletType === 'standard' ? 'WALLET_STANDARD' : 'WALLET_PREMIUM';
+      const paymentResult = await verifyPayment(paymentTxHash, paymentType, currency);
+
+      if (!paymentResult.valid) {
+        console.error('Payment verification failed:', paymentResult);
+        return res.status(402).json({ 
+          error: "Payment verification failed",
+          reason: paymentResult.reason,
+          details: paymentResult.error,
+          requiredAmount: walletType === 'standard' ? '0.1 SOL' : '0.15 SOL',
+          requiredCurrency: currency,
+        });
+      }
+
+      // Log successful payment verification
+      console.log('Payment verified successfully:', {
+        userId,
+        txHash: paymentTxHash,
+        amount: paymentResult.transactionDetails?.amount,
+        currency: paymentResult.transactionDetails?.currency,
+        sender: paymentResult.transactionDetails?.sender,
+      });
 
       // Get all existing wallets to determine next account number or check custom name
       const allUsers = await storage.getAllUsers();
@@ -1330,6 +1388,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           publicKey: walletResult.publicKey,
           walletName: walletResult.walletName,
           walletType: walletResult.walletType,
+          isRestricted: true, // All xxx.solturio.sol wallets are restricted
+        },
+        restrictions: {
+          message: "This is a certificate wallet - SPL tokens and external NFTs are NOT allowed",
+          allowedAssets: [
+            "Platform-issued certificates",
+            "IP registration records",
+            "Smart contracts",
+            "SOL (for transaction fees only)"
+          ],
+          prohibitedAssets: [
+            "SPL tokens",
+            "External NFTs",
+            "Other cryptocurrencies"
+          ]
         },
         message: "Wallet created successfully. Please complete the Key Handover Ceremony.",
       });

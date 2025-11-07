@@ -6,7 +6,7 @@ import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, uploadFormData } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -76,14 +76,7 @@ export default function RegisterTokenLaunch() {
 
   const uploadMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await fetch("/api/logos/upload-token", {
-        method: "POST",
-        body: data,
-      });
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error);
-      }
+      const response = await uploadFormData("/api/logos/upload-token", data);
       return response.json();
     },
     onSuccess: (data) => {

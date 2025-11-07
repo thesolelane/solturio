@@ -40,6 +40,7 @@ export function getSession() {
     cookie: {
       httpOnly: true,
       secure: true,
+      sameSite: 'lax', // CSRF protection: prevents cross-site request forgery
       maxAge: sessionTtl,
     },
   });

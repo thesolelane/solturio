@@ -61,6 +61,7 @@ export interface IStorage {
   // Payment operations
   createPayment(payment: InsertPayment): Promise<Payment>;
   getPaymentByIntentId(intentId: string): Promise<Payment | undefined>;
+  getPaymentByTxHash(txHash: string): Promise<Payment | undefined>;
   updatePaymentStatus(id: string, status: string): Promise<Payment>;
   
   // Stats
@@ -297,6 +298,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(payments)
       .where(eq(payments.transactionSignature, intentId));
+    return payment;
+  }
+
+  async getPaymentByTxHash(txHash: string): Promise<Payment | undefined> {
+    const [payment] = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.transactionSignature, txHash));
     return payment;
   }
 
