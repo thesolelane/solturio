@@ -11,13 +11,14 @@ The Solturio Telegram Bot runs IP education quizzes in your Telegram group with 
 - **Daily Leaderboard:** Posts at 2:01 PM
 
 ### Dynamic Scoring System
-Points are awarded based on response speed:
-- **60-51 seconds:** 100% of points
-- **50-41 seconds:** 90% of points
-- **40-31 seconds:** 80% of points
-- **30-21 seconds:** 70% of points
-- **20-11 seconds:** 60% of points
-- **10-1 seconds:** 50% of points
+Points are awarded based on response speed (faster = more points):
+- **0-1 seconds:** 100% of points ⚡ (instant answers)
+- **2-10 seconds:** 90% of points
+- **11-20 seconds:** 80% of points
+- **21-30 seconds:** 70% of points
+- **31-40 seconds:** 60% of points
+- **41-60 seconds:** 50% of points
+- **Over 60 seconds:** 0% of points (too slow)
 
 ### Question Flow
 1. Bot posts question with multiple choice options
@@ -81,7 +82,8 @@ View your personal quiz statistics including:
 ### Points System
 - Each question has a base point value (typically 100 points)
 - Points are multiplied by speed percentage
-- Example: Answer in 55 seconds = 100 pts, Answer in 25 seconds = 70 pts
+- Example: Answer in 5 seconds = 90 pts (90%), Answer in 25 seconds = 70 pts (70%)
+- Instant answers (< 1 second) get full 100% points
 
 ### Leaderboard Tracking
 - **All-time stats:** Total points, questions, accuracy

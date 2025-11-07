@@ -1,222 +1,64 @@
 # Solturio - Decentralized NFT Logo Protection Platform
 
-## Domain Ownership
-- **Domains**: solturio.sol, solturio.com, solturio.app
-- **Owner**: Cooperanth Consulting LLC
-- **Status**: All domains purchased and under control
-
 ## Overview
 
-Solturio is a fully decentralized web application that enables users to protect their intellectual property by minting logos as NFTs on the Solana blockchain. It provides immutable, timestamped proof of ownership for trademarks and brand assets, allowing users to upload logo files, store them on the ireg.cooperanth.sol image registry, and mint minimal on-chain NFT metadata. The platform aims to offer blockchain-verified proof of logo ownership for IP disputes and takedown requests on crypto platforms, complemented by IP education and gamified learning.
+Solturio is a fully decentralized web application designed to protect intellectual property by minting logos as NFTs on the Solana blockchain. It provides immutable, timestamped proof of ownership for trademarks and brand assets, allowing users to upload logo files, store them on a dedicated image registry, and mint minimal on-chain NFT metadata. The platform aims to offer blockchain-verified proof of logo ownership for IP disputes and takedown requests on crypto platforms, complemented by IP education and gamified learning. Solturio envisions intellectual property protection as a continuous journey, leveraging blockchain for robust, verifiable ownership.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 
-## Payment Policy
-
-**Crypto-Only (DeFi Principles):**
-- **NO FIAT PAYMENTS**: Solturio does not accept credit cards, bank transfers, or any fiat currency
-- **NO STRIPE**: Stripe integration completely removed - pure decentralized finance
-- **Accepted Cryptocurrencies**: SOL, BONK, Arweave, CATH (50% discount when using CATH)
-- **Future Consideration**: USDC may be added later for stablecoin payments
-- **Wallet Ceremony**: 0.1 SOL (Standard) or 0.15 SOL (Premium) paid directly to platform wallet
-- **Philosophy**: Fully decentralized platform aligned with DeFi principles - no third-party payment processors
-
-## Recent Updates (November 2025)
-
-### Critical Security Fixes (November 7, 2025)
-**Three critical security vulnerabilities identified and resolved:**
-
-1. **CSRF Protection Implementation**
-   - Added `sameSite='lax'` cookie attribute to session cookies
-   - Implemented double-submit CSRF token pattern for all state-changing endpoints
-   - Created DoS-safe origin validation that handles malformed headers gracefully
-   - Frontend automatically includes CSRF tokens in all POST/PUT/DELETE requests
-   - File uploads protected with CSRF tokens via custom `uploadFormData` helper
-
-2. **Crypto Payment Verification System**
-   - Integrated on-chain payment verification into wallet creation flow
-   - Prevents users from bypassing payments with fake transaction hashes
-   - Double-spend protection: tracks used transaction hashes in database
-   - Validates SOL, BONK, CATH, and Arweave payments on blockchain
-   - Confirms transactions within 24 hours, to correct wallet, with correct amount
-   - Returns detailed error messages for payment failures
-
-3. **SPL Token Restriction System**
-   - Implemented validation logic to block SPL tokens in xxx.solturio.sol wallets
-   - Added `isSolturioWallet()` function to identify platform wallets
-   - Created `validateSolturioWalletTransaction()` to prevent unauthorized transfers
-   - Platform wallets restricted to certificates/contracts only (NOT financial SPL tokens)
-   - Full enforcement will activate when blockchain transaction integration completes
-
-**Architect Review Status:** All implementations approved, production-ready
-
-## Recent Updates (November 2025)
-
-### Complete Onboarding & Wallet System Redesign
-- **Two-Tier Wallet Naming**:
-  - Standard (0.1 SOL): Auto-assigned number-based `042.solturio.sol`
-  - Premium (0.15 SOL): Custom branding `dragoncoin.solturio.sol`
-- **Key Handover Ceremony**: 6-stage security ritual ensuring users take full responsibility for wallet security
-- **Recovery Service Available**: $100 + identity verification (Replit/GitHub/Google) - wallets hold certificates not financial assets
-- **Wallet Restrictions**: xxx.solturio.sol wallets reject SPL tokens, only accept platform-generated certificates/contracts
-- **IPFS Upload Control**: Solturio controls all IPFS uploads to prevent hash-copying abuse
-
-### Registration Template System
-
-**Multi-Step Wizard Flow:**
-Both registration templates now use a 4-step wizard flow with progress tracking, step-aware validation, and data persistence across navigation.
-
-**Token Launch Template (7 Questions):**
-- When will you launch? (timeline)
-- Where will you launch? (platform)
-- Meme or utility token?
-- Total circulating supply
-- Tokenomics breakdown
-- Supply locked 1+ years?
-- Brief summary (max 300 chars)
-- Twitter handle for 24-hour ticker verification
-- **24-Hour Ticker Verification**: Users must use ticker 2x on social media within 24 hours, submit proof URLs for bot verification
-
-**Artwork Template - 4-Step Wizard (11 Questions + Social Media):**
-
-**Step 1: Artwork & Upload**
-- File upload (PNG/JPG/SVG) with live preview
-- Artwork title (2-200 characters)
-- Brief summary (10-300 characters with counter)
-- Creation date
-
-**Step 2: Ownership & Agreements**
-1. Who created this? (self/work-for-hire/team)
-2. Is this work for hire? ☑ - if checked: payment amount REQUIRED, payment/contract documentation REQUIRED
-3. Is this for individual or community? (radio: individual/community)
-
-**Step 3: Licensing & Exclusivity**
-4. Is this exclusive (1 of 1)? ☑ - if NOT checked: variations description REQUIRED
-5. Will you sell variations? ☑
-6. Will you give away variations? ☑
-7. Plan to license? ☑ - if checked: license type REQUIRED (limited/revocable/perpetuity), licensing details REQUIRED
-8. Is this a custom PFP? ☑ - if checked: client's Twitter & Telegram handles REQUIRED
-
-**Step 4: Distribution & Social Proof**
-9. Plan to mint as NFT? ☑
-10. Will this be bonded to a specific contract address? ☑ - if checked: contract address REQUIRED
-11. How will you use this artwork? (textarea, min 20 chars)
-- Social Media: Portfolio URL, Twitter, Telegram, Instagram, Discord, other platforms
-
-**Wizard Features:**
-- Progress bar with step breadcrumbs (Artwork & Upload → Ownership → Licensing → Distribution)
-- Step-aware validation: "Next" validates current step only, "Back" allows free navigation
-- All form data persists across steps (including file preview)
-- Conditional fields appear/disappear within their step based on checkbox states
-- Final "Complete Registration" validates entire form with Zod superRefine
-
-### Wallet Security & Liability Protection
-- Users fund their own wallet (0.1 SOL) for certificate/contract storage
-- Thumbnails only stored (not full images) to reduce resource strain
-- 12-word recovery phrase revealed ONCE with forced verification (enter 3 random words)
-- No screenshots allowed, pen-and-paper backup required
-- Multi-stage legal acknowledgment creates ironclad audit trail
-
-### Clear Protection Messaging
-- DEX Protection page now clearly shows "Get Protected" call-to-action
-- "Report" functionality explicitly labeled as "Report IP Theft" for CAs or individuals using intellectual property without permission
-- Distinction between getting protection (registering first) vs reporting theft (when someone steals your IP)
-
-### Landing Page Enhancements  
-- Added WIPO-inspired messaging: "IP IS A JOURNEY - BLOCKCHAIN IS YOUR BEST FRIEND"
-- New section on IP as daily practice, not one-time activity
-- Emphasis on evolving digital assets, employee mobility, partnership protection
-- Clear workflow: Register First → Get Gold Check → Use Everywhere → We Handle Takedowns
-- Platform support network display showing direct contacts with Twitter/X, DEX platforms, social media
-
-## Recent Updates (October 2025)
-
-### Authorized Usage Tracking
-- Users can pre-register where logos will be used (social media, DEXs, websites)
-- Creates verifiable record of legitimate usage locations
-- Strengthens IP protection claims with documented authorized uses
-
-### DEX Anti-Copycat System  
-- Real-time verification API for DEX platforms
-- Detects stolen logos by file hash comparison
-- Automated DMCA takedown system for copycats
-- Pre-registration workflow: Register on Solturio FIRST → Get IPFS/blockchain proof → Use verified URLs on DEXs
-- Creates undeniable chain of ownership that predates copycat tokens
-
-### DEX Platform Integration
-- Free verification API (<100ms response time)
-- Simple 3-line integration for platforms
-- Partnership proposal and documentation for DEX outreach
-- Target platforms: DexScreener, DexTools, Birdeye, Raydium, Jupiter
-
 ## System Architecture
 
-### Frontend Architecture
+### Frontend
 - **Framework**: React 18 with TypeScript (Vite).
-- **Routing**: Wouter for lightweight client-side routing.
-- **State Management**: TanStack Query for server state, React hooks for local state (no global state library).
-- **UI Components**: shadcn/ui (built on Radix UI) with Tailwind CSS, prioritizing clarity and professional design.
+- **Routing**: Wouter.
+- **State Management**: TanStack Query for server state, React hooks for local state.
+- **UI Components**: shadcn/ui (Radix UI) with Tailwind CSS, emphasizing clarity and professional design.
 - **Form Handling**: React Hook Form with Zod validation.
-- **Blockchain Integration (Planned)**: Solana wallet adapter for Phantom, Solflare, Backpack.
 - **Design Principles**: TypeScript path aliases, component co-location, mobile-first responsive design.
 
-### Backend Architecture
+### Backend
 - **Runtime**: Node.js with Express.js (TypeScript, ESM).
 - **API Pattern**: RESTful API.
-- **Session Management**: express-session with PostgreSQL store, secure HTTP-only cookies.
-- **File Processing**: Multer for multipart/form-data, Sharp for image metadata extraction (dimensions, format, color palette, SHA-256 hash) for PNG, JPG, SVG.
-- **Metadata Storage**: Platform stores only JSON metadata with ownership claims, timestamps, IP protection info. NO image file storage.
-- **Blockchain Integration (Planned)**: Solana web3.js for interactions, Metaplex SDK for NFT minting, payment verification for SOL and $CATH.
+- **Session Management**: `express-session` with PostgreSQL store, secure HTTP-only cookies.
+- **File Processing**: Multer for multipart/form-data, Sharp for image metadata extraction (dimensions, format, color palette, SHA-256 hash).
+- **Metadata Storage**: Stores only JSON metadata with ownership claims, timestamps, and IP protection info; no full image file storage.
 - **Architectural Patterns**: Storage abstraction, middleware for logging, custom error handling.
 
-### Database Architecture
+### Database
 - **Database**: PostgreSQL (Neon serverless) using Drizzle ORM.
-- **Schema**:
-    - `users`: User profiles with Replit Auth, email verification status, Solana wallet (public key + encrypted private key with unique salts), and social handles.
-    - `logos`: Logo assets with extracted metadata and image registry references.
-    - `collections`: Groups of logos for batch minting.
-    - `payments`: Crypto payment tracking (SOL/$CATH).
-    - `authorized_usages`: User-registered locations for logo use.
-    - `quiz_questions`, `quiz_attempts`, `quiz_stats`: For educational IP quizzes and rewards.
-    - `sessions`: Encrypted session storage.
-- **Design Decisions**: UUID primary keys, timestamp fields, JSONB for flexible metadata, indexes for session cleanup, string-based amounts for crypto precision.
+- **Schema**: Includes tables for `users`, `logos`, `collections`, `payments`, `authorized_usages`, `quiz_questions`, `quiz_attempts`, `quiz_stats`, and `sessions`.
+- **Design Decisions**: UUID primary keys, timestamp fields, JSONB for flexible metadata, string-based amounts for crypto precision.
 
 ### Authentication & Authorization
-- **Provider**: Replit Auth (OpenID Connect) via Passport.js - NO passwords needed.
-- **Method**: Session-based authentication, automatic user provisioning.
-- **Wallet Creation Timing**: xxx.solturio.sol wallet created when user registers first artwork/logo (not at login).
-- **Wallet Funding**: User pays 0.1 SOL (Standard) or 0.15 SOL (Premium) to fund wallet for certificate/contract storage.
-- **Wallet Types**:
-  - Standard: Number-based `042.solturio.sol` (account number)
-  - Premium: Custom `brandname.solturio.sol` (3-32 alphanumeric chars)
-- **Wallet Security**: 
-  - BIP39 12-word recovery phrase (Solana-compatible)
-  - Private keys encrypted with AES-256-GCM using unique per-wallet salts
-  - **Recovery Service**: $100 + identity verification (Replit/GitHub/Google) for certificate wallets
-  - Multi-stage Key Handover Ceremony with forced verification
-- **Wallet Restrictions**: xxx.solturio.sol wallets programmatically reject/burn SPL tokens - only accept platform certificates/contracts
+- **Provider**: Replit Auth (OpenID Connect) via Passport.js, session-based authentication.
+- **Wallet Creation**: `xxx.solturio.sol` wallet created upon first artwork/logo registration, funded by the user (0.1 SOL Standard, 0.15 SOL Premium).
+- **Wallet Types**: Number-based (`042.solturio.sol`) or custom branded (`brandname.solturio.sol`).
+- **Wallet Security**: BIP39 12-word recovery phrase, private keys encrypted with AES-256-GCM, multi-stage Key Handover Ceremony, recovery service available.
+- **Wallet Restrictions**: `xxx.solturio.sol` wallets programmatically reject SPL tokens, accepting only platform-generated certificates/contracts.
 - **Security**: Secure HTTP-only session cookies, CSRF protection, environment-based session secrets, unique encryption salts per wallet.
 
 ### Key Features
-1.  **Key Handover Ceremony**: 6-stage security ritual (warnings → payment → pledge → reveal → verification → terms) ensuring user accountability.
-2.  **Registration Templates**: Token Launch (comprehensive) vs Artwork (simple) with 5-10 smart legal questions per registration.
-3.  **IPFS Control**: Solturio uploads to IPFS (not users) to prevent hash-copying abuse and establish chain of custody.
-4.  **Thumbnail Storage**: Platform stores only thumbnails + JSON metadata (not full images) to reduce resource strain.
-5.  **24-Hour Ticker Verification**: Users must use ticker 2x on social media, submit URLs for bot verification before smart contract creation.
-6.  **IP Protection Tracking**: Pre-filing, pending, or registered status for copyright/trademark/patent with application numbers.
-7.  **NFT Minting (Metaplex)**: JSON-only on-chain metadata with ownership claims and timestamps. NFTs minted to Solturio wallet address.
-8.  **Authorized Usage Tracking**: Users register official logo usage locations (URLs, platforms) for IP dispute support.
-9.  **IP Education Knowledge Base**: Comprehensive guides from USPTO and U.S. Copyright Office.
-10. **Gamified Learning (IP Quiz)**: Jeopardy-style quiz game rewarding $CATH tokens for correct answers, citing official sources.
+- **Payment Policy**: Crypto-only (SOL, BONK, Arweave, CATH with discount), no fiat.
+- **Onboarding & Wallet System**: Two-tier wallet naming, 6-stage key handover ceremony, IPFS upload control by Solturio.
+- **Registration Templates**: Multi-step wizard flows for "Token Launch" (7 questions) and "Artwork" (11 questions + social media), with conditional fields and robust validation.
+- **IP Protection Messaging**: Clear distinction between "Get Protected" (registration) and "Report IP Theft."
+- **DEX Anti-Copycat System**: Real-time verification API for DEX platforms, detecting stolen logos by file hash, automated DMCA takedown.
+- **IP Education Quiz Bot (Telegram)**: Automated quizzes with time-based scoring, real-time leaderboard, and future $CATH token rewards.
+- **Security Enhancements**: CSRF protection, robust crypto payment verification, and SPL token restriction system for Solturio wallets.
+- **NFT Minting**: JSON-only on-chain metadata via Metaplex SDK.
+- **Authorized Usage Tracking**: Users pre-register where logos will be used to strengthen IP protection claims.
+- **IP Education**: Knowledge base and gamified learning (IP Quiz).
 
 ## External Dependencies
 
--   **User Wallets**: xxx.solturio.sol domains (restricted wallets - certificates/contracts only, NO SPL tokens).
--   **Blockchain**: Solana (Mainnet/Devnet, Metaplex Token Metadata for NFTs, SOL/BONK/Arweave/CATH for payments).
--   **IPFS**: Platform-controlled uploads for abuse prevention and chain of custody proof.
--   **Image Processing**: Sharp (for thumbnail generation, metadata extraction, color analysis, SHA-256 hashing).
--   **UI Framework**: Radix UI (for accessible, unstyled primitives).
--   **Authentication**: Replit Auth (OpenID Connect) - NO passwords.
--   **Database**: PostgreSQL (Neon serverless) - stores thumbnails + JSON metadata only, not full images.
+-   **User Wallets**: `xxx.solturio.sol` domains (restricted to certificates/contracts).
+-   **Blockchain**: Solana (Mainnet/Devnet, Metaplex Token Metadata, Solana web3.js).
+-   **Cryptocurrencies**: SOL, BONK, Arweave, CATH (for payments).
+-   **IPFS**: Platform-controlled uploads.
+-   **Image Processing**: Sharp.
+-   **UI Framework**: Radix UI.
+-   **Authentication**: Replit Auth (OpenID Connect).
+-   **Database**: PostgreSQL (Neon serverless).
+-   **Telegram**: Telegraf bot framework, node-cron.
