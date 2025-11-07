@@ -427,111 +427,6 @@ export const insertCopycatReportSchema = createInsertSchema(copycatReports).omit
 export type InsertCopycatReport = z.infer<typeof insertCopycatReportSchema>;
 export type CopycatReport = typeof copycatReports.$inferSelect;
 
-// Telegram Quiz Questions for IP education
-export const quizQuestions = pgTable("quiz_questions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  
-  // Question details
-  question: text("question").notNull(),
-  correctAnswer: text("correct_answer").notNull(),
-  wrongAnswers: text("wrong_answers").array().notNull(), // Array of wrong answers
-  category: varchar("category"), // trademark, copyright, patent, general
-  difficulty: varchar("difficulty").notNull().default('medium'), // easy, medium, hard
-  pointValue: integer("point_value").notNull().default(100), // Base points for this question
-  
-  // Source attribution (USPTO, Copyright Office, etc.)
-  source: text("source"),
-  sourceUrl: text("source_url"),
-  explanation: text("explanation"), // Educational explanation after answer
-  
-  // Usage tracking
-  timesAsked: integer("times_asked").notNull().default(0),
-  timesAnsweredCorrect: integer("times_answered_correct").notNull().default(0),
-  
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const insertQuizQuestionSchema = createInsertSchema(quizQuestions).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  timesAsked: true,
-  timesAnsweredCorrect: true,
-});
-
-export type InsertQuizQuestion = z.infer<typeof insertQuizQuestionSchema>;
-export type QuizQuestion = typeof quizQuestions.$inferSelect;
-
-// Telegram Quiz Answers - tracks user responses
-export const quizAnswers = pgTable("quiz_answers", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  
-  // User identification (Telegram user ID since users might not be registered)
-  telegramUserId: varchar("telegram_user_id").notNull(),
-  telegramUsername: varchar("telegram_username"),
-  telegramFirstName: varchar("telegram_first_name"),
-  
-  // Question and answer
-  questionId: varchar("question_id").notNull().references(() => quizQuestions.id, { onDelete: 'cascade' }),
-  userAnswer: text("user_answer").notNull(),
-  isCorrect: boolean("is_correct").notNull(),
-  
-  // Timing and scoring
-  responseTimeSeconds: integer("response_time_seconds").notNull(), // How long to answer (1-60)
-  pointsEarned: integer("points_earned").notNull(), // Actual points based on speed
-  questionPointValue: integer("question_point_value").notNull(), // Max points available
-  
-  answeredAt: timestamp("answered_at").defaultNow(),
-});
-
-export const insertQuizAnswerSchema = createInsertSchema(quizAnswers).omit({
-  id: true,
-  answeredAt: true,
-});
-
-export type InsertQuizAnswer = z.infer<typeof insertQuizAnswerSchema>;
-export type QuizAnswer = typeof quizAnswers.$inferSelect;
-
-// Telegram Quiz Leaderboard - daily and all-time stats
-export const quizLeaderboard = pgTable("quiz_leaderboard", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  
-  // User identification
-  telegramUserId: varchar("telegram_user_id").notNull().unique(),
-  telegramUsername: varchar("telegram_username"),
-  telegramFirstName: varchar("telegram_first_name"),
-  
-  // All-time stats
-  totalPoints: integer("total_points").notNull().default(0),
-  totalCorrectAnswers: integer("total_correct_answers").notNull().default(0),
-  totalQuestionsAnswered: integer("total_questions_answered").notNull().default(0),
-  averageResponseTime: integer("average_response_time"), // Average in seconds
-  
-  // Daily stats (reset daily)
-  dailyPoints: integer("daily_points").notNull().default(0),
-  dailyCorrectAnswers: integer("daily_correct_answers").notNull().default(0),
-  dailyQuestionsAnswered: integer("daily_questions_answered").notNull().default(0),
-  lastDailyReset: timestamp("last_daily_reset").defaultNow(),
-  
-  // Achievements
-  longestStreak: integer("longest_streak").notNull().default(0),
-  currentStreak: integer("current_streak").notNull().default(0),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const insertQuizLeaderboardSchema = createInsertSchema(quizLeaderboard).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export type InsertQuizLeaderboard = z.infer<typeof insertQuizLeaderboardSchema>;
-export type QuizLeaderboard = typeof quizLeaderboard.$inferSelect;
-
 // Outreach Letters sent to organizations
 export const outreachLetters = pgTable("outreach_letters", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -621,10 +516,16 @@ export const quizQuestions = pgTable("quiz_questions", {
 
 export type QuizQuestion = typeof quizQuestions.$inferSelect;
 
-// User quiz attempts
+// User quiz attempts (now supports both registered users and Telegram-only users)
 export const quizAttempts = pgTable("quiz_attempts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'cascade' }), // Optional - for registered users
+  
+  // Telegram user identification (for non-registered users)
+  telegramUserId: varchar("telegram_user_id"),
+  telegramUsername: varchar("telegram_username"),
+  telegramFirstName: varchar("telegram_first_name"),
+  
   questionId: varchar("question_id").notNull().references(() => quizQuestions.id),
   
   userAnswer: text("user_answer").notNull(),
@@ -643,14 +544,25 @@ export const quizAttempts = pgTable("quiz_attempts", {
 
 export type QuizAttempt = typeof quizAttempts.$inferSelect;
 
-// User quiz stats and leaderboard
+// User quiz stats and leaderboard (supports both registered users and Telegram-only users)
 export const quizStats = pgTable("quiz_stats", {
   userId: varchar("user_id").primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  
+  // Telegram user identification (for linking)
+  telegramUserId: varchar("telegram_user_id"),
+  telegramUsername: varchar("telegram_username"),
+  telegramFirstName: varchar("telegram_first_name"),
   
   totalQuestions: integer("total_questions").default(0).notNull(),
   correctAnswers: integer("correct_answers").default(0).notNull(),
   totalPoints: integer("total_points").default(0).notNull(),
   totalCathEarned: varchar("total_cath_earned").default('0'), // Total $CATH earned from quizzes
+  
+  // Daily stats (reset daily)
+  dailyPoints: integer("daily_points").default(0).notNull(),
+  dailyCorrectAnswers: integer("daily_correct_answers").default(0).notNull(),
+  dailyQuestionsAnswered: integer("daily_questions_answered").default(0).notNull(),
+  lastDailyReset: timestamp("last_daily_reset").defaultNow(),
   
   streak: integer("streak").default(0), // Current correct answer streak
   longestStreak: integer("longest_streak").default(0),
@@ -660,3 +572,29 @@ export const quizStats = pgTable("quiz_stats", {
 });
 
 export type QuizStats = typeof quizStats.$inferSelect;
+
+// Telegram-only quiz leaderboard (for users who haven't registered on Solturio)
+export const telegramLeaderboard = pgTable("telegram_leaderboard", {
+  telegramUserId: varchar("telegram_user_id").primaryKey(),
+  telegramUsername: varchar("telegram_username"),
+  telegramFirstName: varchar("telegram_first_name"),
+  
+  totalQuestions: integer("total_questions").default(0).notNull(),
+  correctAnswers: integer("correct_answers").default(0).notNull(),
+  totalPoints: integer("total_points").default(0).notNull(),
+  
+  // Daily stats (reset daily)
+  dailyPoints: integer("daily_points").default(0).notNull(),
+  dailyCorrectAnswers: integer("daily_correct_answers").default(0).notNull(),
+  dailyQuestionsAnswered: integer("daily_questions_answered").default(0).notNull(),
+  lastDailyReset: timestamp("last_daily_reset").defaultNow(),
+  
+  streak: integer("streak").default(0),
+  longestStreak: integer("longest_streak").default(0),
+  
+  lastQuizAt: timestamp("last_quiz_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type TelegramLeaderboard = typeof telegramLeaderboard.$inferSelect;
