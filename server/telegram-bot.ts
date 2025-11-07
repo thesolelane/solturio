@@ -51,14 +51,14 @@ class SolturioQuizBot {
         '/quiz - Start a quiz session\n' +
         '/leaderboard - Show current standings\n' +
         '/mystats - View your quiz statistics\n\n' +
-        '*Schedule:* 8-10 AM & 12-2 PM daily\n' +
+        '*Schedule:* 8-10 AM & 12-2 PM daily (EST)\n' +
         '*Scoring:* Faster answers earn more points!\n' +
-        '• 60-51 sec: 100% points\n' +
-        '• 50-41 sec: 90% points\n' +
-        '• 40-31 sec: 80% points\n' +
-        '• 30-21 sec: 70% points\n' +
-        '• 20-11 sec: 60% points\n' +
-        '• 10-1 sec: 50% points',
+        '• 0-1 sec: 100% points ⚡\n' +
+        '• 2-10 sec: 90% points\n' +
+        '• 11-20 sec: 80% points\n' +
+        '• 21-30 sec: 70% points\n' +
+        '• 31-40 sec: 60% points\n' +
+        '• 41-60 sec: 50% points',
         { parse_mode: 'Markdown' }
       );
     });
@@ -108,22 +108,29 @@ class SolturioQuizBot {
 
   /**
    * Calculate points based on response time
-   * 60-51 sec: 100% | 50-41: 90% | 40-31: 80% | 30-21: 70% | 20-11: 60% | 10-1: 50%
+   * 0-1 sec: 100% | 2-10: 90% | 11-20: 80% | 21-30: 70% | 31-40: 60% | 41-60: 50%
+   * Instantaneous answers (< 1s) get full points
+   * Answers > 60s get 0 points
    */
   private calculatePoints(responseTimeSeconds: number, basePoints: number): number {
-    if (responseTimeSeconds > 60 || responseTimeSeconds < 1) return 0;
+    // Clamp response time to 0-60 seconds range
+    const clampedTime = Math.max(0, Math.min(60, responseTimeSeconds));
+    
+    // Over 60 seconds = no points
+    if (responseTimeSeconds > 60) return 0;
 
+    // Fastest answers get highest points (inverted scale)
     const timeRanges = [
-      { max: 60, min: 51, multiplier: 1.0 },
-      { max: 50, min: 41, multiplier: 0.9 },
-      { max: 40, min: 31, multiplier: 0.8 },
-      { max: 30, min: 21, multiplier: 0.7 },
-      { max: 20, min: 11, multiplier: 0.6 },
-      { max: 10, min: 1, multiplier: 0.5 },
+      { max: 1, multiplier: 1.0 },    // 0-1 sec: 100% (instant answers)
+      { max: 10, multiplier: 0.9 },   // 2-10 sec: 90%
+      { max: 20, multiplier: 0.8 },   // 11-20 sec: 80%
+      { max: 30, multiplier: 0.7 },   // 21-30 sec: 70%
+      { max: 40, multiplier: 0.6 },   // 31-40 sec: 60%
+      { max: 60, multiplier: 0.5 },   // 41-60 sec: 50%
     ];
 
     for (const range of timeRanges) {
-      if (responseTimeSeconds <= range.max && responseTimeSeconds >= range.min) {
+      if (clampedTime <= range.max) {
         return Math.floor(basePoints * range.multiplier);
       }
     }
@@ -199,6 +206,15 @@ class SolturioQuizBot {
   }
 
   /**
+   * Get current date in Eastern timezone (YYYY-MM-DD)
+   */
+  private getEasternDate(date: Date = new Date()): string {
+    // Convert to Eastern timezone and get date string
+    const easternDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    return easternDate.toISOString().split('T')[0];
+  }
+
+  /**
    * Update user's leaderboard stats
    */
   private async updateLeaderboard(
@@ -215,6 +231,7 @@ class SolturioQuizBot {
       .limit(1);
 
     const now = new Date();
+    const currentEasternDate = this.getEasternDate(now);
 
     if (existing.length === 0) {
       // Create new entry
@@ -236,9 +253,10 @@ class SolturioQuizBot {
     } else {
       const user = existing[0];
       
-      // Check if we need to reset daily stats (new day)
+      // Check if we need to reset daily stats based on Eastern timezone
       const lastReset = user.lastDailyReset ? new Date(user.lastDailyReset) : now;
-      const shouldResetDaily = now.toDateString() !== lastReset.toDateString();
+      const lastEasternDate = this.getEasternDate(lastReset);
+      const shouldResetDaily = currentEasternDate !== lastEasternDate;
 
       const newStreak = isCorrect ? (user.streak || 0) + 1 : 0;
       const newLongestStreak = Math.max(newStreak, user.longestStreak || 0);
