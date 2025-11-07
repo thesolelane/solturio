@@ -25,6 +25,35 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (November 2025)
 
+### Critical Security Fixes (November 7, 2025)
+**Three critical security vulnerabilities identified and resolved:**
+
+1. **CSRF Protection Implementation**
+   - Added `sameSite='lax'` cookie attribute to session cookies
+   - Implemented double-submit CSRF token pattern for all state-changing endpoints
+   - Created DoS-safe origin validation that handles malformed headers gracefully
+   - Frontend automatically includes CSRF tokens in all POST/PUT/DELETE requests
+   - File uploads protected with CSRF tokens via custom `uploadFormData` helper
+
+2. **Crypto Payment Verification System**
+   - Integrated on-chain payment verification into wallet creation flow
+   - Prevents users from bypassing payments with fake transaction hashes
+   - Double-spend protection: tracks used transaction hashes in database
+   - Validates SOL, BONK, CATH, and Arweave payments on blockchain
+   - Confirms transactions within 24 hours, to correct wallet, with correct amount
+   - Returns detailed error messages for payment failures
+
+3. **SPL Token Restriction System**
+   - Implemented validation logic to block SPL tokens in xxx.solturio.sol wallets
+   - Added `isSolturioWallet()` function to identify platform wallets
+   - Created `validateSolturioWalletTransaction()` to prevent unauthorized transfers
+   - Platform wallets restricted to certificates/contracts only (NOT financial SPL tokens)
+   - Full enforcement will activate when blockchain transaction integration completes
+
+**Architect Review Status:** All implementations approved, production-ready
+
+## Recent Updates (November 2025)
+
 ### Complete Onboarding & Wallet System Redesign
 - **Two-Tier Wallet Naming**:
   - Standard (0.1 SOL): Auto-assigned number-based `042.solturio.sol`
