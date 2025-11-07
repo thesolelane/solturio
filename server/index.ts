@@ -47,6 +47,16 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize Telegram quiz bot
+  const { quizBot } = await import('./telegram-bot');
+  const { quizScheduler } = await import('./quiz-scheduler');
+  
+  // Launch bot
+  quizBot.launch();
+  
+  // Start scheduler
+  quizScheduler.start();
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
