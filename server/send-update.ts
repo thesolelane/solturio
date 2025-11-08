@@ -6,21 +6,37 @@ const CATH_GROUP_CHAT_ID = '-1002847619278';
 async function sendUpdate() {
   console.log('📢 Sending Solturio update to CATH group...');
   
-  // POST 1: Vision & Mission
+  // POST 2: The Problem
   const message = 
-    `🎯 *WHAT IS SOLTURIO?*\n\n` +
-    `Solturio is building the first fully decentralized IP protection platform on Solana.\n\n` +
+    `🚨 *THE PROBLEM SOLTURIO SOLVES*\n\n` +
+    `Every single day in crypto:\n\n` +
     
-    `We turn your logos, trademarks, and brand assets into blockchain-verified proof of ownership - immutable, timestamped NFT certificates that protect your creative work.\n\n` +
+    `🔴 Scammers steal legitimate project logos\n` +
+    `🔴 Rugpull tokens use copied branding\n` +
+    `🔴 DEX platforms can't verify real vs fake\n` +
+    `🔴 Artists lose IP ownership claims\n` +
+    `🔴 Takedown requests get ignored (no proof)\n` +
+    `🔴 Communities get impersonated\n\n` +
     
-    `Think of it as a copyright office meets Web3:\n` +
-    `• Upload your logo ➜ Get cryptographic proof\n` +
-    `• Mint on Solana ➜ Timestamped forever\n` +
-    `• Fight scammers ➜ Blockchain evidence\n\n` +
+    `*The Reality:*\n` +
+    `Traditional IP registration is:\n` +
+    `• Slow (months to process)\n` +
+    `• Expensive ($250-$2000+ per trademark)\n` +
+    `• Disconnected from Web3\n` +
+    `• No blockchain verification\n\n` +
     
-    `Pure DeFi. No fiat. No middlemen. Just verifiable IP ownership.\n\n` +
+    `DEX platforms have ZERO way to verify if a logo is legitimate. They list thousands of tokens daily - scammers exploit this.\n\n` +
     
-    `_More updates coming today... 🚀_`;
+    `*Solturio Changes This:*\n` +
+    `✅ Instant blockchain proof of ownership\n` +
+    `✅ Timestamped immutable evidence\n` +
+    `✅ Cryptographic file verification (SHA-256)\n` +
+    `✅ API for DEX platforms to check legitimacy\n` +
+    `✅ Automated takedown system\n\n` +
+    
+    `This is why we built Solturio as a **CATH Ecosystem project** - to give crypto the IP protection infrastructure it desperately needs.\n\n` +
+    
+    `Running on $CATH. Built for the community. 🛡️`;
 
   try {
     const bot = quizBot.getBotInstance();
