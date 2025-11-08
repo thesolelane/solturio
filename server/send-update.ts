@@ -6,69 +6,87 @@ const CATH_GROUP_CHAT_ID = '-1002847619278';
 async function sendUpdate() {
   console.log('📢 Sending Solturio update to CATH group...');
   
-  // POST 3: Why CATH?
+  // POST 4: Who Benefits
   const message = 
-    `🐱 *WHY BUILD ON $CATH?*\n\n` +
-    `Solturio is a **Cooperanth Consulting LLC** project - part of the **$CATH Ecosystem** from day one. Here's why:\n\n` +
+    `👥 *WHO BENEFITS FROM SOLTURIO?*\n\n` +
+    `Everyone in crypto - but especially these groups:\n\n` +
     
     `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
     
-    `🎯 *ALIGNED MISSION*\n\n` +
-    `Cooperanth Consulting / $CATH is about community-driven innovation and real utility. Solturio delivers exactly that - a platform solving actual crypto problems (IP theft, scams, rugpulls).\n\n` +
+    `🚀 *TOKEN CREATORS*\n\n` +
+    `Launching a new token? Get protected BEFORE scammers copy your logo.\n\n` +
     
-    `We're not building hype. We're building infrastructure.\n\n` +
+    `What you get:\n` +
+    `✅ Blockchain-verified ownership proof\n` +
+    `✅ Timestamped before any copycats\n` +
+    `✅ Legal questionnaire for IP claims\n` +
+    `✅ 24-hour social proof verification\n` +
+    `✅ Instant takedown authority\n\n` +
     
-    `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    
-    `💎 *PURE DEFI VALUES*\n\n` +
-    `$CATH represents true decentralization - no fiat, no banks, no Web2 compromise.\n\n` +
-    
-    `Solturio follows the same principles:\n` +
-    `• Crypto-only payments (SOL, BONK, Arweave, $CATH)\n` +
-    `• Decentralized storage (IPFS)\n` +
-    `• Blockchain verification (Solana)\n` +
-    `• Community governance (coming)\n\n` +
-    
-    `We're 100% Web3. Just like $CATH.\n\n` +
+    `Pay in: SOL, BONK, Arweave, or $CATH\n\n` +
     
     `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
     
-    `🚀 *FIRST-MOVER ECOSYSTEM*\n\n` +
-    `$CATH holders are early adopters who understand crypto deeply. You get what we're building before everyone else catches on.\n\n` +
+    `🎨 *ARTISTS & DESIGNERS*\n\n` +
+    `NFT creators, graphic designers, brand studios - protect your work.\n\n` +
     
-    `When DEX platforms start requiring IP verification (and they will), $CATH community will already have:\n` +
-    `• Protected assets\n` +
-    `• Discounted rates\n` +
-    `• Priority access\n` +
-    `• Token rewards\n\n` +
+    `What you get:\n` +
+    `✅ Immutable proof of creation\n` +
+    `✅ Portfolio protection system\n` +
+    `✅ Authorized usage tracking\n` +
+    `✅ License management tools\n` +
+    `✅ Copyright evidence for disputes\n\n` +
     
-    `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    
-    `🤝 *MUTUAL GROWTH*\n\n` +
-    `As Solturio grows:\n` +
-    `• More projects register with $CATH\n` +
-    `• Quiz rewards paid in $CATH\n` +
-    `• $CATH holders get platform discounts\n` +
-    `• Ecosystem expands together\n\n` +
-    
-    `We're not just using $CATH - it's integrated into every layer of the platform.\n\n` +
+    `Your art. Your blockchain proof. Forever.\n\n` +
     
     `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
     
-    `🛡️ *ANTI-SCAM SYNERGY*\n\n` +
-    `$CATH community fights scams daily. Solturio gives you the tools to:\n` +
-    `• Verify legitimate projects\n` +
-    `• Report imposters with proof\n` +
-    `• Protect your own brand\n` +
-    `• Build trust in crypto\n\n` +
+    `🏢 *BRANDS & BUSINESSES*\n\n` +
+    `Already have a brand in Web2? Protect it in Web3.\n\n` +
     
-    `Together, we're making Web3 safer.\n\n` +
+    `What you get:\n` +
+    `✅ Multi-logo protection (collections)\n` +
+    `✅ Trademark-to-blockchain bridge\n` +
+    `✅ Anti-impersonation system\n` +
+    `✅ DEX verification API access\n` +
+    `✅ Enterprise-grade IP security\n\n` +
     
     `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
     
-    `This is Solturio - a **Cooperanth Consulting LLC** project.\n\n` +
+    `🐱 *$CATH COMMUNITY*\n\n` +
+    `Special perks for $CATH holders:\n\n` +
     
-    `Built on $CATH. Powered by this community. 🐱🛡️`;
+    `💎 Discounted registration fees\n` +
+    `💎 Priority access to new features\n` +
+    `💎 Quiz rewards paid in $CATH\n` +
+    `💎 Governance voting rights (coming)\n` +
+    `💎 Early ecosystem benefits\n\n` +
+    
+    `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    
+    `🔍 *DEX PLATFORMS*\n\n` +
+    `Integration coming soon:\n` +
+    `• Real-time logo verification API\n` +
+    `• Detect stolen/copycat assets\n` +
+    `• Automated flagging system\n` +
+    `• Reduce scam listings by 90%+\n\n` +
+    
+    `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    
+    `🌐 *THE ENTIRE CRYPTO SPACE*\n\n` +
+    `When IP theft gets harder:\n` +
+    `• Scammers lose their easiest weapon\n` +
+    `• Legitimate projects gain trust\n` +
+    `• Communities stop getting rugged\n` +
+    `• Web3 becomes safer for everyone\n\n` +
+    
+    `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    
+    `Solturio isn't just for protecting YOUR logo.\n\n` +
+    
+    `It's infrastructure for a safer crypto ecosystem.\n\n` +
+    
+    `Built by **Cooperanth Consulting LLC**. Powered by **$CATH**. 🛡️`;
 
 
   try {
