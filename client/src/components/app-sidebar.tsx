@@ -205,16 +205,14 @@ export function AppSidebar() {
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <Link href={item.url}>
-                        <a 
-                          href={item.url}
-                          className={location === item.url ? "bg-sidebar-accent" : ""}
-                          data-testid={`link-sidebar-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                        >
-                          <item.icon className="w-4 h-4" />
-                          <span>{item.title}</span>
-                        </a>
-                      </Link>
+                      <a 
+                        href={item.url}
+                        className={location === item.url ? "bg-sidebar-accent" : ""}
+                        data-testid={`link-sidebar-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.title}</span>
+                      </a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -232,16 +230,14 @@ export function AppSidebar() {
                 {userItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <Link href={item.url}>
-                        <a 
-                          href={item.url}
-                          className={location === item.url ? "bg-sidebar-accent" : ""}
-                          data-testid={`link-sidebar-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                        >
-                          <item.icon className="w-4 h-4" />
-                          <span>{item.title}</span>
-                        </a>
-                      </Link>
+                      <a 
+                        href={item.url}
+                        className={location === item.url ? "bg-sidebar-accent" : ""}
+                        data-testid={`link-sidebar-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.title}</span>
+                      </a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -265,16 +261,14 @@ export function AppSidebar() {
                 {adminItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <Link href={item.url}>
-                        <a 
-                          href={item.url}
-                          className={location === item.url ? "bg-sidebar-accent" : ""}
-                          data-testid={`link-sidebar-admin-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                        >
-                          <item.icon className="w-4 h-4" />
-                          <span>{item.title}</span>
-                        </a>
-                      </Link>
+                      <a 
+                        href={item.url}
+                        className={location === item.url ? "bg-sidebar-accent" : ""}
+                        data-testid={`link-sidebar-admin-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.title}</span>
+                      </a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
