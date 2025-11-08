@@ -2,7 +2,7 @@
 
 ## Overview
 
-Solturio is a fully decentralized web application designed to protect intellectual property by minting logos as NFTs on the Solana blockchain. It provides immutable, timestamped proof of ownership for trademarks and brand assets, allowing users to upload logo files, store them on a dedicated image registry, and mint minimal on-chain NFT metadata. The platform aims to offer blockchain-verified proof of logo ownership for IP disputes and takedown requests on crypto platforms, complemented by IP education and gamified learning. Solturio envisions intellectual property protection as a continuous journey, leveraging blockchain for robust, verifiable ownership.
+Solturio is a **CATH Ecosystem project** - a fully decentralized web application that runs on **$CATH** and protects intellectual property by minting logos as NFTs on the Solana blockchain. It provides immutable, timestamped proof of ownership for trademarks and brand assets, allowing users to upload logo files, store them on a dedicated image registry, and mint minimal on-chain NFT metadata. The platform aims to offer blockchain-verified proof of logo ownership for IP disputes and takedown requests on crypto platforms, complemented by IP education and gamified learning. Solturio envisions intellectual property protection as a continuous journey, leveraging blockchain for robust, verifiable ownership.
 
 ## User Preferences
 
@@ -40,7 +40,7 @@ Preferred communication style: Simple, everyday language.
 - **Security**: Secure HTTP-only session cookies, CSRF protection, environment-based session secrets, unique encryption salts per wallet.
 
 ### Key Features
-- **Payment Policy**: Crypto-only (SOL, BONK, Arweave, CATH with discount), no fiat.
+- **Payment Policy**: CATH Ecosystem project running on $CATH - crypto-only payments (SOL, BONK, Arweave, $CATH as primary), no fiat.
 - **Onboarding & Wallet System**: Two-tier wallet naming, 6-stage key handover ceremony, IPFS upload control by Solturio.
 - **Registration Templates**: Multi-step wizard flows for "Token Launch" (7 questions) and "Artwork" (11 questions + social media), with conditional fields and robust validation.
 - **IP Protection Messaging**: Clear distinction between "Get Protected" (registration) and "Report IP Theft."
