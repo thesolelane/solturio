@@ -61,17 +61,15 @@ class SolturioQuizBot {
         'This bot runs IP education quizzes with rewards!\n\n' +
         '*Commands:*\n' +
         '/quiz - Start a quiz session\n' +
-        '/leaderboard - Show current standings\n' +
+        '/leaderboard - Game Points (competitive)\n' +
+        '/exp - Experience Points (participation)\n' +
         '/mystats - View your quiz statistics\n' +
         '/rules - See scoring details\n\n' +
         '*Schedule:* 8-10 AM & 12-2 PM daily (EST)\n' +
-        '*Competitive Scoring:*\n' +
-        '🥇 1st Place: Full points (time-based)\n' +
-        '🥈 2nd Place: 10 exp\n' +
-        '🥉 3rd Place: 5 exp\n' +
-        '🏅 4th Place: 3 exp\n' +
-        '✅ 5th+: 1 exp | ❌ Wrong: 0\n\n' +
-        '💡 Be the fastest to win!',
+        '*Dual Scoring System:*\n' +
+        '🏆 Game Points: Only 1st place\n' +
+        '⭐ Experience: Everyone who answers correctly\n\n' +
+        '💡 Be the fastest to win big points!',
         { parse_mode: 'Markdown' }
       );
     });
@@ -107,9 +105,14 @@ class SolturioQuizBot {
       await this.postNextQuestion(ctx.chat.id);
     });
 
-    // Leaderboard command
+    // Game Points Leaderboard command
     this.bot.command('leaderboard', async (ctx) => {
       await this.showLeaderboard(ctx);
+    });
+
+    // Experience Leaderboard command
+    this.bot.command('exp', async (ctx) => {
+      await this.showExperienceLeaderboard(ctx);
     });
 
     // Personal stats command
@@ -253,14 +256,15 @@ class SolturioQuizBot {
   }
 
   /**
-   * Update user's leaderboard stats
+   * Update user's leaderboard stats with separate game points and experience
    */
   private async updateLeaderboard(
     userId: string,
     username: string,
     firstName: string,
     isCorrect: boolean,
-    pointsEarned: number
+    gamePoints: number,     // Only 1st place gets these (time-based)
+    experience: number      // Everyone gets exp based on ranking
   ) {
     const existing = await db
       .select()
@@ -279,8 +283,10 @@ class SolturioQuizBot {
         telegramFirstName: firstName,
         totalQuestions: 1,
         correctAnswers: isCorrect ? 1 : 0,
-        totalPoints: pointsEarned,
-        dailyPoints: pointsEarned,
+        totalPoints: gamePoints,
+        totalExperience: experience,
+        dailyPoints: gamePoints,
+        dailyExperience: experience,
         dailyCorrectAnswers: isCorrect ? 1 : 0,
         dailyQuestionsAnswered: 1,
         lastDailyReset: now,
@@ -306,8 +312,10 @@ class SolturioQuizBot {
           telegramFirstName: firstName,
           totalQuestions: (user.totalQuestions || 0) + 1,
           correctAnswers: (user.correctAnswers || 0) + (isCorrect ? 1 : 0),
-          totalPoints: (user.totalPoints || 0) + pointsEarned,
-          dailyPoints: shouldResetDaily ? pointsEarned : (user.dailyPoints || 0) + pointsEarned,
+          totalPoints: (user.totalPoints || 0) + gamePoints,
+          totalExperience: (user.totalExperience || 0) + experience,
+          dailyPoints: shouldResetDaily ? gamePoints : (user.dailyPoints || 0) + gamePoints,
+          dailyExperience: shouldResetDaily ? experience : (user.dailyExperience || 0) + experience,
           dailyCorrectAnswers: shouldResetDaily ? (isCorrect ? 1 : 0) : (user.dailyCorrectAnswers || 0) + (isCorrect ? 1 : 0),
           dailyQuestionsAnswered: shouldResetDaily ? 1 : (user.dailyQuestionsAnswered || 0) + 1,
           lastDailyReset: shouldResetDaily ? now : user.lastDailyReset,
@@ -425,14 +433,39 @@ class SolturioQuizBot {
       .filter(a => a.isCorrect)
       .sort((a, b) => a.responseTime - b.responseTime);
 
-    // Recalculate points based on ranking
+    // Recalculate points and experience based on ranking
     for (let i = 0; i < correctAnswers.length; i++) {
       const rank = i + 1; // 1st, 2nd, 3rd, etc.
       const answer = correctAnswers[i];
-      const points = this.calculatePointsByRank(rank, answer.responseTime, this.currentSession.points);
       
-      // Update points in the answer object
-      answer.pointsEarned = points;
+      // Calculate game points and experience separately
+      let gamePoints = 0;
+      let experience = 0;
+      
+      if (rank === 1) {
+        // 1st place: Gets time-based game points AND same amount as experience
+        gamePoints = this.calculatePointsByRank(rank, answer.responseTime, this.currentSession.points);
+        experience = gamePoints; // Same as game points
+      } else if (rank === 2) {
+        // 2nd place: 0 game points, 10 experience
+        gamePoints = 0;
+        experience = 10;
+      } else if (rank === 3) {
+        // 3rd place: 0 game points, 5 experience
+        gamePoints = 0;
+        experience = 5;
+      } else if (rank === 4) {
+        // 4th place: 0 game points, 3 experience
+        gamePoints = 0;
+        experience = 3;
+      } else {
+        // 5th+ place: 0 game points, 1 experience
+        gamePoints = 0;
+        experience = 1;
+      }
+      
+      // Update points in the answer object for display (show experience for everyone)
+      answer.pointsEarned = experience;
       
       // Save to database
       await db.insert(quizAttempts).values({
@@ -442,18 +475,19 @@ class SolturioQuizBot {
         telegramFirstName: answer.firstName,
         userAnswer: answer.answer,
         isCorrect: answer.isCorrect,
-        pointsEarned: points,
+        pointsEarned: experience, // Store experience for display
         questionPointValue: this.currentSession.points,
         timeToAnswer: answer.responseTime,
       });
       
-      // Update leaderboard
+      // Update leaderboard with both game points and experience
       await this.updateLeaderboard(
         answer.userId,
         answer.username,
         answer.firstName,
         answer.isCorrect,
-        points
+        gamePoints,   // Only 1st place gets these
+        experience    // Everyone gets exp based on ranking
       );
     }
 
@@ -499,7 +533,7 @@ class SolturioQuizBot {
   }
 
   /**
-   * Show leaderboard
+   * Show game points leaderboard (competitive ranking)
    */
   private async showLeaderboard(ctx: Context) {
     const topPlayers = await db
@@ -513,8 +547,8 @@ class SolturioQuizBot {
       return;
     }
 
-    let message = '🏆 *Solturio IP Quiz Leaderboard*\n\n';
-    message += '*All-Time Top 10:*\n\n';
+    let message = '🏆 *Game Points Leaderboard*\n';
+    message += '_Competitive ranking (1st place wins)_\n\n';
 
     topPlayers.forEach((player: any, index: number) => {
       const emoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
@@ -524,6 +558,40 @@ class SolturioQuizBot {
 
       message += `${emoji} @${player.telegramUsername || player.telegramFirstName} - ${player.totalPoints} pts (${accuracy}% accuracy)\n`;
     });
+
+    message += '\n💡 _Use /exp to see Experience leaderboard_';
+
+    await ctx.reply(message, { parse_mode: 'Markdown' });
+  }
+
+  /**
+   * Show experience leaderboard (participation rewards)
+   */
+  private async showExperienceLeaderboard(ctx: Context) {
+    const topPlayers = await db
+      .select()
+      .from(telegramLeaderboard)
+      .orderBy(desc(telegramLeaderboard.totalExperience))
+      .limit(10);
+
+    if (topPlayers.length === 0) {
+      await ctx.reply('📊 No quiz data yet! Be the first to play!');
+      return;
+    }
+
+    let message = '⭐ *Experience Points Leaderboard*\n';
+    message += '_Participation rewards (all correct answers)_\n\n';
+
+    topPlayers.forEach((player: any, index: number) => {
+      const emoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+      const accuracy = player.totalQuestions > 0 
+        ? Math.floor((player.correctAnswers / player.totalQuestions) * 100) 
+        : 0;
+
+      message += `${emoji} @${player.telegramUsername || player.telegramFirstName} - ${player.totalExperience} exp (${accuracy}% accuracy)\n`;
+    });
+
+    message += '\n💡 _Use /leaderboard to see Game Points_';
 
     await ctx.reply(message, { parse_mode: 'Markdown' });
   }
@@ -553,12 +621,14 @@ class SolturioQuizBot {
 
     const message = 
       `📊 *Your Quiz Stats*\n\n` +
-      `🎯 Total Points: ${user.totalPoints}\n` +
+      `🏆 Game Points: ${user.totalPoints}\n` +
+      `⭐ Experience: ${user.totalExperience}\n` +
       `✅ Correct: ${user.correctAnswers}/${user.totalQuestions} (${accuracy}%)\n` +
       `🔥 Current Streak: ${user.streak}\n` +
-      `🏆 Longest Streak: ${user.longestStreak}\n\n` +
+      `🏅 Longest Streak: ${user.longestStreak}\n\n` +
       `*Today:*\n` +
-      `• Points: ${user.dailyPoints}\n` +
+      `• Game Points: ${user.dailyPoints}\n` +
+      `• Experience: ${user.dailyExperience}\n` +
       `• Correct: ${user.dailyCorrectAnswers}/${user.dailyQuestionsAnswered}`;
 
     await ctx.reply(message, { parse_mode: 'Markdown' });

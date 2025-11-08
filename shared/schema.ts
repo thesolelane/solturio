@@ -582,9 +582,11 @@ export const telegramLeaderboard = pgTable("telegram_leaderboard", {
   totalQuestions: integer("total_questions").default(0).notNull(),
   correctAnswers: integer("correct_answers").default(0).notNull(),
   totalPoints: integer("total_points").default(0).notNull(),
+  totalExperience: integer("total_experience").default(0).notNull(), // Separate exp tracking (2nd/3rd/4th/5th+ place rewards)
   
   // Daily stats (reset daily)
   dailyPoints: integer("daily_points").default(0).notNull(),
+  dailyExperience: integer("daily_experience").default(0).notNull(),
   dailyCorrectAnswers: integer("daily_correct_answers").default(0).notNull(),
   dailyQuestionsAnswered: integer("daily_questions_answered").default(0).notNull(),
   lastDailyReset: timestamp("last_daily_reset").defaultNow(),
