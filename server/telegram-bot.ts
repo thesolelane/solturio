@@ -96,7 +96,26 @@ class SolturioQuizBot {
       await this.showUserStats(ctx);
     });
 
-    // Listen for answers
+    // Listen for button clicks (callback queries)
+    this.bot.on('callback_query', async (ctx) => {
+      if (!this.currentSession || !ctx.from || !ctx.callbackQuery || !('data' in ctx.callbackQuery)) {
+        return;
+      }
+
+      const data = ctx.callbackQuery.data;
+      
+      // Check if this is an answer callback
+      if (data.startsWith('answer:')) {
+        const answer = data.replace('answer:', '');
+        const userId = ctx.from.id.toString();
+        const username = ctx.from.username || '';
+        const firstName = ctx.from.first_name || 'Anonymous';
+
+        await this.processAnswer(userId, username, firstName, answer, ctx);
+      }
+    });
+
+    // Listen for text answers (fallback)
     this.bot.on(message('text'), async (ctx) => {
       // Only process if quiz is active and user is answering
       if (!this.currentSession || !ctx.from) return;
