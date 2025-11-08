@@ -10,6 +10,16 @@ if (!BOT_TOKEN) {
   console.error('TELEGRAM_BOT_TOKEN is not set in environment variables');
 }
 
+interface QuizAnswer {
+  userId: string;
+  username: string;
+  firstName: string;
+  answer: string;
+  isCorrect: boolean;
+  responseTime: number;
+  pointsEarned: number;
+}
+
 interface QuizSession {
   questionId: string;
   question: string;
@@ -20,6 +30,8 @@ interface QuizSession {
   messageId?: number;
   timerInterval?: NodeJS.Timeout;
   currentTimeLeft: number;
+  answers: QuizAnswer[]; // Track all answers during the 60 seconds
+  answeredUserIds: Set<string>; // Track who already answered
 }
 
 class SolturioQuizBot {
@@ -152,22 +164,26 @@ class SolturioQuizBot {
 
     const responseTime = Math.floor((Date.now() - this.currentSession.startTime) / 1000);
     
-    // Prevent duplicate answers from same user
-    const existingAnswer = await db
-      .select()
-      .from(quizAttempts)
-      .where(
-        sql`${quizAttempts.questionId} = ${this.currentSession.questionId} 
-            AND ${quizAttempts.telegramUserId} = ${userId}`
-      )
-      .limit(1);
-
-    if (existingAnswer.length > 0) {
-      return; // User already answered this question
+    // Check if user already answered this question (using session tracking)
+    if (this.currentSession.answeredUserIds.has(userId)) {
+      await ctx.answerCbQuery('⚠️ You already answered this question!');
+      return;
     }
 
     const isCorrect = answer === this.currentSession.correctAnswer;
     const pointsEarned = isCorrect ? this.calculatePoints(responseTime, this.currentSession.points) : 0;
+
+    // Mark user as answered and store their answer
+    this.currentSession.answeredUserIds.add(userId);
+    this.currentSession.answers.push({
+      userId,
+      username,
+      firstName,
+      answer,
+      isCorrect,
+      responseTime,
+      pointsEarned
+    });
 
     // Save answer to database
     await db.insert(quizAttempts).values({
@@ -185,24 +201,10 @@ class SolturioQuizBot {
     // Update leaderboard
     await this.updateLeaderboard(userId, username, firstName, isCorrect, pointsEarned);
 
-    // Send feedback
-    if (isCorrect) {
-      const percentageScore = Math.floor((pointsEarned / this.currentSession.points) * 100);
-      await ctx.reply(
-        `✅ *Correct!* @${username || firstName}\n` +
-        `⚡ ${responseTime}s • 🎯 ${pointsEarned}/${this.currentSession.points} pts (${percentageScore}%)`,
-        { parse_mode: 'Markdown' }
-      );
-
-      // End question and start cooldown
-      await this.endQuestion(ctx.chat!.id);
-    } else {
-      await ctx.reply(
-        `❌ *Wrong!* @${username || firstName}\n` +
-        `The correct answer was: *${this.currentSession.correctAnswer}*`,
-        { parse_mode: 'Markdown' }
-      );
-    }
+    // Silently acknowledge the answer (don't reveal if correct/wrong yet!)
+    await ctx.answerCbQuery('✅ Answer recorded! Results after timer ends...');
+    
+    // Don't end the question early - let the timer run for full 60 seconds
   }
 
   /**
@@ -315,6 +317,8 @@ class SolturioQuizBot {
       points: randomQuestion.points || 100,
       startTime: Date.now(),
       currentTimeLeft: 60,
+      answers: [], // Track all answers during the 60 seconds
+      answeredUserIds: new Set(), // Track who already answered
     };
 
     // Create buttons for answers
@@ -380,12 +384,40 @@ class SolturioQuizBot {
       clearInterval(this.currentSession.timerInterval);
     }
 
-    // Show correct answer if not already shown
+    // Build results message
+    let resultsMessage = `⏰ *Time's up!*\n\n`;
+    resultsMessage += `✅ Correct answer: *${this.currentSession.correctAnswer}*\n\n`;
+
+    // Find correct answers and sort by response time (fastest first)
+    const correctAnswers = this.currentSession.answers
+      .filter(a => a.isCorrect)
+      .sort((a, b) => a.responseTime - b.responseTime);
+
+    if (correctAnswers.length > 0) {
+      resultsMessage += `🏆 *Winners:*\n`;
+      correctAnswers.forEach((answer, index) => {
+        const emoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '✅';
+        const percentageScore = Math.floor((answer.pointsEarned / this.currentSession!.points) * 100);
+        resultsMessage += `${emoji} @${answer.username || answer.firstName} `;
+        resultsMessage += `(${answer.responseTime}s • ${answer.pointsEarned} pts)\n`;
+      });
+      resultsMessage += `\n`;
+    } else {
+      resultsMessage += `😔 No one got it right this time!\n\n`;
+    }
+
+    // Show participation stats
+    const totalParticipants = this.currentSession.answers.length;
+    if (totalParticipants > 0) {
+      resultsMessage += `📊 ${totalParticipants} player${totalParticipants > 1 ? 's' : ''} participated\n\n`;
+    }
+
+    resultsMessage += `_Next question in 45 seconds..._`;
+
+    // Send results
     await this.bot.telegram.sendMessage(
       chatId,
-      `⏰ *Time's up!*\n\nCorrect answer: *${this.currentSession.correctAnswer}*\n\n` +
-      `${this.currentSession.question}\n\n` +
-      `_Next question in 45 seconds..._`,
+      resultsMessage,
       { parse_mode: 'Markdown' }
     );
 
