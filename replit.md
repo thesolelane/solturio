@@ -45,7 +45,7 @@ Preferred communication style: Simple, everyday language.
 - **Registration Templates**: Multi-step wizard flows for "Token Launch" (7 questions) and "Artwork" (11 questions + social media), with conditional fields and robust validation.
 - **IP Protection Messaging**: Clear distinction between "Get Protected" (registration) and "Report IP Theft."
 - **DEX Anti-Copycat System**: Real-time verification API for DEX platforms, detecting stolen logos by file hash, automated DMCA takedown.
-- **IP Education Quiz Bot (Telegram)**: Automated quizzes with time-based scoring, real-time leaderboard, and future $CATH token rewards.
+- **IP Education Quiz Bot (Telegram)**: Automated quizzes with competitive ranking-based scoring (1st place gets full time-based points, 2nd gets 10 exp, 3rd gets 5 exp, 4th gets 3 exp, 5th+ gets 1 point, wrong answers get 0), real-time leaderboard, and future $CATH token rewards.
 - **Security Enhancements**: CSRF protection, robust crypto payment verification, and SPL token restriction system for Solturio wallets.
 - **NFT Minting**: JSON-only on-chain metadata via Metaplex SDK.
 - **Authorized Usage Tracking**: Users pre-register where logos will be used to strengthen IP protection claims.

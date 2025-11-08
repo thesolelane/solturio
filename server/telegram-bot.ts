@@ -62,15 +62,36 @@ class SolturioQuizBot {
         '*Commands:*\n' +
         '/quiz - Start a quiz session\n' +
         '/leaderboard - Show current standings\n' +
-        '/mystats - View your quiz statistics\n\n' +
+        '/mystats - View your quiz statistics\n' +
+        '/rules - See scoring details\n\n' +
         '*Schedule:* 8-10 AM & 12-2 PM daily (EST)\n' +
-        '*Scoring:* Faster answers earn more points!\n' +
-        '• 0-1 sec: 100% points ⚡\n' +
-        '• 2-10 sec: 90% points\n' +
-        '• 11-20 sec: 80% points\n' +
-        '• 21-30 sec: 70% points\n' +
-        '• 31-40 sec: 60% points\n' +
-        '• 41-60 sec: 50% points',
+        '*Competitive Scoring:*\n' +
+        '🥇 1st Place: Full points (time-based)\n' +
+        '🥈 2nd Place: 10 exp\n' +
+        '🥉 3rd Place: 5 exp\n' +
+        '🏅 4th Place: 3 exp\n' +
+        '✅ 5th+: 1 exp | ❌ Wrong: 0\n\n' +
+        '💡 Be the fastest to win!',
+        { parse_mode: 'Markdown' }
+      );
+    });
+
+    // Rules command
+    this.bot.command('rules', async (ctx) => {
+      await ctx.reply(
+        '📖 *Quiz Rules*\n\n' +
+        '⏱️ Timer: 60 seconds per question\n' +
+        '🎯 Competitive Scoring (Speed Matters!)\n\n' +
+        '*Points by Ranking:*\n' +
+        '🥇 1st Place: Full points (speed-based)\n' +
+        '   • 0-1 sec: 100% | 2-10s: 90% | 11-20s: 80%\n' +
+        '   • 21-30s: 70% | 31-40s: 60% | 41-60s: 50%\n' +
+        '🥈 2nd Place: 10 exp\n' +
+        '🥉 3rd Place: 5 exp\n' +
+        '🏅 4th Place: 3 exp\n' +
+        '✅ 5th+ Place: 1 exp (participation)\n' +
+        '❌ Wrong Answer: 0 points\n\n' +
+        '💡 *Strategy:* Be the fastest to get maximum points!',
         { parse_mode: 'Markdown' }
       );
     });
@@ -138,35 +159,45 @@ class SolturioQuizBot {
   }
 
   /**
-   * Calculate points based on response time
-   * 0-1 sec: 100% | 2-10: 90% | 11-20: 80% | 21-30: 70% | 31-40: 60% | 41-60: 50%
-   * Instantaneous answers (< 1s) get full points
-   * Answers > 60s get 0 points
+   * Calculate points based on ranking (competitive scoring)
+   * 1st place: Full points based on time
+   * 2nd place: 10 exp
+   * 3rd place: 5 exp
+   * 4th place: 3 exp
+   * 5th+ place: 1 point for participation
+   * Wrong answers: 0 points
    */
-  private calculatePoints(responseTimeSeconds: number, basePoints: number): number {
-    // Clamp response time to 0-60 seconds range
-    const clampedTime = Math.max(0, Math.min(60, responseTimeSeconds));
-    
-    // Over 60 seconds = no points
-    if (responseTimeSeconds > 60) return 0;
+  private calculatePointsByRank(rank: number, responseTimeSeconds: number, basePoints: number): number {
+    // Rank 1 (fastest): Calculate time-based points
+    if (rank === 1) {
+      const clampedTime = Math.max(0, Math.min(60, responseTimeSeconds));
+      
+      if (responseTimeSeconds > 60) return 0;
 
-    // Fastest answers get highest points (inverted scale)
-    const timeRanges = [
-      { max: 1, multiplier: 1.0 },    // 0-1 sec: 100% (instant answers)
-      { max: 10, multiplier: 0.9 },   // 2-10 sec: 90%
-      { max: 20, multiplier: 0.8 },   // 11-20 sec: 80%
-      { max: 30, multiplier: 0.7 },   // 21-30 sec: 70%
-      { max: 40, multiplier: 0.6 },   // 31-40 sec: 60%
-      { max: 60, multiplier: 0.5 },   // 41-60 sec: 50%
-    ];
+      const timeRanges = [
+        { max: 1, multiplier: 1.0 },    // 0-1 sec: 100%
+        { max: 10, multiplier: 0.9 },   // 2-10 sec: 90%
+        { max: 20, multiplier: 0.8 },   // 11-20 sec: 80%
+        { max: 30, multiplier: 0.7 },   // 21-30 sec: 70%
+        { max: 40, multiplier: 0.6 },   // 31-40 sec: 60%
+        { max: 60, multiplier: 0.5 },   // 41-60 sec: 50%
+      ];
 
-    for (const range of timeRanges) {
-      if (clampedTime <= range.max) {
-        return Math.floor(basePoints * range.multiplier);
+      for (const range of timeRanges) {
+        if (clampedTime <= range.max) {
+          return Math.floor(basePoints * range.multiplier);
+        }
       }
+      return 0;
     }
 
-    return 0;
+    // Fixed points for other ranks
+    if (rank === 2) return 10;
+    if (rank === 3) return 5;
+    if (rank === 4) return 3;
+    
+    // 5th place and beyond: participation point
+    return 1;
   }
 
   /**
@@ -190,7 +221,9 @@ class SolturioQuizBot {
     }
 
     const isCorrect = answer === this.currentSession.correctAnswer;
-    const pointsEarned = isCorrect ? this.calculatePoints(responseTime, this.currentSession.points) : 0;
+    
+    // Store 0 points temporarily - we'll recalculate based on ranking at the end
+    const pointsEarned = 0;
 
     // Mark user as answered and store their answer
     this.currentSession.answeredUserIds.add(userId);
@@ -201,24 +234,8 @@ class SolturioQuizBot {
       answer,
       isCorrect,
       responseTime,
-      pointsEarned
+      pointsEarned // Will be updated in endQuestion
     });
-
-    // Save answer to database
-    await db.insert(quizAttempts).values({
-      questionId: this.currentSession.questionId,
-      telegramUserId: userId,
-      telegramUsername: username,
-      telegramFirstName: firstName,
-      userAnswer: answer,
-      isCorrect,
-      pointsEarned,
-      questionPointValue: this.currentSession.points,
-      timeToAnswer: responseTime,
-    });
-
-    // Update leaderboard
-    await this.updateLeaderboard(userId, username, firstName, isCorrect, pointsEarned);
 
     // Silently acknowledge the answer (don't reveal if correct/wrong yet!)
     await ctx.answerCbQuery('✅ Answer recorded! Results after timer ends...');
@@ -403,20 +420,51 @@ class SolturioQuizBot {
       clearInterval(this.currentSession.timerInterval);
     }
 
-    // Build results message
-    let resultsMessage = `⏰ *Time's up!*\n\n`;
-    resultsMessage += `✅ Correct answer: *${this.currentSession.correctAnswer}*\n\n`;
-
     // Find correct answers and sort by response time (fastest first)
     const correctAnswers = this.currentSession.answers
       .filter(a => a.isCorrect)
       .sort((a, b) => a.responseTime - b.responseTime);
 
+    // Recalculate points based on ranking
+    for (let i = 0; i < correctAnswers.length; i++) {
+      const rank = i + 1; // 1st, 2nd, 3rd, etc.
+      const answer = correctAnswers[i];
+      const points = this.calculatePointsByRank(rank, answer.responseTime, this.currentSession.points);
+      
+      // Update points in the answer object
+      answer.pointsEarned = points;
+      
+      // Save to database
+      await db.insert(quizAttempts).values({
+        questionId: this.currentSession.questionId,
+        telegramUserId: answer.userId,
+        telegramUsername: answer.username,
+        telegramFirstName: answer.firstName,
+        userAnswer: answer.answer,
+        isCorrect: answer.isCorrect,
+        pointsEarned: points,
+        questionPointValue: this.currentSession.points,
+        timeToAnswer: answer.responseTime,
+      });
+      
+      // Update leaderboard
+      await this.updateLeaderboard(
+        answer.userId,
+        answer.username,
+        answer.firstName,
+        answer.isCorrect,
+        points
+      );
+    }
+
+    // Build results message
+    let resultsMessage = `⏰ *Time's up!*\n\n`;
+    resultsMessage += `✅ Correct answer: *${this.currentSession.correctAnswer}*\n\n`;
+
     if (correctAnswers.length > 0) {
       resultsMessage += `🏆 *Winners:*\n`;
       correctAnswers.forEach((answer, index) => {
         const emoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '✅';
-        const percentageScore = Math.floor((answer.pointsEarned / this.currentSession!.points) * 100);
         resultsMessage += `${emoji} @${answer.username || answer.firstName} `;
         resultsMessage += `(${answer.responseTime}s • ${answer.pointsEarned} pts)\n`;
       });
