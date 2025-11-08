@@ -74,24 +74,9 @@ class SolturioQuizBot {
       );
     });
 
-    // Rules command
+    // Rules command - Show comprehensive guide
     this.bot.command('rules', async (ctx) => {
-      await ctx.reply(
-        '📖 *Quiz Rules*\n\n' +
-        '⏱️ Timer: 60 seconds per question\n' +
-        '🎯 Competitive Scoring (Speed Matters!)\n\n' +
-        '*Points by Ranking:*\n' +
-        '🥇 1st Place: Full points (speed-based)\n' +
-        '   • 0-1 sec: 100% | 2-10s: 90% | 11-20s: 80%\n' +
-        '   • 21-30s: 70% | 31-40s: 60% | 41-60s: 50%\n' +
-        '🥈 2nd Place: 10 exp\n' +
-        '🥉 3rd Place: 5 exp\n' +
-        '🏅 4th Place: 3 exp\n' +
-        '✅ 5th+ Place: 1 exp (participation)\n' +
-        '❌ Wrong Answer: 0 points\n\n' +
-        '💡 *Strategy:* Be the fastest to get maximum points!',
-        { parse_mode: 'Markdown' }
-      );
+      await this.postRulesAndStrategy(ctx.chat.id.toString());
     });
 
     // Manual quiz start (for testing)
@@ -733,6 +718,109 @@ class SolturioQuizBot {
     message += '\n_See you tomorrow for more IP quiz fun!_';
 
     await this.bot.telegram.sendMessage(parseInt(chatId), message, { parse_mode: 'Markdown' });
+  }
+
+  /**
+   * Post comprehensive rules and strategy guide
+   */
+  async postRulesAndStrategy(chatId: string) {
+    if (!this.bot) return;
+
+    const message = 
+      `🎓 *SOLTURIO IP QUIZ - COMPLETE GUIDE*\n\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      
+      `📋 *HOW TO PLAY*\n\n` +
+      `1️⃣ Quiz sessions run automatically:\n` +
+      `   • 🌅 Morning: 8-10 AM EST\n` +
+      `   • ☀️ Afternoon: 12-2 PM EST\n` +
+      `2️⃣ When a question appears, click your answer\n` +
+      `3️⃣ You have 60 seconds to answer\n` +
+      `4️⃣ Results reveal after time expires\n` +
+      `5️⃣ New question every few minutes\n\n` +
+      
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      
+      `🏆 *DUAL SCORING SYSTEM*\n\n` +
+      `We reward TWO different skills:\n\n` +
+      
+      `*Game Points* (Competitive 🥇)\n` +
+      `• Only 1st place gets points\n` +
+      `• Time-based: 50-150 points\n` +
+      `• Faster answer = More points\n` +
+      `• View: /leaderboard\n\n` +
+      
+      `*Experience Points* (Participation ⭐)\n` +
+      `• Everyone who's correct gets exp\n` +
+      `• Fixed rewards by ranking:\n` +
+      `  🥇 1st: Same as game points (50-150)\n` +
+      `  🥈 2nd: 10 exp\n` +
+      `  🥉 3rd: 5 exp\n` +
+      `  🏅 4th: 3 exp\n` +
+      `  ✅ 5th+: 1 exp\n` +
+      `  ❌ Wrong: 0 exp\n` +
+      `• View: /exp\n\n` +
+      
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      
+      `🎯 *WINNING STRATEGIES*\n\n` +
+      `*For Game Points (Competitive):*\n` +
+      `✅ Study IP topics beforehand\n` +
+      `✅ Read questions FAST but carefully\n` +
+      `✅ Have Telegram notifications ON\n` +
+      `✅ Be ready at session start times\n` +
+      `✅ Don't second-guess yourself\n\n` +
+      
+      `*For Experience (Participation):*\n` +
+      `✅ Answer every question correctly\n` +
+      `✅ Don't rush - accuracy over speed\n` +
+      `✅ Learn from each question\n` +
+      `✅ Build knowledge over time\n` +
+      `✅ Consistent play = More exp\n\n` +
+      
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      
+      `📚 *QUIZ TOPICS*\n` +
+      `• Trademarks & Trade Dress\n` +
+      `• Copyright & Fair Use\n` +
+      `• Patents & Trade Secrets\n` +
+      `• NFTs & Blockchain IP\n` +
+      `• International IP Law\n\n` +
+      
+      `All questions from official sources:\n` +
+      `USPTO, WIPO, Copyright Office\n\n` +
+      
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      
+      `💎 *COMMANDS*\n` +
+      `/quiz - Start manual quiz\n` +
+      `/leaderboard - Game Points ranking\n` +
+      `/exp - Experience ranking\n` +
+      `/mystats - Your stats\n` +
+      `/rules - See this guide\n\n` +
+      
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      
+      `🎁 *REWARDS (COMING SOON)*\n` +
+      `Top performers will earn $CATH tokens!\n` +
+      `Both leaderboards will have rewards.\n\n` +
+      
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      
+      `💡 *PRO TIPS*\n` +
+      `🔹 Wrong answers = 0 points & break streak\n` +
+      `🔹 Speed matters for 1st place only\n` +
+      `🔹 2nd-5th get exp just for being correct\n` +
+      `🔹 Build streaks for bonus multipliers\n` +
+      `🔹 Learn as you play - IP knowledge pays!\n\n` +
+      
+      `Good luck! 🚀`;
+
+    await this.bot.telegram.sendMessage(
+      parseInt(chatId),
+      message,
+      { parse_mode: 'Markdown' }
+    );
   }
 
   /**
