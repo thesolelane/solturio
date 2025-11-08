@@ -13,8 +13,10 @@ import { quizBot } from './telegram-bot';
 const QUIZ_CHAT_ID = process.env.TELEGRAM_QUIZ_CHAT_ID || '';
 
 class QuizScheduler {
+  private morningAnnouncementJob: cron.ScheduledTask | null = null;
   private morningStartJob: cron.ScheduledTask | null = null;
   private morningEndJob: cron.ScheduledTask | null = null;
+  private afternoonAnnouncementJob: cron.ScheduledTask | null = null;
   private afternoonStartJob: cron.ScheduledTask | null = null;
   private afternoonEndJob: cron.ScheduledTask | null = null;
   private dailyLeaderboardJob: cron.ScheduledTask | null = null;
@@ -30,17 +32,33 @@ class QuizScheduler {
       return;
     }
 
+    // Morning announcement: 7:55 AM (5 minutes before)
+    this.morningAnnouncementJob = cron.schedule('55 7 * * *', async () => {
+      console.log('📢 Sending morning quiz announcement (7:55 AM)');
+      await quizBot.sendAnnouncement(QUIZ_CHAT_ID, 'morning');
+    }, {
+      timezone: 'America/New_York'
+    });
+
     // Morning session: 8:00 AM - 10:00 AM
     this.morningStartJob = cron.schedule('0 8 * * *', async () => {
       console.log('🌅 Starting morning quiz session (8 AM)');
       await quizBot.startQuizSession(QUIZ_CHAT_ID);
     }, {
-      timezone: 'America/New_York' // Adjust to your timezone
+      timezone: 'America/New_York'
     });
 
     this.morningEndJob = cron.schedule('0 10 * * *', async () => {
       console.log('🌅 Ending morning quiz session (10 AM)');
       await quizBot.stopQuizSession();
+    }, {
+      timezone: 'America/New_York'
+    });
+
+    // Afternoon announcement: 11:55 AM (5 minutes before)
+    this.afternoonAnnouncementJob = cron.schedule('55 11 * * *', async () => {
+      console.log('📢 Sending afternoon quiz announcement (11:55 AM)');
+      await quizBot.sendAnnouncement(QUIZ_CHAT_ID, 'afternoon');
     }, {
       timezone: 'America/New_York'
     });
@@ -69,7 +87,9 @@ class QuizScheduler {
     });
 
     console.log('📅 Quiz scheduler initialized');
+    console.log('   Morning announcement: 7:55 AM');
     console.log('   Morning session: 8:00 AM - 10:00 AM');
+    console.log('   Afternoon announcement: 11:55 AM');
     console.log('   Afternoon session: 12:00 PM - 2:00 PM');
     console.log('   Daily leaderboard: 2:01 PM');
     console.log(`   Target chat: ${QUIZ_CHAT_ID}`);
@@ -79,8 +99,10 @@ class QuizScheduler {
    * Start all scheduled jobs
    */
   start() {
+    this.morningAnnouncementJob?.start();
     this.morningStartJob?.start();
     this.morningEndJob?.start();
+    this.afternoonAnnouncementJob?.start();
     this.afternoonStartJob?.start();
     this.afternoonEndJob?.start();
     this.dailyLeaderboardJob?.start();
@@ -91,8 +113,10 @@ class QuizScheduler {
    * Stop all scheduled jobs
    */
   stop() {
+    this.morningAnnouncementJob?.stop();
     this.morningStartJob?.stop();
     this.morningEndJob?.stop();
+    this.afternoonAnnouncementJob?.stop();
     this.afternoonStartJob?.stop();
     this.afternoonEndJob?.stop();
     this.dailyLeaderboardJob?.stop();

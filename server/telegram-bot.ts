@@ -498,6 +498,33 @@ class SolturioQuizBot {
   }
 
   /**
+   * Send pre-game announcement
+   */
+  async sendAnnouncement(chatId: string, session: 'morning' | 'afternoon') {
+    if (!this.bot) return;
+
+    const sessionTime = session === 'morning' ? '8:00 AM' : '12:00 PM';
+    const sessionEmoji = session === 'morning' ? '🌅' : '☀️';
+
+    const message = 
+      `${sessionEmoji} *Solturio IP Quiz Alert!*\n\n` +
+      `📢 Quiz session starting in 5 minutes!\n` +
+      `🕐 Time: ${sessionTime} EST\n` +
+      `🏆 Rewards: Points + $CATH tokens (coming soon)\n\n` +
+      `*Get ready to test your IP knowledge!*\n` +
+      `Topics: Trademarks, Copyrights, Patents, NFTs\n\n` +
+      `💡 Faster answers = More points!\n` +
+      `⚡ First correct answer gets gold medal!\n\n` +
+      `_Questions will start automatically at ${sessionTime}_`;
+
+    await this.bot.telegram.sendMessage(
+      parseInt(chatId),
+      message,
+      { parse_mode: 'Markdown' }
+    );
+  }
+
+  /**
    * Start quiz session
    */
   async startQuizSession(chatId: string) {
@@ -508,7 +535,7 @@ class SolturioQuizBot {
     if (this.bot) {
       await this.bot.telegram.sendMessage(
         parseInt(chatId),
-        '🎓 *Quiz session starting!*\n\nGet ready for IP education questions!',
+        '🎓 *Quiz session starting NOW!*\n\nGet ready for IP education questions!',
         { parse_mode: 'Markdown' }
       );
 
