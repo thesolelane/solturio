@@ -330,10 +330,16 @@ export async function sendDynamicReceipt(
 
   const html = `
     <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 700px; margin: 0 auto; background: #ffffff;">
-      <!-- Header with Branding -->
-      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
-        <h1 style="color: white; margin: 0; font-size: 28px;">SOLTURIO</h1>
-        <p style="color: rgba(255,255,255,0.9); margin: 5px 0 0 0; font-size: 14px;">IP Protection Receipt</p>
+      <!-- Header with Solturio Logo Branding -->
+      <div style="background: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; position: relative; border-bottom: 3px solid #D4AF37;">
+        <!-- Gold Badge Watermark (Top Right) -->
+        <div style="position: absolute; top: 10px; right: 10px; opacity: 0.3;">
+          <img src="https://cdn.sendgrid.net/v1/user_uploads/solturio-gold-badge.png" alt="Solturio Badge" style="width: 80px; height: auto;" />
+        </div>
+        
+        <!-- Solturio Logo (White Background) -->
+        <img src="https://cdn.sendgrid.net/v1/user_uploads/solturio-logo-white-bg.png" alt="Solturio" style="width: 180px; height: auto; margin: 0 auto; display: block;" />
+        <p style="color: #2C3E50; margin: 10px 0 0 0; font-size: 13px; letter-spacing: 2px; font-weight: 600;">IP PROTECTION RECEIPT</p>
       </div>
 
       <!-- Main Receipt Container (Transparent Background) -->
@@ -381,11 +387,11 @@ export async function sendDynamicReceipt(
 
         <!-- Line Items Table Header -->
         <div style="margin-bottom: 5px;">
-          <div style="display: grid; grid-template-columns: 1fr 60px 100px 100px; gap: 10px; padding: 12px 0; border-bottom: 2px solid #667eea;">
-            <div style="text-align: left; color: #667eea; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Description</div>
-            <div style="text-align: center; color: #667eea; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Qty</div>
-            <div style="text-align: right; color: #667eea; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Unit Price</div>
-            <div style="text-align: right; color: #667eea; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Total</div>
+          <div style="display: grid; grid-template-columns: 1fr 60px 100px 100px; gap: 10px; padding: 12px 0; border-bottom: 2px solid #D4AF37;">
+            <div style="text-align: left; color: #D4AF37; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Description</div>
+            <div style="text-align: center; color: #D4AF37; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Qty</div>
+            <div style="text-align: right; color: #D4AF37; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Unit Price</div>
+            <div style="text-align: right; color: #D4AF37; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Total</div>
           </div>
         </div>
 
@@ -417,7 +423,7 @@ export async function sendDynamicReceipt(
             </div>
           ` : ""}
           
-          <div style="display: flex; justify-content: space-between; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px; border-radius: 4px;">
+          <div style="display: flex; justify-content: space-between; background: linear-gradient(135deg, #D4AF37 0%, #C9A227 100%); padding: 15px; border-radius: 4px;">
             <span style="color: white; font-size: 16px; font-weight: bold;">Total Amount</span>
             <span style="color: white; font-size: 18px; font-weight: bold;">${receipt.total} ${receipt.currency}</span>
           </div>
@@ -445,8 +451,8 @@ export async function sendDynamicReceipt(
         ` : ""}
 
         <!-- Next Steps -->
-        <div style="background: #f0f4ff; border: 1px solid #e0e6ff; border-radius: 6px; padding: 20px; margin-bottom: 30px;">
-          <p style="margin: 0; color: #667eea; font-size: 14px; font-weight: bold;">✅ What's Next?</p>
+        <div style="background: #fffaf0; border: 1px solid #e8dcc8; border-left: 4px solid #D4AF37; border-radius: 6px; padding: 20px; margin-bottom: 30px;">
+          <p style="margin: 0; color: #D4AF37; font-size: 14px; font-weight: bold;">✅ What's Next?</p>
           <ul style="margin: 12px 0 0 0; padding-left: 20px; color: #333;">
             <li style="margin: 8px 0; font-size: 13px;">Create your Solturio wallet (xxx.solturio.sol)</li>
             <li style="margin: 8px 0; font-size: 13px;">Complete the Key Handover Ceremony</li>
@@ -457,7 +463,7 @@ export async function sendDynamicReceipt(
 
         <!-- CTA Button -->
         <div style="text-align: center; margin-bottom: 30px;">
-          <a href="https://solturio.com/dashboard" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;">
+          <a href="https://solturio.com/dashboard" style="display: inline-block; background: linear-gradient(135deg, #D4AF37 0%, #C9A227 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);">
             View Dashboard →
           </a>
         </div>
