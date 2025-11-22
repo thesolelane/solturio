@@ -84,6 +84,10 @@ export interface IStorage {
   submitQuizAnswer(userId: string, data: any): Promise<any>;
   createQuizQuestions(questions: any[]): Promise<void>;
   verifyAuthorizedUsage(id: string, verifiedAt: Date): Promise<AuthorizedUsage>;
+  
+  // Phase 1: Replay Prevention
+  getNonceByValue(nonce: string): Promise<any | undefined>;
+  storeNonce(nonce: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -467,6 +471,36 @@ export class DatabaseStorage implements IStorage {
   async createQuizQuestions(questions: any[]): Promise<void> {
     const { quizQuestions } = await import("@shared/schema");
     await db.insert(quizQuestions).values(questions);
+  }
+
+  // Phase 1: Replay Prevention - Nonce Management
+  async getNonceByValue(nonce: string): Promise<any | undefined> {
+    try {
+      // Query replay_prevention table using raw SQL via pool
+      const result = await db.all(
+        db.raw`SELECT * FROM replay_prevention WHERE nonce = ${nonce} LIMIT 1`
+      );
+      return result?.[0];
+    } catch (error) {
+      console.error('Error fetching nonce:', error);
+      return undefined;
+    }
+  }
+
+  async storeNonce(nonce: string): Promise<void> {
+    try {
+      // Insert nonce using raw SQL via pool
+      await db.run(
+        db.raw`INSERT INTO replay_prevention (nonce, used_at, expires_at) 
+               VALUES (${nonce}, NOW(), NOW() + INTERVAL '24 hours')`
+      );
+    } catch (error: any) {
+      console.error('Error storing nonce:', error);
+      // Ignore unique constraint violations (duplicate nonce)
+      if (error.code !== '23505') {
+        throw error;
+      }
+    }
   }
 }
 

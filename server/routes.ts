@@ -1431,7 +1431,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/wallet/create", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { walletType, customName, paymentTxHash, currency = 'SOL' } = req.body;
+      const { walletType, customName, paymentTxHash, nonce, timestamp } = req.body;
+
+      // PHASE 1: Validate nonce + timestamp (Replay Prevention)
+      if (!nonce || !timestamp) {
+        return res.status(400).json({ 
+          error: "Missing security parameters: nonce and timestamp required" 
+        });
+      }
+
+      // Import replay prevention utilities
+      const { isValidNonce, isValidTimestamp, checkAndStoreNonce } = await import("./utils/replay-prevention");
+
+      // Validate nonce format
+      if (!isValidNonce(nonce)) {
+        return res.status(400).json({ error: "Invalid nonce format" });
+      }
+
+      // Validate timestamp is recent
+      if (!isValidTimestamp(timestamp)) {
+        return res.status(400).json({ error: "Request expired (timestamp must be within 5 minutes)" });
+      }
+
+      // Check nonce hasn't been used (replay prevention)
+      const nonceCheck = await checkAndStoreNonce(storage, nonce);
+      if (!nonceCheck.valid) {
+        return res.status(400).json({ error: nonceCheck.reason || "Replay attack detected" });
+      }
 
       const user = await storage.getUserById(userId);
       if (!user) {
@@ -1472,9 +1498,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Verify payment on blockchain
+      // PHASE 1: Verify payment on blockchain (CATH only for wallet fees, SOL accepted)
       const paymentType = walletType === 'standard' ? 'WALLET_STANDARD' : 'WALLET_PREMIUM';
-      const paymentResult = await verifyPayment(paymentTxHash, paymentType, currency);
+      
+      // Import Phase 1 payment verification
+      const { verifyPaymentPhase1 } = await import("./payment-verification-phase1");
+      const paymentResult = await verifyPaymentPhase1(paymentTxHash, paymentType);
 
       if (!paymentResult.valid) {
         console.error('Payment verification failed:', paymentResult);
