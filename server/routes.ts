@@ -18,7 +18,7 @@ import {
   isWalletNameTaken,
   decryptData
 } from "./wallet";
-import { uploadToIPFS, uploadJSONToIPFS, generateLogoMetadata } from "./ipfs";
+import { uploadToIPFS, generateLogoMetadata } from "./ipfs";
 import { generatePriorArtCertificate, generateDMCATakedownNotice, generateCeaseAndDesistLetter } from "./legal-documents";
 import { isSolturioWallet, getRestrictionErrorMessage } from "./wallet-restrictions";
 import { verifyPayment, isTransactionUsed } from "./payment-verification";
@@ -31,6 +31,12 @@ import {
   type ReceiptData,
   type LineItem
 } from "./services/email";
+import { 
+  mintNFTCertificate, 
+  updateLogoWithNFT, 
+  buildNFTMetadata,
+  type MintOptions 
+} from "./services/nft-minting";
 
 // Setup file upload
 const upload = multer({ 
@@ -1997,6 +2003,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error resetting ceremony:", error);
       res.status(500).json({ error: "Failed to reset ceremony" });
+    }
+  });
+
+  // NFT Minting Endpoint
+  app.post('/api/nft/mint', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { logoId, logoName, logoDescription, registrationType } = req.body;
+
+      if (!logoId) {
+        return res.status(400).json({ message: "Logo ID is required" });
+      }
+
+      // Get the logo
+      const logo = await storage.getLogoById(logoId);
+      if (!logo) {
+        return res.status(404).json({ message: "Logo not found" });
+      }
+
+      if (logo.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      // Check if already minted
+      if (logo.nftAddress) {
+        return res.status(200).json({
+          success: true,
+          message: "Logo already minted",
+          nftAddress: logo.nftAddress,
+          transactionHash: logo.transactionHash,
+          explorerUrl: `https://solscan.io/token/${logo.nftAddress}`,
+        });
+      }
+
+      // Build NFT metadata
+      const mintOptions: MintOptions = {
+        userPublicKey: user.solanaPublicKey || 'pending',
+        encryptedPrivateKey: user.solanaEncryptedPrivateKey || '',
+        walletSalt: user.walletSalt || '',
+        logoId,
+        logoName: logoName || logo.fileName,
+        logoDescription: logoDescription || logo.description || '',
+        ipfsImageHash: logo.ipfsHash || 'pending',
+        ipfsMetadataHash: 'pending',
+        registrationType: (registrationType || logo.registrationType || 'logo') as 'token_launch' | 'artwork' | 'logo',
+        ownershipProof: logo.ownershipDescription || undefined,
+      };
+
+      // Build NFT metadata JSON
+      const nftMetadata = buildNFTMetadata(mintOptions);
+
+      // Upload metadata to IPFS
+      let ipfsMetadataHash = 'pending';
+      try {
+        // Convert metadata to JSON string and upload
+        const metadataBuffer = Buffer.from(JSON.stringify(nftMetadata));
+        const ipfsResult = await uploadToIPFS(metadataBuffer, `${logoId}-metadata.json`);
+        if (ipfsResult) {
+          ipfsMetadataHash = ipfsResult.ipfsHash;
+        }
+      } catch (ipfsError) {
+        console.error('IPFS metadata upload failed:', ipfsError);
+      }
+
+      // Update mintOptions with actual IPFS hash
+      mintOptions.ipfsMetadataHash = ipfsMetadataHash;
+
+      // Mint NFT certificate
+      const mintResult = await mintNFTCertificate(mintOptions);
+
+      if (mintResult.success) {
+        // Update logo with NFT information
+        await updateLogoWithNFT(
+          storage,
+          logoId,
+          mintResult.nftAddress,
+          mintResult.transactionHash,
+          nftMetadata
+        );
+
+        // Send NFT minting email
+        if (user.email) {
+          sendNFTMintingStarted(user.email, logoName || logo.fileName, logoId).catch(err =>
+            console.error('Email send failed:', err)
+          );
+        }
+
+        res.json({
+          success: true,
+          nftAddress: mintResult.nftAddress,
+          transactionHash: mintResult.transactionHash,
+          explorerUrl: mintResult.explorerUrl,
+          message: "NFT certificate created successfully!",
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: mintResult.error || "Failed to mint NFT certificate",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error minting NFT:", error);
+      res.status(500).json({ message: error.message || "Failed to mint NFT" });
     }
   });
 
