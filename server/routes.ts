@@ -26,7 +26,10 @@ import {
   sendRegistrationConfirmation, 
   sendWalletCreated,
   sendNFTMintingStarted,
-  isEmailServiceConfigured 
+  sendDynamicReceipt,
+  isEmailServiceConfigured,
+  type ReceiptData,
+  type LineItem
 } from "./services/email";
 
 // Setup file upload
@@ -1280,6 +1283,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================
+  // RECEIPT GENERATION
+  // ============================================
+
+  // Helper function to build receipt data
+  function buildReceiptData(
+    registrationId: string,
+    customerName: string,
+    email: string,
+    registrationType: "Token Creator" | "Artwork Artist" | "General Registration",
+    itemName: string,
+    lineItems: LineItem[],
+    total: string,
+    currency: string = "SOL",
+    paymentStatus: "confirmed" | "pending" | "failed" = "confirmed",
+    txHash?: string,
+    walletAddress?: string
+  ): ReceiptData {
+    const subtotal = lineItems.reduce((sum, item) => {
+      return sum + parseFloat(item.subtotal);
+    }, 0).toFixed(6);
+
+    return {
+      registrationId,
+      customerName,
+      email,
+      walletAddress,
+      registrationType,
+      itemName,
+      lineItems,
+      subtotal: subtotal,
+      total,
+      currency,
+      paymentStatus,
+      txHash,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  // Send dynamic receipt with line items
+  app.post("/api/receipt/send", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const {
+        registrationId,
+        itemName,
+        lineItems,
+        total,
+        currency = "SOL",
+        txHash,
+        registrationType = "General Registration",
+      } = req.body;
+
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Validate required fields
+      if (!registrationId || !itemName || !lineItems || !total) {
+        return res.status(400).json({
+          error: "Missing required fields: registrationId, itemName, lineItems, total",
+        });
+      }
+
+      // Validate line items structure
+      if (!Array.isArray(lineItems) || lineItems.length === 0) {
+        return res.status(400).json({
+          error: "lineItems must be a non-empty array",
+        });
+      }
+
+      for (const item of lineItems) {
+        if (!item.description || item.quantity === undefined || !item.unitPrice || !item.subtotal) {
+          return res.status(400).json({
+            error: "Each line item must have: description, quantity, unitPrice, subtotal",
+          });
+        }
+      }
+
+      // Build and send receipt
+      const customerName = user.firstName || user.lastName 
+        ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+        : (user.email || "Valued Customer");
+
+      const receiptData = buildReceiptData(
+        registrationId,
+        customerName,
+        user.email || "",
+        registrationType as "Token Creator" | "Artwork Artist" | "General Registration",
+        itemName,
+        lineItems,
+        total,
+        currency,
+        "confirmed",
+        txHash,
+        user.solanaPublicKey || undefined
+      );
+
+      const sent = await sendDynamicReceipt(receiptData);
+
+      res.json({
+        success: sent,
+        message: sent
+          ? "Receipt sent successfully"
+          : "Email service not configured. Please set SENDGRID_API_KEY.",
+        receiptId: registrationId,
+        sentTo: user.email,
+      });
+    } catch (error: any) {
+      console.error("Error sending receipt:", error);
+      res.status(500).json({
+        error: "Failed to send receipt",
+        details: error.message,
+      });
+    }
+  });
+
+  // ============================================
   // SOLANA WALLET CREATION & MANAGEMENT
   // ============================================
   //
@@ -1418,6 +1539,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         walletFundingTxHash: paymentTxHash,
         encryptedRecoveryPhrase: walletResult.encryptedMnemonic,
       });
+
+      // Send receipt email for wallet creation
+      const walletPrice = walletType === 'standard' ? '0.1' : '0.15';
+      const receiptLineItems: LineItem[] = [
+        {
+          description: `Solturio ${walletType === 'standard' ? 'Standard' : 'Premium'} Wallet Creation (${walletResult.walletName})`,
+          quantity: 1,
+          unitPrice: walletPrice,
+          currency,
+          subtotal: walletPrice,
+        },
+      ];
+
+      const walletCustomerName = user.firstName || user.lastName 
+        ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+        : (user.email || "Valued Customer");
+
+      const walletReceipt = buildReceiptData(
+        `WALLET-${walletResult.publicKey.slice(0, 8).toUpperCase()}`,
+        walletCustomerName,
+        user.email || "",
+        "General Registration",
+        `Wallet: ${walletResult.walletName}`,
+        receiptLineItems,
+        walletPrice,
+        currency,
+        "confirmed",
+        paymentTxHash,
+        walletResult.publicKey
+      );
+
+      sendDynamicReceipt(walletReceipt).catch(err => 
+        console.error('Failed to send wallet receipt:', err)
+      );
+
+      // Send wallet creation confirmation email
+      if (user.email) {
+        sendWalletCreated(user.email, walletResult.walletName).catch(err =>
+          console.error('Failed to send wallet notification:', err)
+        );
+      }
 
       res.json({
         success: true,
