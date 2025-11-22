@@ -22,6 +22,12 @@ import { uploadToIPFS, uploadJSONToIPFS, generateLogoMetadata } from "./ipfs";
 import { generatePriorArtCertificate, generateDMCATakedownNotice, generateCeaseAndDesistLetter } from "./legal-documents";
 import { isSolturioWallet, getRestrictionErrorMessage } from "./wallet-restrictions";
 import { verifyPayment, isTransactionUsed } from "./payment-verification";
+import { 
+  sendRegistrationConfirmation, 
+  sendWalletCreated,
+  sendNFTMintingStarted,
+  isEmailServiceConfigured 
+} from "./services/email";
 
 // Setup file upload
 const upload = multer({ 
@@ -328,6 +334,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Send registration confirmation email
+      if (user?.email && registeredLogos.length > 0) {
+        const firstLogo = registeredLogos[0];
+        sendRegistrationConfirmation(
+          user.email,
+          firstLogo.fileName,
+          collection.id
+        ).catch(err => console.error('Email send failed:', err));
+      }
+
       res.json({
         collectionId: collection.id,
         logos: registeredLogos,
@@ -337,6 +353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         walletDomain: user?.solanaPublicKey ? 
           `${user.solanaPublicKey.slice(0, 8).toLowerCase()}.solturio.sol` : 
           'pending.solturio.sol',
+        emailSent: user?.email ? true : false,
       });
     } catch (error: any) {
       console.error("Error registering logo metadata:", error);
@@ -403,11 +420,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tags: [],
       });
 
+      // Send registration confirmation email
+      if (user?.email) {
+        sendRegistrationConfirmation(
+          user.email,
+          file.originalname,
+          logo.id || 'token-' + randomUUID()
+        ).catch(err => console.error('Email send failed:', err));
+      }
+
       res.json({
         id: logo.id,
         message: "Token registered successfully! Please complete 24-hour ticker verification.",
         tickerVerificationDeadline: logo.tickerVerificationDeadline,
         logo,
+        emailSent: user?.email ? true : false,
       });
     } catch (error: any) {
       console.error("Error registering token:", error);
@@ -462,10 +489,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tags: [],
       });
 
+      // Send registration confirmation email
+      if (user?.email) {
+        sendRegistrationConfirmation(
+          user.email,
+          file.originalname,
+          logo.id || 'artwork-' + randomUUID()
+        ).catch(err => console.error('Email send failed:', err));
+      }
+
       res.json({
         id: logo.id,
         message: "Artwork registered successfully!",
         logo,
+        emailSent: user?.email ? true : false,
       });
     } catch (error: any) {
       console.error("Error registering artwork:", error);
