@@ -24,9 +24,12 @@ import { isSolturioWallet, getRestrictionErrorMessage } from "./wallet-restricti
 import { verifyPayment, isTransactionUsed } from "./payment-verification";
 import { licensesRouter } from "./licenses";
 import { treasuryRouter } from "./treasury";
+import { ipRegistrationRouter } from "./ip-registration";
+import { subdomainsRouter } from "./subdomains";
 import { applyValidationToRoutes } from "./validation-middleware";
 import { formatError, formatSuccess } from "./error-handler";
 import { auditLogger } from "./audit-logger";
+import { verifyTransactionOnChain } from "./sc-integration";
 import { 
   sendRegistrationConfirmation, 
   sendWalletCreated,
@@ -1067,14 +1070,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Export private key for Phantom import (requires email verification)
+  // CRITICAL SECURITY FIX: Export private key requires challenge-response verification
+  // Step 1: GET /api/security/challenge - Get challenge for user to sign
+  // Step 2: User signs challenge with wallet private key
+  // Step 3: POST /api/account/export-private-key with signature
   app.post('/api/account/export-private-key', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const { challenge, signature } = req.body;
       const user = await storage.getUser(userId);
 
       if (!user) {
         return res.status(404).json({ message: "User not found" });
+      }
+
+      // CRITICAL SECURITY FIX: Require challenge-response verification
+      if (!challenge || !signature) {
+        return res.status(400).json({ 
+          message: "Challenge-response required for security",
+          step: 1,
+          instructions: "GET /api/security/challenge first, then sign the challenge with your wallet",
+        });
+      }
+
+      // Verify challenge signature
+      const { verifyChallengeSignature } = await import("./security-ceremony");
+      const verified = verifyChallengeSignature(challenge, signature, user.solanaPublicKey);
+      
+      if (!verified) {
+        return res.status(401).json({ 
+          message: "Challenge verification failed. Invalid signature or expired challenge.",
+        });
       }
 
       // Security checks
@@ -1503,12 +1529,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // PHASE 1: Verify payment on blockchain (CATH only for wallet fees, SOL accepted)
-      const paymentType = walletType === 'standard' ? 'WALLET_STANDARD' : 'WALLET_PREMIUM';
+      // CRITICAL SECURITY FIX: Use on-chain transaction verification instead of old method
+      // Verify payment amount matches wallet tier (hardcoded to SOL)
+      const paymentAmountSOL = walletType === 'standard' ? BigInt(100_000_000) : BigInt(150_000_000); // 0.1 or 0.15 SOL in lamports
+      const txVerification = await verifyTransactionOnChain(paymentTxHash, paymentAmountSOL);
       
-      // Import Phase 1 payment verification
-      const { verifyPaymentPhase1 } = await import("./payment-verification-phase1");
-      const paymentResult = await verifyPaymentPhase1(paymentTxHash, paymentType);
+      const paymentResult = txVerification.valid 
+        ? { valid: true, error: null }
+        : { valid: false, error: txVerification.error };
 
       if (!paymentResult.valid) {
         console.error('Payment verification failed:', paymentResult);
@@ -2153,6 +2181,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api", licensesRouter);
   app.use("/api", treasuryRouter);
 
+  // Phase 4: Register IP Registration, Subdomains, and Security Challenge Routers
+  app.use("/api", ipRegistrationRouter);
+  app.use("/api", subdomainsRouter);
+  
+  // Import and register challenge router for security ceremony
+  const { challengeRouter } = await import("./challenge-endpoint");
+  app.use("/api", challengeRouter);
+
   // Phase 3: Apply global validation and error handling
   applyValidationToRoutes(app);
 
@@ -2178,3 +2214,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
+
+
+/**
+ * ============================================
+ * PHASE 4: SC INTEGRATION SUMMARY
+ * ============================================
+ * 
+ * CRITICAL SECURITY FIXES APPLIED:
+ * 1. ✅ Currency Hardcoding: Removed multi-currency from wallet endpoint
+ * 2. ✅ On-Chain Transaction Verification: Added verifyTransactionOnChain()
+ * 3. ✅ Challenge-Response for Private Key Export: Added security ceremony
+ * 
+ * NEW ENDPOINTS ADDED:
+ * 4. ✅ POST /api/ip/register-on-chain - Register logo on blockchain
+ * 5. ✅ POST /api/ip/store-ipfs-metadata - Store IPFS mapping on-chain
+ * 6. ✅ POST /api/subdomains/register - Register platform subdomain (admin)
+ * 7. ✅ GET /api/subdomains/:name - Check subdomain status
+ * 8. ✅ GET /api/security/challenge - Get challenge for signature verification
+ * 9. ✅ POST /api/security/verify-challenge - Verify signed challenge
+ * 
+ * FILES CREATED:
+ * - server/sc-integration.ts - SC integration functions
+ * - server/ip-registration.ts - IP registration endpoints
+ * - server/subdomains.ts - Subdomain management endpoints
+ * - server/security-ceremony.ts - Challenge-response security
+ * - server/challenge-endpoint.ts - Challenge API endpoints
+ * 
+ * TODO (Can be completed later):
+ * - Connect SC integration functions to actual smart contract calls
+ * - Add admin role verification to subdomain endpoints
+ * - Add license/treasury SC integration
+ * ============================================
+ */
