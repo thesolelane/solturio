@@ -9,6 +9,9 @@ import { Router } from "express";
 import { storage } from "./storage";
 import { verifyPaymentPhase1 } from "./payment-verification-phase1";
 import { isAuthenticated } from "./replitAuth";
+import { formatError, formatSuccess, ERROR_CODES, APIError } from "./error-handler";
+import { auditLogger } from "./audit-logger";
+import { validateRequest, licenseSchema, paymentSchema } from "./validation";
 
 export const licensesRouter = Router();
 
@@ -17,28 +20,56 @@ export const licensesRouter = Router();
  * POST /api/licenses/create
  */
 licensesRouter.post("/licenses/create", isAuthenticated, async (req: any, res) => {
+  const requestId = req.requestId || `req_${Date.now()}`;
   try {
     const userId = req.user.claims.sub;
-    const { logoId, licenseType, paymentStructure, totalAmount, numPayments, humanReadableTerms, termsIpfsUri, nonce, timestamp } = req.body;
 
-    // Validate nonce + timestamp
-    if (!nonce || !timestamp) {
-      return res.status(400).json({ error: "Missing nonce and timestamp" });
+    // Phase 3: Validate request input
+    const validation = validateRequest(licenseSchema, req.body);
+    if (!validation.valid) {
+      auditLogger.log({
+        action: "INVALID_LICENSE_CREATE",
+        endpoint: "/api/licenses/create",
+        method: "POST",
+        statusCode: 400,
+        requestId,
+        userId,
+        details: validation.errors,
+      });
+      return res.status(400).json({
+        success: false,
+        error: "INVALID_INPUT",
+        code: "INVALID_INPUT",
+        details: validation.errors,
+        timestamp: new Date().toISOString(),
+        requestId,
+      });
     }
+
+    const { logoId, licenseType, paymentStructure, totalAmount, termsIpfsUri, nonce, timestamp } = validation.data;
 
     // Get logo to verify ownership
     const logo = await storage.getLogoById(logoId);
-    if (!logo || logo.userId !== userId) {
-      return res.status(404).json({ error: "Logo not found or unauthorized" });
-    }
-
-    // Validate license parameters
-    if (!licenseType || !paymentStructure || !totalAmount) {
-      return res.status(400).json({ error: "Missing required license parameters" });
+    if (!logo || (logo as any).userId !== userId) {
+      auditLogger.log({
+        action: "LOGO_NOT_FOUND",
+        endpoint: "/api/licenses/create",
+        method: "POST",
+        statusCode: 404,
+        requestId,
+        userId,
+      });
+      return res.status(404).json({
+        success: false,
+        error: "LOGO_NOT_FOUND",
+        code: "LOGO_NOT_FOUND",
+        timestamp: new Date().toISOString(),
+        requestId,
+      });
     }
 
     // Store license in database
-    const licenseId = crypto.randomUUID?.() || Math.random().toString(36).substring(7);
+    const licenseId = Math.random().toString(36).substring(7);
     await (storage as any).$client?.query(
       `INSERT INTO licenses (id, logo_id, issuer_id, type, structure, amount, terms_ipfs, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
@@ -47,7 +78,17 @@ licensesRouter.post("/licenses/create", isAuthenticated, async (req: any, res) =
       // Silently fail if table doesn't exist - will be created by migration
     });
 
-    return res.json({
+    auditLogger.log({
+      action: "LICENSE_CREATED",
+      endpoint: "/api/licenses/create",
+      method: "POST",
+      statusCode: 200,
+      requestId,
+      userId,
+      details: { licenseId, logoId },
+    });
+
+    return res.json(formatSuccess({
       licenseId,
       logoId,
       status: "created",
@@ -55,10 +96,19 @@ licensesRouter.post("/licenses/create", isAuthenticated, async (req: any, res) =
       totalAmount,
       paymentStructure,
       created_at: new Date().toISOString()
-    });
+    }, requestId));
   } catch (error: any) {
     console.error("Error creating license:", error);
-    res.status(500).json({ error: "Failed to create license" });
+    auditLogger.log({
+      action: "LICENSE_CREATE_ERROR",
+      endpoint: "/api/licenses/create",
+      method: "POST",
+      statusCode: 500,
+      requestId,
+      userId: req.user?.claims?.sub,
+      details: { error: error.message },
+    });
+    res.status(500).json(formatError(error, requestId));
   }
 });
 
@@ -88,7 +138,6 @@ licensesRouter.post("/licenses/:licenseId/pay", isAuthenticated, async (req: any
       transactionSignature: paymentTxHash,
       amount: amount?.toString() || "0",
       status: "completed",
-      timestamp: new Date(),
       paymentType: "LICENSE_PAYMENT",
     });
 

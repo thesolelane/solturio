@@ -24,6 +24,9 @@ import { isSolturioWallet, getRestrictionErrorMessage } from "./wallet-restricti
 import { verifyPayment, isTransactionUsed } from "./payment-verification";
 import { licensesRouter } from "./licenses";
 import { treasuryRouter } from "./treasury";
+import { applyValidationToRoutes } from "./validation-middleware";
+import { formatError, formatSuccess } from "./error-handler";
+import { auditLogger } from "./audit-logger";
 import { 
   sendRegistrationConfirmation, 
   sendWalletCreated,
@@ -2149,6 +2152,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Phase 2: Register License Management & Treasury Routers
   app.use("/api", licensesRouter);
   app.use("/api", treasuryRouter);
+
+  // Phase 3: Apply global validation and error handling
+  applyValidationToRoutes(app);
+
+  // Phase 3: Global error handler (must be last)
+  app.use((err: any, req: any, res: any, next: any) => {
+    const requestId = req.requestId || `req_${Date.now()}`;
+    const formatted = formatError(err, requestId);
+    
+    // Log error
+    auditLogger.log({
+      action: "ERROR",
+      endpoint: req.path,
+      method: req.method,
+      statusCode: err.statusCode || 500,
+      requestId,
+      userId: req.user?.claims?.sub,
+      details: { error: err.message },
+    });
+
+    res.status(err.statusCode || 500).json(formatted);
+  });
 
   const httpServer = createServer(app);
   return httpServer;
