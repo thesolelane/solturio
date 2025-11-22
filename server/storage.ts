@@ -476,11 +476,12 @@ export class DatabaseStorage implements IStorage {
   // Phase 1: Replay Prevention - Nonce Management
   async getNonceByValue(nonce: string): Promise<any | undefined> {
     try {
-      // Query replay_prevention table using raw SQL via pool
-      const result = await db.all(
-        db.raw`SELECT * FROM replay_prevention WHERE nonce = ${nonce} LIMIT 1`
+      // Query replay_prevention table using pool directly
+      const result = await (db as any).$client.query(
+        'SELECT * FROM replay_prevention WHERE nonce = $1 LIMIT 1',
+        [nonce]
       );
-      return result?.[0];
+      return result.rows?.[0];
     } catch (error) {
       console.error('Error fetching nonce:', error);
       return undefined;
@@ -489,10 +490,10 @@ export class DatabaseStorage implements IStorage {
 
   async storeNonce(nonce: string): Promise<void> {
     try {
-      // Insert nonce using raw SQL via pool
-      await db.run(
-        db.raw`INSERT INTO replay_prevention (nonce, used_at, expires_at) 
-               VALUES (${nonce}, NOW(), NOW() + INTERVAL '24 hours')`
+      // Insert nonce using pool directly
+      await (db as any).$client.query(
+        'INSERT INTO replay_prevention (nonce, used_at, expires_at) VALUES ($1, NOW(), NOW() + INTERVAL \'24 hours\')',
+        [nonce]
       );
     } catch (error: any) {
       console.error('Error storing nonce:', error);

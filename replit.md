@@ -67,6 +67,31 @@ Preferred communication style: Simple, everyday language.
 - Thumbnail → Displayed on website under user's account collections
 - All hashes & NFT addresses → Stored in database for tracking
 
+## Implementation Progress
+
+### Phase 1: Security Fixes ✅ COMPLETE
+- ✅ Replay attack prevention (nonce/timestamp validation)
+- ✅ Currency hardcoding ($CATH for IP ops, SOL for wallets)
+- ✅ On-chain payment verification with blockchain confirmation
+- ✅ Wallet creation endpoint updated with Phase 1 security
+
+### Phase 2: License Management & Treasury ✅ COMPLETE
+- ✅ License endpoints (5): create, pay, get created/active, verify
+- ✅ Treasury endpoints (6): multi-sig setup, propose/approve/execute/cancel transfers, status, proposals
+- ✅ Database schema: licenses, treasury_proposals, treasury_approvals tables
+- ✅ All endpoints integrated into main router and running
+
+### Phase 3: PENDING (Input Validation & Error Mapping)
+- ⏳ Input validation layer for all endpoints
+- ⏳ Standardized error response format
+- ⏳ Audit logging for all API calls
+
+### Phase 4: PENDING (SC Integration & Frontend)
+- ⏳ Smart contract endpoint integration
+- ⏳ Leaderboard pages
+- ⏳ DEX copycat report UI
+- ⏳ Premium wallet naming UI
+
 ## External Dependencies
 
 -   **User Wallets**: `xxx.solturio.sol` domains (restricted to certificates/contracts).

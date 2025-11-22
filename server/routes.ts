@@ -22,6 +22,8 @@ import { uploadToIPFS, generateLogoMetadata } from "./ipfs";
 import { generatePriorArtCertificate, generateDMCATakedownNotice, generateCeaseAndDesistLetter } from "./legal-documents";
 import { isSolturioWallet, getRestrictionErrorMessage } from "./wallet-restrictions";
 import { verifyPayment, isTransactionUsed } from "./payment-verification";
+import { licensesRouter } from "./licenses";
+import { treasuryRouter } from "./treasury";
 import { 
   sendRegistrationConfirmation, 
   sendWalletCreated,
@@ -1509,10 +1511,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('Payment verification failed:', paymentResult);
         return res.status(402).json({ 
           error: "Payment verification failed",
-          reason: paymentResult.reason,
+          reason: paymentResult.error || 'Unknown error',
           details: paymentResult.error,
           requiredAmount: walletType === 'standard' ? '0.1 SOL' : '0.15 SOL',
-          requiredCurrency: currency,
+          requiredCurrency: paymentResult.currency,
         });
       }
 
@@ -1582,7 +1584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           description: `Solturio ${walletType === 'standard' ? 'Standard' : 'Premium'} Wallet Creation (${walletResult.walletName})`,
           quantity: 1,
           unitPrice: walletPrice,
-          currency,
+          currency: paymentResult.currency,
           subtotal: walletPrice,
         },
       ];
@@ -1599,7 +1601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `Wallet: ${walletResult.walletName}`,
         receiptLineItems,
         walletPrice,
-        currency,
+        paymentResult.currency,
         "confirmed",
         paymentTxHash,
         walletResult.publicKey
@@ -2143,6 +2145,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: error.message || "Failed to mint NFT" });
     }
   });
+
+  // Phase 2: Register License Management & Treasury Routers
+  app.use("/api", licensesRouter);
+  app.use("/api", treasuryRouter);
 
   const httpServer = createServer(app);
   return httpServer;
