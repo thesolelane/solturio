@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -9,10 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Logo, Collection } from "@shared/schema";
 import { Link } from "wouter";
+import { NFTMintingUI } from "@/components/nft-minting-ui";
 
 export default function Dashboard() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const [selectedLogoForMinting, setSelectedLogoForMinting] = useState<Logo | null>(null);
 
   // Set page title
   useEffect(() => {
@@ -435,21 +437,103 @@ export default function Dashboard() {
                         </div>
                       )}
 
-                      {/* NFT Status */}
-                      {logo.nftAddress ? (
-                        <Badge variant="default" className="w-full justify-center">
-                          Minted as NFT
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="w-full justify-center">
-                          Pending Mint
-                        </Badge>
-                      )}
+                      {/* NFT Status & Mint Button */}
+                      <div className="space-y-2">
+                        {logo.nftAddress ? (
+                          <>
+                            <Badge variant="default" className="w-full justify-center">
+                              Minted as NFT
+                            </Badge>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="w-full gap-2"
+                              onClick={() => window.open(`https://solscan.io/token/${logo.nftAddress}`, '_blank')}
+                              data-testid={`button-view-nft-${logo.id}`}
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              View Certificate
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Badge variant="secondary" className="w-full justify-center">
+                              Pending Mint
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              className="w-full gap-2"
+                              onClick={() => setSelectedLogoForMinting(logo)}
+                              data-testid={`button-mint-nft-${logo.id}`}
+                            >
+                              <Sparkles className="w-4 h-4" />
+                              Mint Certificate
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </Card>
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* NFT Minting Section */}
+        {selectedLogoForMinting && (
+          <div className="mb-12 p-6 border rounded-lg bg-primary/5" data-testid="nft-minting-section">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-semibold">Mint IP Protection Certificate</h2>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setSelectedLogoForMinting(null)}
+                data-testid="button-close-minting"
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="grid lg:grid-cols-2 gap-6">
+              {/* Selected Logo Info */}
+              <div className="space-y-4">
+                <Card className="p-4">
+                  <div className="space-y-3">
+                    <h3 className="font-semibold">Selected Logo</h3>
+                    {selectedLogoForMinting.fileName && (
+                      <div className="aspect-square bg-muted rounded-lg flex items-center justify-center p-4">
+                        <ImageIcon className="w-12 h-12 text-muted-foreground/30" />
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Filename</p>
+                      <p className="font-medium">{selectedLogoForMinting.fileName}</p>
+                    </div>
+                    {selectedLogoForMinting.registrationType && (
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Type</p>
+                        <Badge variant="outline">
+                          {selectedLogoForMinting.registrationType === 'token_launch' ? 'Token Launch' : selectedLogoForMinting.registrationType === 'artwork' ? 'Artwork' : 'Logo'}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </div>
+              
+              {/* Minting UI */}
+              <div>
+                <NFTMintingUI
+                  logoId={selectedLogoForMinting.id}
+                  logoName={selectedLogoForMinting.fileName}
+                  logoDescription={selectedLogoForMinting.description || ''}
+                  registrationType={(selectedLogoForMinting.registrationType as any) || 'logo'}
+                  alreadyMinted={!!selectedLogoForMinting.nftAddress}
+                  nftAddress={selectedLogoForMinting.nftAddress || undefined}
+                  explorerUrl={selectedLogoForMinting.nftAddress ? `https://solscan.io/token/${selectedLogoForMinting.nftAddress}` : undefined}
+                />
+              </div>
+            </div>
           </div>
         )}
 
