@@ -51,12 +51,28 @@ Preferred communication style: Simple, everyday language.
 - **Authorized Usage Tracking**: Users pre-register where logos will be used to strengthen IP protection claims.
 - **IP Education**: Knowledge base and gamified learning (IP Quiz).
 
+## Data Storage Architecture
+
+**Three-Tier Decentralized Storage:**
+1. **PostgreSQL (On-Server)**: User info, thumbnails, metadata, ownership claims
+2. **IPFS (Pinata)**: Logo metadata JSON, proof of ownership records
+3. **User Wallets (`xxx.solturio.sol`)**: Full logo files (decentralized, user-controlled)
+4. **Solana Blockchain**: NFT certificates with immutable hashes (immutable proof of ownership)
+
+**Data Flow:**
+- User uploads logo → Server extracts metadata (SHA-256, dimensions, colors)
+- Logo file → Stored in user's `xxx.solturio.sol` wallet (user controls)
+- Metadata → Uploaded to IPFS via Pinata (referenced in NFT)
+- NFT Certificate → Minted on Solana with IPFS hash pointer
+- Thumbnail → Displayed on website under user's account collections
+- All hashes & NFT addresses → Stored in database for tracking
+
 ## External Dependencies
 
 -   **User Wallets**: `xxx.solturio.sol` domains (restricted to certificates/contracts).
 -   **Blockchain**: Solana (Mainnet/Devnet, Metaplex Token Metadata, Solana web3.js).
 -   **Cryptocurrencies**: SOL, BONK, Arweave, CATH (for payments).
--   **IPFS**: Platform-controlled uploads.
+-   **IPFS**: Pinata (Platform-controlled uploads, requires API keys).
 -   **Image Processing**: Sharp.
 -   **UI Framework**: Radix UI.
 -   **Authentication**: Replit Auth (OpenID Connect).
