@@ -402,29 +402,41 @@ function rejectSPLTokenTransfer(
   address tokenMint
 ) internal pure returns (bool);
 
-// 4. NFT Minting Trigger
+// 4. IPFS Metadata Storage & Retrieval
+function storeIPFSMetadata(
+  string fileHash,
+  string ipfsHash
+) external returns (bool);
+
+function getIPFSMetadata(
+  string fileHash
+) external view returns (string memory ipfsHash);
+
+// 5. NFT Minting Trigger (with IPFS metadata URI)
 function triggerNFTMint(
   address solturioWallet,
-  bytes metadataUri
-) internal;
+  string fileHash,
+  string ipfsMetadataUri
+) external returns (address nftMintAddress);
 
-// 5. Ownership Verification
+// 6. Ownership Verification
 function verifyOwnership(
   string fileHash,
   address claimant
 ) external view returns (bool isOwner, uint256 registrationTimestamp);
 
-// 6. DEX Verification API
+// 7. DEX Verification API
 function checkLogoLegitimacy(
   string fileHash
 ) external view returns (
   bool isRegistered,
   address owner,
   uint256 timestamp,
-  string certificateUri
+  string memory certificateUri,
+  string memory ipfsMetadataUri
 );
 
-// 7. Authorized Usage Tracking
+// 8. Authorized Usage Tracking
 function addAuthorizedUsage(
   address solturioWallet,
   string platform,
@@ -436,7 +448,7 @@ function verifyAuthorizedUsage(
   string platform
 ) external view returns (bool isAuthorized);
 
-// 8. Collection Management (for brands with multiple logos)
+// 9. Collection Management (for brands with multiple logos)
 function createCollection(
   address userWallet,
   string collectionName
@@ -447,16 +459,157 @@ function addLogoToCollection(
   address logoNFT
 ) external;
 
-// 9. Payment Tier Management
+// 10. Payment Tier Management
 function updatePaymentTiers(
   PaymentTier tier,
   string currency,
   uint256 newAmount
 ) external onlyAdmin;
 
-// 10. Emergency Functions
+// 11. Emergency Functions
 function pauseRegistrations() external onlyAdmin;
 function resumeRegistrations() external onlyAdmin;
+```
+
+---
+
+## 6.5 IPFS INTEGRATION ARCHITECTURE
+
+### Why IPFS in Smart Contract?
+
+The smart contract needs to **store IPFS metadata hashes** for:
+1. **Proof of Registration:** Immutable reference to detailed logo metadata
+2. **DEX Verification API:** DEX platforms query IPFS hash to verify legitimacy
+3. **NFT Metadata:** Links on-chain NFT to detailed off-chain data
+4. **Dispute Resolution:** IPFS hash serves as cryptographic proof of what was registered
+
+### Smart Contract → IPFS Data Flow
+
+```
+User Registration
+    ↓
+Backend validates + uploads logo to IPFS
+    ↓
+Backend uploads registration metadata to IPFS (generates IPFS hash)
+    ↓
+Smart Contract storeIPFSMetadata(fileHash, ipfsHash)
+    ↓
+Smart Contract triggerNFTMint(fileHash, ipfsMetadataUri)
+    ↓
+NFT minted with IPFS metadata URI embedded
+```
+
+### Contract Storage for IPFS
+
+```solidity
+// Storage mapping for file hashes → IPFS metadata hashes
+mapping(string => string) public ipfsMetadata;
+  // Key: SHA-256 file hash of logo
+  // Value: IPFS hash of full registration metadata
+
+// Storage mapping for file hashes → NFT metadata URIs
+mapping(string => string) public nftMetadataUris;
+  // Key: SHA-256 file hash of logo
+  // Value: Full IPFS URI (ipfs://Qm... or https://gateway.pinata.cloud/ipfs/...)
+
+// Track which registrations have IPFS metadata stored
+mapping(string => bool) public ipfsMetadataStored;
+```
+
+### Backend IPFS Workflow
+
+**When user completes registration:**
+
+1. **Upload Logo to IPFS** (if not already stored)
+   - Hash file with SHA-256
+   - Check if already registered (prevents duplicates)
+   - Upload to Pinata via `uploadFile()`
+
+2. **Generate & Upload Registration Metadata**
+   - Compile detailed metadata (per section 5 - Off-Chain Metadata)
+   - Upload JSON to Pinata via `uploadJSON()`
+   - Returns IPFS hash: `Qm123abc...`
+
+3. **Call Smart Contract to Store IPFS Hash**
+   ```solidity
+   contract.storeIPFSMetadata(
+     "sha256:abc123...",
+     "Qm123abc..."
+   );
+   ```
+
+4. **Trigger NFT Minting**
+   ```solidity
+   contract.triggerNFTMint(
+     userWallet,
+     "sha256:abc123...",
+     "ipfs://Qm123abc..."
+   );
+   ```
+
+### DEX Platform Verification Flow
+
+```
+DEX Platform checks logo legitimacy
+    ↓
+DEX calls: contract.checkLogoLegitimacy(logoFileHash)
+    ↓
+Smart Contract returns:
+  {
+    isRegistered: true,
+    owner: "042.solturio.sol",
+    timestamp: 1699459200,
+    ipfsMetadataUri: "ipfs://Qm123abc...",
+    certificateUri: "https://solturio.com/cert/123"
+  }
+    ↓
+DEX fetches IPFS metadata to verify:
+  - Ownership claims
+  - Registration date
+  - Authorized platforms
+  - Payment tier
+    ↓
+DEX decides: SAFE ✅ or STOLEN 🚨
+```
+
+### IPFS Data Integrity Verification
+
+```solidity
+// Smart contract verifies IPFS hash format before storing
+function storeIPFSMetadata(
+  string fileHash,
+  string ipfsHash
+) external returns (bool) {
+  require(isValidIPFSHash(ipfsHash), "Invalid IPFS hash format");
+  require(fileHashNotDuplicate(fileHash), "Logo already registered");
+  
+  // Store on-chain
+  ipfsMetadata[fileHash] = ipfsHash;
+  ipfsMetadataStored[fileHash] = true;
+  
+  // Emit event for off-chain indexing
+  emit IPFSMetadataStored(fileHash, ipfsHash);
+  return true;
+}
+
+// Helper: Validate IPFS hash format
+function isValidIPFSHash(string memory hash) internal pure returns (bool) {
+  // IPFS hashes start with Qm (base58 encoded)
+  return bytes(hash).length > 0 && bytes(hash)[0] == 'Q' && bytes(hash)[1] == 'm';
+}
+```
+
+### IPFS Gateway Options
+
+**Stored in smart contract events (for backend reference):**
+
+```solidity
+event IPFSGatewayUsed(string indexed ipfsHash, string gateway);
+// Gateways:
+// - "https://gateway.pinata.cloud/ipfs/{hash}" (fastest, needs JWT)
+// - "https://ipfs.io/ipfs/{hash}" (public, may be slow)
+// - "https://cloudflare-ipfs.com/ipfs/{hash}" (Cloudflare CDN)
+// - "ipfs://{hash}" (native IPFS protocol)
 ```
 
 ---
