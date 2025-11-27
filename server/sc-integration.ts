@@ -3,15 +3,21 @@
  * - IP registration on-chain
  * - IPFS metadata storage
  * - Transaction verification
+ * - Real SC calls via sc-client (when configured)
  */
 
 import { Connection, clusterApiUrl, PublicKey } from "@solana/web3.js";
+import { scRequest, isConfigured as scConfigured } from "./sc-client";
 
 const SOLANA_CLUSTER = process.env.SOLANA_CLUSTER || "devnet";
 const CATH_MINT = "48rmvKgpGpUNUuH3n2UYTZS2AUxZEkaCiNjQ57q1duMA";
 const TREASURY_CATH_ACCOUNT = process.env.TREASURY_CATH_ACCOUNT || "";
 
 export const connection = new Connection(clusterApiUrl(SOLANA_CLUSTER as any));
+
+export function isScConfigured(): boolean {
+  return scConfigured();
+}
 
 /**
  * CRITICAL FIX: Verify transaction on-chain before accepting
@@ -80,14 +86,34 @@ export async function registerIPOnChain(params: {
   txHash: string;
 }) {
   try {
-    // TODO: Call actual smart contract instruction
-    // For now, mock the SC call
+    if (scConfigured()) {
+      const response = await scRequest({
+        method: "POST",
+        path: "/api/ip/register",
+        body: params,
+      });
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          blockchainTxHash: response.data.transactionHash || params.txHash,
+          registered: true,
+          timestamp: new Date().toISOString(),
+          explorer: `https://solscan.io/tx/${response.data.transactionHash || params.txHash}?cluster=${SOLANA_CLUSTER}`,
+          onChain: response.data.onChain,
+        };
+      }
+      return { success: false, error: response.error || "SC registration failed" };
+    }
+
+    console.log("[SC-INTEGRATION] SC not configured - using mock mode");
     return {
       success: true,
       blockchainTxHash: `mock_${params.txHash}`,
       registered: true,
       timestamp: new Date().toISOString(),
       explorer: `https://solscan.io/tx/${params.txHash}?cluster=${SOLANA_CLUSTER}`,
+      mock: true,
     };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -104,8 +130,29 @@ export async function storeIPFSMetadataOnChain(params: {
   txHash?: string;
 }) {
   try {
-    // TODO: Call actual smart contract instruction
-    // For now, mock the SC call
+    if (scConfigured()) {
+      const response = await scRequest({
+        method: "POST",
+        path: "/api/ipfs/store-metadata",
+        body: params,
+      });
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          stored: true,
+          timestamp: new Date().toISOString(),
+          proof: {
+            fileHash: params.fileHash,
+            ipfsHash: params.ipfsHash,
+          },
+          onChain: response.data.onChain,
+        };
+      }
+      return { success: false, error: response.error || "IPFS storage failed" };
+    }
+
+    console.log("[SC-INTEGRATION] SC not configured - using mock mode");
     return {
       success: true,
       stored: true,
@@ -114,6 +161,7 @@ export async function storeIPFSMetadataOnChain(params: {
         fileHash: params.fileHash,
         ipfsHash: params.ipfsHash,
       },
+      mock: true,
     };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -128,17 +176,36 @@ export async function initializeSubdomainOnChain(params: {
   walletAddress: string;
 }) {
   try {
-    // Validate wallet address
     new PublicKey(params.walletAddress);
 
-    // TODO: Call actual smart contract instruction
-    // For now, mock the SC call
+    if (scConfigured()) {
+      const response = await scRequest({
+        method: "POST",
+        path: "/api/subdomains/initialize",
+        body: params,
+      });
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          subdomain: params.subdomain,
+          solturioDomain: `${params.subdomain}.solturio.sol`,
+          wallet: params.walletAddress,
+          timestamp: new Date().toISOString(),
+          onChain: response.data.onChain,
+        };
+      }
+      return { success: false, error: response.error || "Subdomain initialization failed" };
+    }
+
+    console.log("[SC-INTEGRATION] SC not configured - using mock mode");
     return {
       success: true,
       subdomain: params.subdomain,
       solturioDomain: `${params.subdomain}.solturio.sol`,
       wallet: params.walletAddress,
       timestamp: new Date().toISOString(),
+      mock: true,
     };
   } catch (error: any) {
     return { success: false, error: error.message };

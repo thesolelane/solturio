@@ -88,11 +88,52 @@ Preferred communication style: Simple, everyday language.
 - ✅ Request ID generation & correlation
 - ✅ Applied to license & treasury endpoints
 
-### Phase 4: PENDING (SC Integration & Frontend)
-- ⏳ Smart contract endpoint integration
-- ⏳ Leaderboard pages
-- ⏳ DEX copycat report UI
-- ⏳ Premium wallet naming UI
+### Phase 4: SC Integration ✅ COMPLETE
+- ✅ SC Client (`server/sc-client.ts`) - HMAC-SHA256 signed requests, retry with exponential backoff, circuit breaker pattern
+- ✅ GitHub Proxy Router (`server/github-proxy.ts`) - 10 secure endpoints proxying to SC Replit
+- ✅ Updated `sc-integration.ts` - Real SC calls when configured, mock fallback
+- ✅ Transaction Builder (`client/src/lib/transaction-builder.ts`) - Dual-signature support
+- ✅ GitHub Link Component (`client/src/components/github-link.tsx`) - OAuth flow, repo registration UI
+- ✅ Account page updated with GitHub integration section
+- ⏳ Leaderboard pages (pending)
+- ⏳ DEX copycat report UI (pending)
+- ⏳ Premium wallet naming UI (pending)
+
+## SC Integration Architecture
+
+### App ↔ SC Communication Pattern
+```
+[Frontend] → [App API] → [SC Client] → [SC Replit API] → [Solana]
+                 ↑
+         Request signing (HMAC-SHA256)
+         Circuit breaker (5 failures = 30s cooldown)
+         Retry with exponential backoff (3 attempts)
+```
+
+### Environment Variables (Required for SC Integration)
+- `SC_API_URL` - SC Replit base URL (e.g., `https://your-sc-replit.replit.app`)
+- `SC_API_SECRET` - Shared secret for HMAC request signing
+
+### GitHub Proxy Endpoints (`/api/github/*`)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/link-wallet` | POST | Link Solana wallet to GitHub |
+| `/oauth/start` | GET | Start GitHub OAuth flow |
+| `/oauth/callback` | GET | Handle OAuth callback |
+| `/register-code` | POST | Register code repository |
+| `/close-challenge` | POST | Close expired OAuth challenge |
+| `/link-status/:wallet` | GET | Get link status for wallet |
+| `/on-chain-status/:wallet` | GET | Check on-chain account |
+| `/registrations/:wallet` | GET | List registered repos |
+| `/webhook` | POST | GitHub push notifications |
+| `/status` | GET | SC connection status |
+
+### Dual-Signature Transaction Flow
+1. Frontend calls app endpoint
+2. App proxies to SC with signed request
+3. SC returns `onChain.instruction` metadata
+4. Platform backend signs first (partial tx)
+5. Frontend wallet co-signs and submits
 
 ## External Dependencies
 

@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Shield, Wallet, Mail, Bell, CheckCircle2, AlertCircle, Loader2, Twitter, Send, MessageSquare, Key, Copy, Download, ExternalLink } from "lucide-react";
+import { Shield, Wallet, Mail, Bell, CheckCircle2, AlertCircle, Loader2, Twitter, Send, MessageSquare, Key, Copy, Download, ExternalLink, Github } from "lucide-react";
+import { GitHubLink } from "@/components/github-link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -617,6 +618,11 @@ export default function AccountPage() {
             </div>
           </div>
         </Card>
+
+        {/* GitHub Integration */}
+        <div className="mb-6">
+          <GitHubLink walletAddress={user?.walletAddress || undefined} />
+        </div>
 
         {/* Notification Preferences */}
         <Card className="p-6 mb-6">

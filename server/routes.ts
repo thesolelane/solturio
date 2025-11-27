@@ -26,6 +26,7 @@ import { licensesRouter } from "./licenses";
 import { treasuryRouter } from "./treasury";
 import { ipRegistrationRouter } from "./ip-registration";
 import { subdomainsRouter } from "./subdomains";
+import { githubProxyRouter } from "./github-proxy";
 import { applyValidationToRoutes } from "./validation-middleware";
 import { formatError, formatSuccess } from "./error-handler";
 import { auditLogger } from "./audit-logger";
@@ -2188,6 +2189,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Import and register challenge router for security ceremony
   const { challengeRouter } = await import("./challenge-endpoint");
   app.use("/api", challengeRouter);
+  
+  // GitHub Integration Proxy (connects to SC Replit)
+  app.use("/api/github", githubProxyRouter);
 
   // Phase 3: Apply global validation and error handling
   applyValidationToRoutes(app);
