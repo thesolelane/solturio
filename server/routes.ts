@@ -915,24 +915,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/pricing/status', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
       const logos = await storage.getLogosByUserId(userId);
       const logoCount = logos.length;
 
-      const freeUploadsRemaining = getRemainingFreeUploads(logoCount);
-      const isEligible = isEligibleForFreeUpload(logoCount);
+      // Premium users get unlimited free uploads
+      const isPremium = user?.wallet_type === 'premium';
+      const freeUploadsRemaining = isPremium ? 999 : getRemainingFreeUploads(logoCount);
+      const isEligible = isPremium ? true : isEligibleForFreeUpload(logoCount);
 
       res.json({
         logoCount,
         freeUploadsRemaining,
         isEligibleForFreeUpload: isEligible,
-        freeUploadLimit: PRICING.FREE_UPLOADS_LIMIT,
+        freeUploadLimit: isPremium ? 'Unlimited' : PRICING.FREE_UPLOADS_LIMIT,
+        isPremium,
         pricing: {
           minting: PRICING.MINTING_FEE,
           monthlyRental: PRICING.MONTHLY_RENTAL,
         },
         promotion: {
           active: true,
-          message: `Launch Special: First ${PRICING.FREE_UPLOADS_LIMIT} uploads free for small communities!`,
+          message: isPremium 
+            ? 'Premium Account: Unlimited free uploads!' 
+            : `Launch Special: First ${PRICING.FREE_UPLOADS_LIMIT} uploads free for small communities!`,
         },
       });
     } catch (error: any) {
