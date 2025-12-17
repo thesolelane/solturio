@@ -58,7 +58,7 @@ const upload = multer({
       // Images
       'image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/gif', 'image/webp',
       // Documents
-      'application/pdf',
+      'application/pdf', 'text/plain', // PDF and TXT
       // Archives
       'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed',
       // Design files
@@ -72,7 +72,7 @@ const upload = multer({
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error(`Invalid file type: ${file.mimetype}. Allowed: images, PDF, ZIP, AI, PSD, EPS.`));
+      cb(new Error(`Invalid file type: ${file.mimetype}. Allowed: images, PDF, TXT, ZIP, AI, PSD, EPS.`));
     }
   },
 });
