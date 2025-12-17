@@ -126,12 +126,12 @@ export default function Upload() {
     const newLogos: UploadedLogo[] = [];
     const validTypes = [
       'image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/gif', 'image/webp', 'image/tiff', 'image/tif',
-      'application/pdf', 'text/plain', 'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed',
+      'application/pdf', 'text/plain', 'application/json', 'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed',
       'application/postscript', 'image/vnd.adobe.photoshop', 'image/eps', 'application/eps', 'application/octet-stream'
     ];
     
     // Valid extensions as fallback when MIME type is empty or generic
-    const validExtensions = ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp', 'tiff', 'tif', 'pdf', 'txt', 'zip', 'rar', 'ai', 'psd', 'eps'];
+    const validExtensions = ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp', 'tiff', 'tif', 'pdf', 'txt', 'json', 'zip', 'rar', 'ai', 'psd', 'eps'];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];

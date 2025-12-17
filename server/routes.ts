@@ -58,7 +58,7 @@ const upload = multer({
       // Images
       'image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/gif', 'image/webp', 'image/tiff', 'image/tif',
       // Documents
-      'application/pdf', 'text/plain', // PDF and TXT
+      'application/pdf', 'text/plain', 'application/json', // PDF, TXT, JSON
       // Archives
       'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed',
       // Design files
@@ -70,7 +70,7 @@ const upload = multer({
       'application/octet-stream'
     ];
     // Also check by file extension for when MIME type is incorrect
-    const allowedExtensions = ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp', 'tiff', 'tif', 'pdf', 'txt', 'zip', 'rar', 'ai', 'psd', 'eps'];
+    const allowedExtensions = ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp', 'tiff', 'tif', 'pdf', 'txt', 'json', 'zip', 'rar', 'ai', 'psd', 'eps'];
     const ext = file.originalname.split('.').pop()?.toLowerCase() || '';
     
     if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(ext)) {
