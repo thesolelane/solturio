@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, uploadFormData } from "@/lib/queryClient";
 import { Shield, Upload as UploadIcon, X, Loader2, ArrowRight, Image as ImageIcon, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -245,18 +245,7 @@ export default function Upload() {
         formData.append(`patent_app_${index}`, logo.patentAppNumber);
       });
 
-      const response = await fetch('/api/logos/upload', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`${response.status}: ${error}`);
-      }
-
-      return response.json();
+      return await uploadFormData('/api/logos/upload', formData);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
