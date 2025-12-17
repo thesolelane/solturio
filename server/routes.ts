@@ -51,14 +51,28 @@ import {
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB
+    fileSize: 50 * 1024 * 1024, // 50MB for larger files
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
+    const allowedTypes = [
+      // Images
+      'image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/gif', 'image/webp',
+      // Documents
+      'application/pdf',
+      // Archives
+      'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed',
+      // Design files
+      'application/postscript', // .ai, .eps
+      'image/vnd.adobe.photoshop', // .psd
+      // Vector
+      'image/eps', 'application/eps',
+      // Generic binary (for .ai, .sketch, etc.)
+      'application/octet-stream'
+    ];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only PNG, JPG, and SVG are allowed.'));
+      cb(new Error(`Invalid file type: ${file.mimetype}. Allowed: images, PDF, ZIP, AI, PSD, EPS.`));
     }
   },
 });
