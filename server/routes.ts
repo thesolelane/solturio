@@ -18,7 +18,7 @@ import {
   isWalletNameTaken,
   decryptData
 } from "./wallet";
-import { uploadToIPFS, generateLogoMetadata } from "./ipfs";
+import { uploadToIPFS, uploadJSONToIPFS, generateLogoMetadata } from "./ipfs";
 import { generatePriorArtCertificate, generateDMCATakedownNotice, generateCeaseAndDesistLetter } from "./legal-documents";
 import { isSolturioWallet, getRestrictionErrorMessage } from "./wallet-restrictions";
 import { verifyPayment, isTransactionUsed } from "./payment-verification";
@@ -1095,6 +1095,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verify challenge signature
+      if (!user.solanaPublicKey) {
+        return res.status(400).json({ 
+          message: "No wallet found. Please create a wallet first.",
+        });
+      }
       const { verifyChallengeSignature } = await import("./security-ceremony");
       const verified = verifyChallengeSignature(challenge, signature, user.solanaPublicKey);
       
@@ -1546,7 +1551,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           reason: paymentResult.error || 'Unknown error',
           details: paymentResult.error,
           requiredAmount: walletType === 'standard' ? '0.1 SOL' : '0.15 SOL',
-          requiredCurrency: paymentResult.currency,
+          requiredCurrency: 'SOL',
         });
       }
 
@@ -1554,9 +1559,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Payment verified successfully:', {
         userId,
         txHash: paymentTxHash,
-        amount: paymentResult.transactionDetails?.amount,
-        currency: paymentResult.transactionDetails?.currency,
-        sender: paymentResult.transactionDetails?.sender,
+        walletType,
+        timestamp: txVerification.valid ? (txVerification as any).timestamp : null,
       });
 
       // Get all existing wallets to determine next account number or check custom name
@@ -1611,12 +1615,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Send receipt email for wallet creation
       const walletPrice = walletType === 'standard' ? '0.1' : '0.15';
+      const walletCurrency = 'SOL'; // Wallet creation uses SOL
       const receiptLineItems: LineItem[] = [
         {
           description: `Solturio ${walletType === 'standard' ? 'Standard' : 'Premium'} Wallet Creation (${walletResult.walletName})`,
           quantity: 1,
           unitPrice: walletPrice,
-          currency: paymentResult.currency,
+          currency: walletCurrency,
           subtotal: walletPrice,
         },
       ];
@@ -1633,7 +1638,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `Wallet: ${walletResult.walletName}`,
         receiptLineItems,
         walletPrice,
-        paymentResult.currency,
+        walletCurrency,
         "confirmed",
         paymentTxHash,
         walletResult.publicKey
