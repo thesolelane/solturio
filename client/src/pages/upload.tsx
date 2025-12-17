@@ -76,6 +76,21 @@ export default function Upload() {
     size: number;
   }> => {
     return new Promise((resolve) => {
+      // Check if file is an image type
+      const imageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/gif', 'image/webp'];
+      
+      if (!imageTypes.includes(file.type)) {
+        // Non-image file - return basic metadata
+        const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE';
+        resolve({
+          width: 0,
+          height: 0,
+          format: ext,
+          size: file.size,
+        });
+        return;
+      }
+      
       const img = new Image();
       const url = URL.createObjectURL(file);
       
@@ -87,6 +102,18 @@ export default function Upload() {
           size: file.size,
         });
         URL.revokeObjectURL(url);
+      };
+      
+      img.onerror = () => {
+        // Fallback if image fails to load
+        URL.revokeObjectURL(url);
+        const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE';
+        resolve({
+          width: 0,
+          height: 0,
+          format: ext,
+          size: file.size,
+        });
       };
       
       img.src = url;
