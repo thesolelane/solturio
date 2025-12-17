@@ -106,10 +106,15 @@ export default function Upload() {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       
+      // Skip hidden system files (macOS .DS_Store, Windows Thumbs.db, etc.)
+      if (file.name.startsWith('.') || file.name === 'Thumbs.db' || file.name === 'desktop.ini') {
+        continue; // Silently skip system files
+      }
+      
       if (!validTypes.includes(file.type)) {
         toast({
           title: "Invalid file type",
-          description: `${file.name} is not a supported image format`,
+          description: `${file.name} is not a supported file format`,
           variant: "destructive",
         });
         continue;
