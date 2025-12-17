@@ -56,7 +56,7 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
       // Images
-      'image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/gif', 'image/webp',
+      'image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/gif', 'image/webp', 'image/tiff', 'image/tif',
       // Documents
       'application/pdf', 'text/plain', // PDF and TXT
       // Archives
@@ -69,10 +69,14 @@ const upload = multer({
       // Generic binary (for .ai, .sketch, etc.)
       'application/octet-stream'
     ];
-    if (allowedTypes.includes(file.mimetype)) {
+    // Also check by file extension for when MIME type is incorrect
+    const allowedExtensions = ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp', 'tiff', 'tif', 'pdf', 'txt', 'zip', 'rar', 'ai', 'psd', 'eps'];
+    const ext = file.originalname.split('.').pop()?.toLowerCase() || '';
+    
+    if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error(`Invalid file type: ${file.mimetype}. Allowed: images, PDF, TXT, ZIP, AI, PSD, EPS.`));
+      cb(new Error(`Invalid file type: ${file.mimetype}. Allowed: images, PDF, TXT, ZIP, AI, PSD, EPS, TIFF.`));
     }
   },
 });

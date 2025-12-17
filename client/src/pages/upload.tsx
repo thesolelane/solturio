@@ -125,10 +125,13 @@ export default function Upload() {
 
     const newLogos: UploadedLogo[] = [];
     const validTypes = [
-      'image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/gif', 'image/webp',
+      'image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/gif', 'image/webp', 'image/tiff', 'image/tif',
       'application/pdf', 'text/plain', 'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed',
       'application/postscript', 'image/vnd.adobe.photoshop', 'image/eps', 'application/eps', 'application/octet-stream'
     ];
+    
+    // Valid extensions as fallback when MIME type is empty or generic
+    const validExtensions = ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp', 'tiff', 'tif', 'pdf', 'txt', 'zip', 'rar', 'ai', 'psd', 'eps'];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -138,7 +141,11 @@ export default function Upload() {
         continue; // Silently skip system files
       }
       
-      if (!validTypes.includes(file.type)) {
+      // Check by MIME type first, then fall back to extension
+      const ext = file.name.split('.').pop()?.toLowerCase() || '';
+      const isValidType = validTypes.includes(file.type) || validExtensions.includes(ext);
+      
+      if (!isValidType) {
         toast({
           title: "Invalid file type",
           description: `${file.name} is not a supported file format`,
