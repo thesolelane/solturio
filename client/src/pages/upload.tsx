@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Shield, Upload as UploadIcon, X, Loader2, ArrowRight, Image as ImageIcon } from "lucide-react";
+import { Shield, Upload as UploadIcon, X, Loader2, ArrowRight, Image as ImageIcon, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -42,6 +42,13 @@ export default function Upload() {
   const [companyName, setCompanyName] = useState('');
   const [imageUrlInput, setImageUrlInput] = useState('');
   const queryClient = useQueryClient();
+
+  // Fetch user data to check wallet type
+  const { data: userData } = useQuery<{ walletType?: string }>({
+    queryKey: ['/api/auth/user'],
+    enabled: isAuthenticated,
+  });
+  const isPremium = userData?.walletType === 'premium';
 
   // Set page title
   useEffect(() => {
@@ -90,7 +97,11 @@ export default function Upload() {
     if (!files) return;
 
     const newLogos: UploadedLogo[] = [];
-    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
+    const validTypes = [
+      'image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/gif', 'image/webp',
+      'application/pdf', 'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed',
+      'application/postscript', 'image/vnd.adobe.photoshop', 'image/eps', 'application/eps', 'application/octet-stream'
+    ];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -104,10 +115,10 @@ export default function Upload() {
         continue;
       }
 
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      if (file.size > 50 * 1024 * 1024) { // 50MB limit
         toast({
           title: "File too large",
-          description: `${file.name} exceeds 10MB limit`,
+          description: `${file.name} exceeds 50MB limit`,
           variant: "destructive",
         });
         continue;
@@ -325,19 +336,42 @@ export default function Upload() {
             <Input
               type="file"
               multiple
-              accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+              accept="image/png,image/jpeg,image/jpg,image/svg+xml,image/gif,image/webp,application/pdf,application/zip,.ai,.psd,.eps"
               onChange={(e) => handleFiles(e.target.files)}
               className="hidden"
               id="file-upload"
               data-testid="input-file-upload"
             />
-            <Label htmlFor="file-upload">
-              <Button variant="outline" asChild>
-                <span>Choose Files</span>
-              </Button>
-            </Label>
+            {isPremium && (
+              <input
+                type="file"
+                // @ts-ignore - webkitdirectory is non-standard but widely supported
+                webkitdirectory=""
+                directory=""
+                multiple
+                onChange={(e) => handleFiles(e.target.files)}
+                className="hidden"
+                id="folder-upload"
+                data-testid="input-folder-upload"
+              />
+            )}
+            <div className="flex gap-3 justify-center">
+              <Label htmlFor="file-upload">
+                <Button variant="outline" asChild>
+                  <span><UploadIcon className="w-4 h-4 mr-2" />Choose Files</span>
+                </Button>
+              </Label>
+              {isPremium && (
+                <Label htmlFor="folder-upload">
+                  <Button variant="outline" asChild>
+                    <span><FolderOpen className="w-4 h-4 mr-2" />Upload Folder</span>
+                  </Button>
+                </Label>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground mt-4">
-              Supports PNG, JPG, SVG • Max 10MB per file
+              Supports PNG, JPG, SVG, GIF, WebP, PDF, ZIP, AI, PSD, EPS • Max 50MB per file
+              {isPremium && <span className="block mt-1 text-primary">Premium: Folder upload enabled</span>}
             </p>
           </div>
         </Card>
