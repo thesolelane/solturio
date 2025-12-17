@@ -83,7 +83,33 @@ const upload = multer({
 
 // Ensure upload directory exists
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
+const THUMBNAILS_DIR = path.join(UPLOAD_DIR, 'thumbnails');
 fs.mkdir(UPLOAD_DIR, { recursive: true }).catch(console.error);
+fs.mkdir(THUMBNAILS_DIR, { recursive: true }).catch(console.error);
+
+// Helper to generate and save thumbnail
+async function generateThumbnail(buffer: Buffer, mimetype: string, logoId: string): Promise<string | null> {
+  try {
+    const imageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/tiff'];
+    
+    if (!imageTypes.includes(mimetype)) {
+      // Non-image files don't get thumbnails
+      return null;
+    }
+    
+    const thumbnailPath = path.join(THUMBNAILS_DIR, `${logoId}.jpg`);
+    
+    await sharp(buffer)
+      .resize(200, 200, { fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: 80 })
+      .toFile(thumbnailPath);
+    
+    return `/api/thumbnails/${logoId}.jpg`;
+  } catch (error) {
+    console.error('Error generating thumbnail:', error);
+    return null;
+  }
+}
 
 // Helper to extract color palette and metadata from image
 async function extractImageMetadata(buffer: Buffer, mimetype: string) {
@@ -277,6 +303,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             'pending.solturio.sol';
           const storagePath = `${userWalletDomain}/logos/${randomUUID()}-${file.originalname}`;
 
+          // Generate a unique ID for the logo first (for thumbnail filename)
+          const logoId = randomUUID();
+          
+          // Generate and save thumbnail for image files
+          const thumbnailUrl = await generateThumbnail(file.buffer, file.mimetype, logoId);
+
           // Create logo metadata record (NO file storage)
           const logo = await storage.createLogo({
             userId,
@@ -291,6 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             format: metadata.format,
             colorPalette: metadata.colorPalette,
             dominantColor: metadata.dominantColor,
+            thumbnailUrl: thumbnailUrl,
             description,
             ownershipDescription,
             intendedUse,
@@ -543,6 +576,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error registering artwork:", error);
       res.status(500).json({ message: error.message || "Failed to register artwork" });
+    }
+  });
+
+  // Serve thumbnails (public endpoint - no auth required for displaying in UI)
+  app.get('/api/thumbnails/:filename', async (req, res) => {
+    try {
+      const filename = req.params.filename;
+      // Sanitize filename to prevent directory traversal
+      const sanitized = path.basename(filename);
+      const thumbnailPath = path.join(THUMBNAILS_DIR, sanitized);
+      
+      // Check if file exists
+      try {
+        await fs.access(thumbnailPath);
+      } catch {
+        return res.status(404).json({ message: "Thumbnail not found" });
+      }
+      
+      res.sendFile(thumbnailPath);
+    } catch (error) {
+      console.error("Error serving thumbnail:", error);
+      res.status(500).json({ message: "Failed to serve thumbnail" });
     }
   });
 

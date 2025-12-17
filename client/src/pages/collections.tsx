@@ -222,15 +222,19 @@ export default function Collections() {
                       {collection.logos.map((logo) => (
                         <div
                           key={logo.id}
-                          className="aspect-square bg-muted rounded-md overflow-hidden"
+                          className="aspect-square bg-muted rounded-md overflow-hidden flex items-center justify-center"
                           title={logo.fileName}
                         >
-                          {logo.filePath && (
+                          {logo.thumbnailUrl ? (
                             <img
-                              src={logo.filePath}
+                              src={logo.thumbnailUrl}
                               alt={logo.fileName}
                               className="w-full h-full object-contain"
                             />
+                          ) : (
+                            <div className="text-xs text-muted-foreground text-center p-1 truncate">
+                              {logo.fileName?.split('.').pop()?.toUpperCase() || 'FILE'}
+                            </div>
                           )}
                         </div>
                       ))}
