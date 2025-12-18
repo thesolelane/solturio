@@ -144,9 +144,20 @@ Preferred communication style: Simple, everyday language.
 - **Purpose**: Shows image is verified and affiliated with correct contract address
 - **Rule**: Creators must use IPFS link (not raw image) to display verified status
 
+**Verified Image Generation Flow**:
+1. User uploads images to collection
+2. User clicks "Mint Collection"
+3. For each image file:
+   - Read thumbnail from server
+   - Overlay gold check badge on lower-left corner
+   - Upload composite image to IPFS
+   - Store verified IPFS hash in database
+4. Return verified image URLs to user
+
 **Components**:
 - `shared/verification-assets.ts` - Badge CID and helper functions
 - `client/src/components/verified-image.tsx` - VerifiedImage and VerificationBadge components
+- `server/services/image-compositing.ts` - Sharp-based badge overlay service
 
 ## External Dependencies
 
