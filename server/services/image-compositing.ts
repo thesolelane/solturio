@@ -19,9 +19,10 @@ async function getBadgeBuffer(): Promise<Buffer> {
   const response = await axios.get(badgeUrl, { responseType: 'arraybuffer' });
   badgeBuffer = Buffer.from(response.data);
   
-  // Convert SVG to PNG for compositing
+  // Badge is already PNG with transparency - just resize for caching
   badgeBuffer = await sharp(badgeBuffer)
-    .resize(64, 64)
+    .resize(256, 256)
+    .ensureAlpha()
     .png()
     .toBuffer();
     
@@ -61,10 +62,11 @@ export async function createVerifiedImage(
     // Calculate margin based on image size (1% of smaller dimension, min 4px)
     const margin = Math.max(4, Math.floor(smallerDimension * (marginPercent / 100)));
     
-    // Get and resize the badge
+    // Get and resize the badge with transparency preserved
     const badge = await getBadgeBuffer();
     const resizedBadge = await sharp(badge)
       .resize(badgeSize, badgeSize)
+      .ensureAlpha()
       .png()
       .toBuffer();
     

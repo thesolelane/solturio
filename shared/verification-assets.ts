@@ -2,13 +2,15 @@
 
 export const VERIFICATION_ASSETS = {
   // Gold check badge - overlayed on verified images (lower-left corner)
+  // Transparent PNG version for proper compositing
   badge: {
-    name: 'solturio_badge_goldcheck.svg',
-    cid: 'bafybeidi3atbeaep4gzq5nirfocvnhwdcrrqp42vhreei7tk7cvrm4fjq4',
-    fileId: '019b2871-9157-733f-bba4-81992b8c102b',
-    ipfsUrl: 'https://gateway.pinata.cloud/ipfs/bafybeidi3atbeaep4gzq5nirfocvnhwdcrrqp42vhreei7tk7cvrm4fjq4',
+    name: 'solturio_badge_transparent.png',
+    cid: 'QmdcbA6ciG3rasjpwm57kwYJ51tAB3wadDV4S48tuJaQwg',
+    ipfsUrl: 'https://gateway.pinata.cloud/ipfs/QmdcbA6ciG3rasjpwm57kwYJ51tAB3wadDV4S48tuJaQwg',
     description: 'Verification badge for minted/verified images - indicates affiliation with correct contract address',
     placement: 'lower-left',
+    format: 'png',
+    transparent: true,
   },
 } as const;
 
