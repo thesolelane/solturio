@@ -43,8 +43,8 @@ export async function createVerifiedImage(
     marginPercent?: number;
   } = {}
 ): Promise<Buffer> {
-  // Badge capped at 5% of image size, margin at 1%
-  const { badgeSizePercent = 5, marginPercent = 1 } = options;
+  // Badge at 7% of image size, margin at 1%
+  const { badgeSizePercent = 7, marginPercent = 1 } = options;
   
   try {
     // Get image metadata
