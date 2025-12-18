@@ -13,7 +13,7 @@ We release patches for security vulnerabilities. Currently supported versions:
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-If you discover a security vulnerability within Centurio, please send an email to security@centurio.app. All security vulnerabilities will be promptly addressed.
+If you discover a security vulnerability within Solturio, please send an email to security@solturio.app. All security vulnerabilities will be promptly addressed.
 
 Please include the following information:
 
@@ -40,7 +40,7 @@ When we receive a security bug report, we will:
 3. Prepare fixes for all supported versions
 4. Release new security fix versions
 
-## Security Best Practices for Centurio Users
+## Security Best Practices for Solturio Users
 
 ### API Keys and Secrets
 - Never commit API keys or secrets to version control
@@ -61,7 +61,7 @@ When we receive a security bug report, we will:
 ### Smart Contract Interactions (Future)
 - All contract interactions will be audited
 - Users should verify transaction details before signing
-- Be cautious of phishing attempts mimicking Centurio
+- Be cautious of phishing attempts mimicking Solturio
 
 ### Database Security
 - All user data is encrypted at rest
@@ -70,7 +70,7 @@ When we receive a security bug report, we will:
 
 ## Security Features
 
-Centurio implements the following security measures:
+Solturio implements the following security measures:
 
 - **Authentication**: OpenID Connect via Replit Auth
 - **Session Management**: Secure HTTP-only cookies with CSRF protection

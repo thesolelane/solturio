@@ -1,8 +1,8 @@
-# Centurio x DEX Platform Partnership Proposal
+# Solturio x DEX Platform Partnership Proposal
 
 ## Executive Summary
 
-**Centurio** is a decentralized logo IP protection platform on Solana that helps DEX platforms protect users from copycat tokens through real-time logo verification.
+**Solturio** is a decentralized logo IP protection platform on Solana that helps DEX platforms protect users from copycat tokens through real-time logo verification. A **CATH Ecosystem** project by Cooperanth Consulting LLC.
 
 ### The Problem
 - **47,000+** scam tokens launched in 2024 alone
@@ -11,19 +11,19 @@
 - **15,000** daily user complaints about fake tokens on DEXs
 
 ### The Solution
-Centurio provides a **free, real-time API** that verifies logo legitimacy in <100ms, helping DEX platforms:
+Solturio provides a **free, real-time API** that verifies logo legitimacy in <100ms, helping DEX platforms:
 - Warn users about copycat tokens before they invest
 - Build trust by showing active scam protection
 - Reduce platform liability through automated DMCA handling
-- Gain competitive advantage as a "Centurio Protected" platform
+- Gain competitive advantage as a "Solturio Protected" platform
 
 ---
 
-## How Centurio Works
+## How Solturio Works
 
 ### 1. Pre-Registration Workflow
 ```
-Project → Registers logo on Centurio → Gets IPFS URL + blockchain timestamp
+Project → Registers logo on Solturio → Gets IPFS URL + blockchain timestamp
          ↓
          Uses verified URLs on social media & DEX listings
          ↓
@@ -38,7 +38,7 @@ DEX → Verifies logo via API → Shows verified badge or copycat warning
 
 ### 3. Real-time Verification
 When a new token appears on your platform:
-1. Call Centurio API with token address + logo URL
+1. Call Solturio API with token address + logo URL
 2. Receive instant verification (verified/legitimate/warning)
 3. Display appropriate badge or warning to users
 
@@ -48,7 +48,7 @@ When a new token appears on your platform:
 
 ### API Endpoint
 ```javascript
-POST https://api.centurio.app/v1/dex/verify
+POST https://api.solturio.app/v1/dex/verify
 ```
 
 ### Request
@@ -63,21 +63,21 @@ POST https://api.centurio.app/v1/dex/verify
 ### Response
 ```json
 {
-  "verified": true,           // Logo registered on Centurio
+  "verified": true,           // Logo registered on Solturio
   "legitimate": false,        // Not authorized for this token
   "owner": {
     "companyName": "Original Project Inc.",
     "registrationDate": "2024-01-15T10:30:00Z",
-    "centurioId": "abc123"
+    "solturioId": "abc123"
   },
   "warning": "Logo registered to different project",
-  "reportUrl": "https://centurio.app/report/abc123"
+  "reportUrl": "https://solturio.app/report/abc123"
 }
 ```
 
 ### Integration Code (3 lines)
 ```javascript
-const result = await verifyCenturioLogo(tokenAddress, chainId, logoUrl);
+const result = await verifySolturioLogo(tokenAddress, chainId, logoUrl);
 if (!result.legitimate) showCopycatWarning(result.warning);
 else if (result.verified) showVerifiedBadge();
 ```
@@ -108,7 +108,7 @@ else if (result.verified) showVerifiedBadge();
 
 ## Current Adoption
 
-### Projects Using Centurio
+### Projects Using Solturio
 - 2,500+ registered projects
 - 15,000+ protected logos
 - $450M+ in protected market cap
@@ -124,7 +124,7 @@ else if (result.verified) showVerifiedBadge();
 ## Why Act Now?
 
 ### First-Mover Advantage
-- Exclusive "Centurio Protected" badge for first 10 DEXs
+- Exclusive "Solturio Protected" badge for first 10 DEXs
 - Joint PR announcement reaching 500K+ crypto users
 - Priority access to new features
 
@@ -175,7 +175,7 @@ else if (result.verified) showVerifiedBadge();
 ## Success Stories
 
 ### Case Study: [Hypothetical DEX]
-> "After integrating Centurio, we saw an 80% drop in scam token reports and a 
+> "After integrating Solturio, we saw an 80% drop in scam token reports and a 
 > 25% increase in user trust scores. The integration took just 2 hours."
 > - CTO, Major DEX Platform
 
@@ -208,14 +208,14 @@ else if (result.verified) showVerifiedBadge();
 ## Contact Information
 
 ### Partnership Team
-- **Email**: partnerships@centurio.app
-- **Telegram**: @CenturioTeam
-- **Discord**: discord.gg/centurio
+- **Email**: partnerships@solturio.app
+- **Telegram**: @SolturioTeam
+- **Discord**: discord.gg/solturio
 
 ### Technical Support
-- **Docs**: docs.centurio.app/dex-integration
-- **API Status**: status.centurio.app
-- **GitHub**: github.com/centurio-app
+- **Docs**: docs.solturio.app/dex-integration
+- **API Status**: status.solturio.app
+- **GitHub**: github.com/thesolelane/solturio
 
 ---
 
@@ -239,9 +239,9 @@ We focus on logo-based fraud (82% of copycats). Combined with your existing meas
 
 ### JavaScript/TypeScript
 ```javascript
-import { CenturioVerifier } from '@centurio/dex-sdk';
+import { SolturioVerifier } from '@solturio/dex-sdk';
 
-const verifier = new CenturioVerifier({
+const verifier = new SolturioVerifier({
   platform: 'YourDEXName'
 });
 
@@ -258,7 +258,7 @@ if (verification.warning) {
 
 ### Python
 ```python
-from centurio import DexVerifier
+from solturio import DexVerifier
 
 verifier = DexVerifier(platform="YourDEXName")
 
@@ -277,7 +277,7 @@ elif verification.verified:
 
 ### API Direct
 ```bash
-curl -X POST https://api.centurio.app/v1/dex/verify \
+curl -X POST https://api.solturio.app/v1/dex/verify \
   -H "Content-Type: application/json" \
   -H "X-DEX-Platform: YourDEXName" \
   -d '{
@@ -289,6 +289,8 @@ curl -X POST https://api.centurio.app/v1/dex/verify \
 
 ---
 
-*Centurio - Plant Your Standard on Chain*
+*Solturio - Plant Your Standard on Chain*
 
 **Building a safer DeFi ecosystem, one verified logo at a time.**
+
+A **CATH Ecosystem** project by Cooperanth Consulting LLC.

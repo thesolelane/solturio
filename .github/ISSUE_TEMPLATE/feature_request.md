@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for Centurio
+about: Suggest an idea for Solturio
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''
@@ -20,7 +20,7 @@ A clear and concise description of any alternative solutions or features you've 
 Add any other context or screenshots about the feature request here.
 
 **Use Case**
-Please describe how this feature would benefit you or other Centurio users:
+Please describe how this feature would benefit you or other Solturio users:
 - Who would use this feature?
 - How often would it be used?
 - What problem does it solve?

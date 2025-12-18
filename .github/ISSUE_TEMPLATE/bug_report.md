@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve Centurio
+about: Create a report to help us improve Solturio
 title: '[BUG] '
 labels: bug
 assignees: ''
@@ -27,7 +27,7 @@ If applicable, add screenshots to help explain your problem.
  - OS: [e.g. Windows 11, macOS 14, Ubuntu 22.04]
  - Browser: [e.g. Chrome 120, Firefox 121, Safari 17]
  - Node Version: [e.g. 18.17.0]
- - Centurio Version: [e.g. 1.0.0]
+ - Solturio Version: [e.g. 1.0.0]
 
 **Additional context**
 Add any other context about the problem here.

@@ -1,10 +1,10 @@
-# Contributing to Centurio
+# Contributing to Solturio
 
-First off, thank you for considering contributing to Centurio! It's people like you that help make Centurio a great tool for protecting intellectual property in the blockchain space.
+First off, thank you for considering contributing to Solturio! It's people like you that help make Solturio a great tool for protecting intellectual property in the blockchain space.
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by our Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to support@centurio.app.
+This project and everyone participating in it is governed by our Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to support@solturio.app.
 
 ## How Can I Contribute?
 
@@ -28,7 +28,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 * **Provide a step-by-step description** of the suggested enhancement
 * **Provide specific examples** to demonstrate the steps
 * **Describe the current behavior** and explain which behavior you expected to see instead
-* **Explain why this enhancement would be useful** to most Centurio users
+* **Explain why this enhancement would be useful** to most Solturio users
 
 ### Pull Requests
 
@@ -43,8 +43,8 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 1. **Fork and clone the repository**
    ```bash
-   git clone https://github.com/your-username/centurio.git
-   cd centurio
+   git clone https://github.com/thesolelane/solturio.git
+   cd solturio
    ```
 
 2. **Install dependencies**
@@ -108,7 +108,7 @@ Fixes #123
 ## Project Structure
 
 ```
-centurio/
+solturio/
 ├── client/           # React frontend
 │   ├── src/
 │   │   ├── components/  # Reusable components

@@ -1,24 +1,106 @@
-# Solturio - Decentralized Logo IP Protection Platform 🛡️
+# Solturio - Decentralized Logo IP Protection Platform
 
 **Plant Your Standard on Chain** - Blockchain-powered intellectual property protection for the digital age.
 
-## 🎯 Overview
+A **CATH Ecosystem** project by Cooperanth Consulting LLC.
+
+## Overview
 
 Solturio is a decentralized web application that enables creators, brands, and projects to protect their intellectual property by registering logos on the blockchain BEFORE public use. By establishing timestamped proof of ownership on Solana, Solturio creates an immutable chain of custody that protects against copycats, especially in the DeFi/DEX ecosystem where logo theft is rampant.
 
-## 🚀 Key Features
+## Getting Started
+
+### Prerequisites
+- Node.js 18+
+- PostgreSQL database (Neon serverless recommended)
+- Pinata account for IPFS storage
+- Solana RPC endpoint (devnet for testing, mainnet for production)
+
+### Environment Variables
+
+Required secrets (add to Replit Secrets or `.env`):
+
+```
+DATABASE_URL=your_postgres_connection_string
+PINATA_API_KEY=your_pinata_api_key
+PINATA_SECRET_KEY=your_pinata_secret_key
+PINATA_JWT=your_pinata_jwt
+SESSION_SECRET=random_secure_string
+WALLET_ENCRYPTION_KEY=32_char_encryption_key
+```
+
+Optional:
+```
+TELEGRAM_BOT_TOKEN=for_quiz_bot
+SENDGRID_API_KEY=for_email_notifications
+SC_API_URL=smart_contract_api_url
+SC_API_SECRET=smart_contract_api_secret
+```
+
+### Installation
+
+```bash
+# Install dependencies
+npm install
+
+# Push database schema
+npm run db:push
+
+# Start development server
+npm run dev
+```
+
+The app will be available at `http://localhost:5000`
+
+## How to Use
+
+### 1. Sign In
+Click "Sign In" to authenticate using Replit Auth.
+
+### 2. Create a Wallet
+Navigate to your Account page and create your `.solturio.sol` wallet:
+- **Standard wallet** (e.g., `042.solturio.sol`) - 0.1 SOL
+- **Premium wallet** (e.g., `yourname.solturio.sol`) - 0.15 SOL
+
+### 3. Upload Logos
+Go to the Upload page to add your logos:
+- Drag & drop image files or click to browse
+- Add URL links to existing images
+- Provide descriptions for each asset
+- Images are automatically processed and thumbnails generated
+
+### 4. Create Collections
+Group related logos into collections:
+- Give your collection a name and description
+- Add company/brand information
+- Set copyright year
+
+### 5. Mint Your Collection
+Click "Mint Collection" to:
+- Generate verified images with gold check badge overlay
+- Upload metadata to IPFS
+- Create NFT certificate on Solana blockchain
+- Get permanent proof of ownership
+
+### 6. View Your Collections
+All minted collections appear with:
+- Collapsible cards for easy navigation
+- NFT certificate addresses
+- IPFS metadata links
+- Verified image previews with badges
+
+## Key Features
 
 ### Pre-Registration Workflow
-- **Register First, Use Everywhere** - Upload logos to Centurio before launching tokens or going public
+- **Register First, Use Everywhere** - Upload logos before launching tokens or going public
 - **IPFS Permanent Storage** - Decentralized, immutable storage that can't be taken down
 - **Blockchain Timestamps** - Solana-based proof that predates any copycat attempts
-- **Gold Verification System** - Logos registered 7+ days before launch receive gold checkmarks
+- **Gold Verification System** - Verified logos display gold check badges
 
 ### DEX Anti-Copycat Protection
 - **Real-time Verification API** - DEX platforms can verify logo legitimacy in <100ms
 - **Automatic Copycat Detection** - File hash comparison identifies stolen logos instantly
 - **DMCA Automation** - One-click takedown notices with blockchain evidence
-- **Free Integration** - No API keys required for basic DEX verification
 
 ### Authorized Usage Tracking
 - **Pre-register Official Locations** - Document where logos will legitimately appear
@@ -29,99 +111,68 @@ Solturio is a decentralized web application that enables creators, brands, and p
 - **Prior Art Certificates** - Blockchain-verified proof of first use
 - **DMCA Notices** - Auto-generated with QR codes linking to blockchain proof
 - **Cease & Desist Letters** - Professional legal documents with evidence packages
-- **Evidence Packages** - Comprehensive documentation for legal proceedings
 
-## 💡 How It Works
+### IP Education Quiz
+- **Telegram Bot** - Daily quizzes on intellectual property topics
+- **Game Points & Experience** - Competitive scoring system
+- **Leaderboards** - Track your progress against others
 
-1. **Upload & Register** - Projects upload logos/tickers BEFORE public launch
-2. **Get Verified URLs** - Receive IPFS and Solturio URLs with embedded verification
-3. **Use Verified URLs** - Use these URLs on social media, DEXs, and websites
-4. **Gold Check Appears** - Verified logos automatically display gold checkmarks
-5. **Copycats Get Caught** - File hash matching identifies and flags unauthorized use
-
-## 🏆 Gold Verification Tiers
-
-- **🥇 Gold** - Registered 7+ days before contract deployment
-- **🥈 Silver** - Registered 1-7 days before launch
-- **🥉 Bronze** - Registered after launch
-
-**Critical**: Gold checks ONLY appear when using Solturio/IPFS URLs - external URLs get no verification!
-
-## 🔧 Tech Stack
+## Tech Stack
 
 - **Frontend**: React 18, TypeScript, Vite, TailwindCSS, shadcn/ui
 - **Backend**: Node.js, Express, TypeScript
 - **Database**: PostgreSQL (Neon serverless), Drizzle ORM
-- **Blockchain**: Solana, Metaplex SDK (planned)
+- **Blockchain**: Solana, Metaplex SDK
 - **Storage**: IPFS (via Pinata), user-controlled .solturio.sol wallets
 - **Authentication**: Replit Auth (OpenID Connect)
+- **Bot**: Telegraf for Telegram quiz bot
 
-## 🎮 Target Users
+## Target Users
 
-- **Crypto Projects** - Protect logos/tickers before token launch
+- **Token Creators** - Protect logos/tickers before token launch
 - **NFT Collections** - Establish provenance for artwork and branding
 - **DEX Platforms** - Integrate verification to protect users from scams
 - **Brand Owners** - Document IP ownership with blockchain proof
-- **Legal Teams** - Generate evidence for trademark and copyright disputes
+- **Artists & Designers** - Register artwork with timestamped proof
 
-## 🌟 Unique Value Proposition
+## Payment
 
-Unlike traditional IP protection that's slow and expensive, Solturio provides:
+Solturio is a CATH Ecosystem project running on $CATH:
+- **IP Registration**: 100 $CATH tokens
+- **Standard Wallet**: 0.1 SOL
+- **Premium Wallet**: 0.15 SOL
 
-- **Instant Protection** - Register in seconds, not months
-- **Undeniable Proof** - Blockchain timestamps can't be forged
-- **Automatic Enforcement** - DEXs can verify and flag copycats in real-time
-- **Legal Weight** - Courts increasingly recognize blockchain evidence
+No fiat payments - crypto only (SOL, BONK, Arweave, $CATH).
 
-## 📊 Impact Metrics
+## Security
 
-- **47,000+** scam tokens launched in 2024
-- **$3.8B** stolen through copycat tokens
-- **82%** of scams use stolen logos
-- **85%** reduction in successful scams with verification
-
-## 🤝 DEX Integration
-
-Centurio offers free API integration for DEX platforms:
-
-```javascript
-// 3-line integration
-const result = await verifyCenturioLogo(tokenAddress, chainId, logoUrl);
-if (!result.legitimate) showCopycatWarning(result.warning);
-else if (result.verified) showVerifiedBadge();
-```
-
-## 🔐 Security & Privacy
-
-- **No Image Storage** - Platform stores only metadata, images in IPFS
 - **Encrypted Wallets** - Private keys secured with AES-256-GCM
 - **Session Security** - HTTP-only cookies, CSRF protection
-- **Open Source Verification** - Anyone can verify claims independently
+- **Wallet Restrictions** - .solturio.sol wallets only hold certificates and SOL for fees
+- **Key Handover Ceremony** - Multi-stage secure key delivery process
 
-## 🚦 Roadmap
+## Project Structure
 
-- [x] Logo upload and metadata extraction
-- [x] IPFS integration
-- [x] Authorized usage tracking
-- [x] DEX verification API
-- [x] Legal document generation
-- [x] Gold verification system
-- [ ] Solana smart contract deployment
-- [ ] $CATH token integration
-- [ ] Metaplex NFT minting
-- [ ] AI-powered copycat detection
-- [ ] Multi-chain support
+```
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/     # UI components
+│   │   ├── pages/          # Route pages
+│   │   ├── hooks/          # Custom React hooks
+│   │   └── lib/            # Utilities
+├── server/                 # Express backend
+│   ├── routes.ts           # API endpoints
+│   ├── storage.ts          # Database operations
+│   └── services/           # Business logic
+├── shared/                 # Shared types & schemas
+│   └── schema.ts           # Drizzle database schema
+└── attached_assets/        # Static assets & uploads
+```
 
-## 📜 License
+## License
 
-Proprietary - Copyright © 2025 Centurio. All rights reserved.
-
-## 🌐 Links
-
-- **Website**: [centurio.app](https://centurio.app)
-- **Documentation**: [docs.centurio.app](https://docs.centurio.app)
-- **DEX Integration**: [centurio.app/dex-intro](https://centurio.app/dex-intro)
+Proprietary - Copyright © 2025 Cooperanth Consulting LLC. All rights reserved.
 
 ---
 
-**Centurio** - Because in crypto, being first isn't enough. You need proof. 🏛️
+**Solturio** - Because in crypto, being first isn't enough. You need proof.

@@ -1,5 +1,5 @@
-// Centurio Pricing Configuration
-// Updated: October 2024 - Launch Promotion
+// Solturio Pricing Configuration
+// Updated: December 2024 - CATH Ecosystem
 
 export const PRICING = {
   // Launch promotion: First 2 uploads free for small communities
