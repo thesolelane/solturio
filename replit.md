@@ -135,6 +135,19 @@ Preferred communication style: Simple, everyday language.
 4. Platform backend signs first (partial tx)
 5. Frontend wallet co-signs and submits
 
+## Verification Badge System
+
+**Gold Check Badge** - Visual indicator for verified/minted images:
+- **File**: `solturio_badge_goldcheck.svg`
+- **CID**: `bafybeidi3atbeaep4gzq5nirfocvnhwdcrrqp42vhreei7tk7cvrm4fjq4`
+- **Placement**: Lower-left corner of verified images
+- **Purpose**: Shows image is verified and affiliated with correct contract address
+- **Rule**: Creators must use IPFS link (not raw image) to display verified status
+
+**Components**:
+- `shared/verification-assets.ts` - Badge CID and helper functions
+- `client/src/components/verified-image.tsx` - VerifiedImage and VerificationBadge components
+
 ## External Dependencies
 
 -   **User Wallets**: `xxx.solturio.sol` domains (restricted to certificates/contracts).
