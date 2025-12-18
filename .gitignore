@@ -73,6 +73,16 @@ private/
 uploads/
 attached_assets/generated_images/
 
+# Attached assets - temporary files, screenshots, samples
+attached_assets/*.pdf
+attached_assets/*.txt
+attached_assets/*.md
+attached_assets/Screenshot*
+attached_assets/sample_*
+attached_assets/Pasted*
+attached_assets/centurio*
+attached_assets/overall_result*
+
 # macOS
 .DS_Store
 .AppleDouble
