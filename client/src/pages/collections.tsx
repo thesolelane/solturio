@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Link } from "wouter";
 import type { Collection, Logo } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { VerifiedImage, VerificationBadge } from "@/components/verified-image";
 
 export default function Collections() {
   const { toast } = useToast();
@@ -298,25 +299,47 @@ export default function Collections() {
 
                 {collection.logos && collection.logos.length > 0 && (
                   <div className="border-t pt-4 mt-4">
-                    <Label className="text-xs text-muted-foreground mb-3 block">
-                      Logos in Collection ({collection.logos.length})
+                    <Label className="text-xs text-muted-foreground mb-3 flex items-center gap-2">
+                      Files in Collection ({collection.logos.length})
+                      {collection.status === 'minted' && (
+                        <span className="flex items-center gap-1 text-primary">
+                          <VerificationBadge size="sm" />
+                          Verified
+                        </span>
+                      )}
                     </Label>
                     <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
                       {collection.logos.map((logo) => (
                         <div
                           key={logo.id}
-                          className="aspect-square bg-muted rounded-md overflow-hidden flex items-center justify-center"
+                          className="aspect-square bg-muted rounded-md overflow-hidden relative"
                           title={logo.fileName}
                         >
                           {logo.thumbnailUrl ? (
-                            <img
-                              src={logo.thumbnailUrl}
-                              alt={logo.fileName}
-                              className="w-full h-full object-contain"
-                            />
+                            <>
+                              <img
+                                src={logo.thumbnailUrl}
+                                alt={logo.fileName}
+                                className="w-full h-full object-contain"
+                              />
+                              {collection.status === 'minted' && (
+                                <VerificationBadge 
+                                  size="sm" 
+                                  className="absolute bottom-1 left-1 drop-shadow-lg"
+                                />
+                              )}
+                            </>
                           ) : (
-                            <div className="text-xs text-muted-foreground text-center p-1 truncate">
-                              {logo.fileName?.split('.').pop()?.toUpperCase() || 'FILE'}
+                            <div className="w-full h-full flex items-center justify-center">
+                              <div className="text-xs text-muted-foreground text-center p-1 truncate">
+                                {logo.fileName?.split('.').pop()?.toUpperCase() || 'FILE'}
+                              </div>
+                              {collection.status === 'minted' && (
+                                <VerificationBadge 
+                                  size="sm" 
+                                  className="absolute bottom-1 left-1 drop-shadow-lg"
+                                />
+                              )}
                             </div>
                           )}
                         </div>
