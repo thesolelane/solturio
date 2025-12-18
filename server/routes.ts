@@ -46,6 +46,8 @@ import {
   buildNFTMetadata,
   type MintOptions 
 } from "./services/nft-minting";
+import { createVerifiedImage, isCompositableImage } from "./services/image-compositing";
+import { VERIFICATION_ASSETS } from "@shared/verification-assets";
 
 // Setup file upload
 const upload = multer({ 
@@ -703,12 +705,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Collection has no files" });
       }
 
+      // Generate verified images with badge overlay for image files
+      const verifiedImages: { logoId: string; verifiedIpfsHash: string; verifiedUrl: string }[] = [];
+      
+      for (const logo of logos) {
+        // Only process image files that can be composited
+        if (logo.mimeType && isCompositableImage(logo.mimeType)) {
+          try {
+            // Read the thumbnail file
+            const thumbnailPath = path.join(THUMBNAILS_DIR, `${logo.id}.jpg`);
+            
+            try {
+              await fs.access(thumbnailPath);
+              const thumbnailBuffer = await fs.readFile(thumbnailPath);
+              
+              // Create verified image with badge overlay
+              const verifiedBuffer = await createVerifiedImage(thumbnailBuffer);
+              
+              // Upload verified image to IPFS
+              const verifiedResult = await uploadToIPFS(
+                verifiedBuffer, 
+                `verified-${logo.fileName?.replace(/\.[^/.]+$/, '.png') || 'image.png'}`,
+                {
+                  type: 'verified_image',
+                  originalLogoId: logo.id,
+                  collectionId,
+                  badgeCid: VERIFICATION_ASSETS.badge.cid,
+                }
+              );
+              
+              if (verifiedResult) {
+                verifiedImages.push({
+                  logoId: logo.id,
+                  verifiedIpfsHash: verifiedResult.ipfsHash,
+                  verifiedUrl: `https://gateway.pinata.cloud/ipfs/${verifiedResult.ipfsHash}`,
+                });
+                
+                // Update logo with verified image hash
+                await storage.updateLogo(logo.id, {
+                  verifiedIpfsHash: verifiedResult.ipfsHash,
+                });
+              }
+            } catch (accessError) {
+              console.log(`No thumbnail found for logo ${logo.id}, skipping verified image generation`);
+            }
+          } catch (error) {
+            console.error(`Error creating verified image for logo ${logo.id}:`, error);
+          }
+        }
+      }
+
       // Build comprehensive NFT metadata with all file hashes
+      // Find verified image for each logo
+      const getVerifiedHash = (logoId: string) => 
+        verifiedImages.find(v => v.logoId === logoId)?.verifiedIpfsHash || null;
+      
       const fileEntries = logos.map((logo, index) => ({
         index: index + 1,
         fileName: logo.fileName,
         fileHash: logo.fileHash,  // SHA-256 hash for verification
         ipfsHash: logo.ipfsHash || null,  // Individual file IPFS CID if available
+        verifiedIpfsHash: getVerifiedHash(logo.id),  // Verified image with badge overlay
         mimeType: logo.mimeType,
         fileSize: logo.fileSize,
         dimensions: logo.width && logo.height ? `${logo.width}x${logo.height}` : null,
@@ -810,6 +867,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         explorerUrl,
         gatewayUrl: `https://ipfs.io/ipfs/${ipfsMetadataHash}`,
         filesCount: logos.length,
+        verifiedImages: verifiedImages.map(v => ({
+          fileName: logos.find(l => l.id === v.logoId)?.fileName || 'unknown',
+          ipfsHash: v.verifiedIpfsHash,
+          ipfsUrl: v.verifiedUrl,
+        })),
+        verifiedImagesCount: verifiedImages.length,
         nftMetadata,
       });
     } catch (error: any) {

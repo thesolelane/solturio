@@ -97,6 +97,7 @@ export const logos = pgTable("logos", {
   // IPFS storage (for permanent decentralized storage)
   ipfsHash: varchar("ipfs_hash", { length: 100 }), // IPFS CID for image file
   ipfsMetadataHash: varchar("ipfs_metadata_hash", { length: 100 }), // IPFS hash for metadata JSON
+  verifiedIpfsHash: varchar("verified_ipfs_hash", { length: 100 }), // IPFS hash for verified image with badge overlay
   
   // Auto-extracted metadata
   width: integer("width").notNull(),
