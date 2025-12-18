@@ -30,18 +30,20 @@ async function getBadgeBuffer(): Promise<Buffer> {
 
 /**
  * Creates a composite image with the verification badge overlayed
+ * Badge is scaled to 5% of the smaller image dimension (capped)
+ * Always placed in lower-left corner
  * @param imageBuffer - The original image buffer
- * @param badgeSize - Size of the badge relative to image (default: 10% of smaller dimension)
  * @returns Buffer of the composite image with badge
  */
 export async function createVerifiedImage(
   imageBuffer: Buffer,
   options: {
     badgeSizePercent?: number;
-    margin?: number;
+    marginPercent?: number;
   } = {}
 ): Promise<Buffer> {
-  const { badgeSizePercent = 12, margin = 10 } = options;
+  // Badge capped at 5% of image size, margin at 1%
+  const { badgeSizePercent = 5, marginPercent = 1 } = options;
   
   try {
     // Get image metadata
@@ -52,9 +54,12 @@ export async function createVerifiedImage(
       throw new Error('Unable to read image dimensions');
     }
     
-    // Calculate badge size based on image dimensions
+    // Calculate badge size based on image dimensions (capped at 5%)
     const smallerDimension = Math.min(metadata.width, metadata.height);
-    const badgeSize = Math.max(32, Math.floor(smallerDimension * (badgeSizePercent / 100)));
+    const badgeSize = Math.max(24, Math.floor(smallerDimension * (badgeSizePercent / 100)));
+    
+    // Calculate margin based on image size (1% of smaller dimension, min 4px)
+    const margin = Math.max(4, Math.floor(smallerDimension * (marginPercent / 100)));
     
     // Get and resize the badge
     const badge = await getBadgeBuffer();
