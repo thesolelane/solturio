@@ -12,6 +12,14 @@ export const VERIFICATION_ASSETS = {
     format: 'png',
     transparent: true,
   },
+  // Solturio branding/hero image
+  branding: {
+    name: 'solturio_branding.png',
+    cid: 'bafybeihcznd4isjix3z2dgxccmxsbibv3aboonyoyo6r7vws44zmtomgk4',
+    ipfsUrl: 'https://gateway.pinata.cloud/ipfs/bafybeihcznd4isjix3z2dgxccmxsbibv3aboonyoyo6r7vws44zmtomgk4',
+    description: 'Solturio branding image for hero sections and promotional use',
+    format: 'png',
+  },
 } as const;
 
 // Get IPFS gateway URL for an asset

@@ -227,7 +227,7 @@ export function ShareableLogoUrl({ logo, className = "" }: ShareableLogoUrlProps
               <div>
                 <h4 className="font-semibold mb-2">3. Register on DEXs with Proof</h4>
                 <p className="text-sm text-muted-foreground">
-                  When listing on DEXs or DeFi platforms, provide the IPFS URL and Centurio verification link.
+                  When listing on DEXs or DeFi platforms, provide the IPFS URL and Solturio verification link.
                   This proves you're the legitimate owner before the token/project goes public.
                 </p>
               </div>
