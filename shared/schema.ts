@@ -200,6 +200,10 @@ export const collections = pgTable("collections", {
   transactionHash: varchar("transaction_hash"),
   explorerUrl: text("explorer_url"),
   
+  // IPFS data (collection-level metadata)
+  ipfsMetadataHash: varchar("ipfs_metadata_hash", { length: 100 }), // IPFS CID for collection metadata JSON
+  nftMetadataJson: jsonb("nft_metadata_json"), // Complete NFT metadata with all file hashes
+  
   // Status
   status: varchar("status", { length: 20 }).notNull().default('draft'), // draft, pending, minted, failed
   mintedAt: timestamp("minted_at"),

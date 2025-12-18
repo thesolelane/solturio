@@ -1,13 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
-import { Shield, Loader2, ExternalLink, Copy, Check } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Shield, Loader2, ExternalLink, Copy, Check, Sparkles, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "wouter";
 import type { Collection, Logo } from "@shared/schema";
-import { useState } from "react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function Collections() {
   const { toast } = useToast();
@@ -32,9 +32,31 @@ export default function Collections() {
     }
   }, [isAuthenticated, authLoading, toast]);
 
-  const { data: collections = [], isLoading } = useQuery<(Collection & { logos?: Logo[] })[]>({
+  const { data: collections = [], isLoading } = useQuery<(Collection & { logos?: Logo[]; ipfsMetadataHash?: string })[]>({
     queryKey: ["/api/collections"],
     enabled: isAuthenticated,
+  });
+
+  // Mint collection mutation
+  const mintMutation = useMutation({
+    mutationFn: async (collectionId: string) => {
+      const response = await apiRequest("POST", `/api/collections/${collectionId}/mint`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Collection Minted!",
+        description: `${data.filesCount} files covered by 1 NFT certificate`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/collections"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Minting Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   const copyToClipboard = (text: string, id: string) => {
@@ -116,7 +138,7 @@ export default function Collections() {
           <div className="space-y-6">
             {collections.map((collection) => (
               <Card key={collection.id} className="p-6" data-testid={`collection-${collection.id}`}>
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start justify-between gap-4 mb-4">
                   <div>
                     <h2 className="text-2xl font-semibold mb-1">
                       {collection.name}
@@ -125,18 +147,36 @@ export default function Collections() {
                       {collection.companyName}
                     </p>
                   </div>
-                  <div
-                    className="inline-flex px-3 py-1 rounded-full text-xs font-medium"
-                    style={{
-                      backgroundColor: collection.status === 'minted' ? 'hsl(var(--primary) / 0.1)' : 
-                                     collection.status === 'pending' ? 'hsl(var(--muted))' : 
-                                     'hsl(var(--accent))',
-                      color: collection.status === 'minted' ? 'hsl(var(--primary))' : 
-                            'hsl(var(--foreground))'
-                    }}
-                    data-testid={`status-${collection.id}`}
-                  >
-                    {collection.status}
+                  <div className="flex items-center gap-2">
+                    {collection.status === 'draft' && (
+                      <Button
+                        onClick={() => mintMutation.mutate(collection.id)}
+                        disabled={mintMutation.isPending}
+                        className="gap-2"
+                        data-testid={`button-mint-${collection.id}`}
+                      >
+                        {mintMutation.isPending ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="w-4 h-4" />
+                        )}
+                        Mint Collection
+                      </Button>
+                    )}
+                    <div
+                      className="inline-flex px-3 py-1 rounded-full text-xs font-medium"
+                      style={{
+                        backgroundColor: collection.status === 'minted' ? 'hsl(var(--primary) / 0.1)' : 
+                                       collection.status === 'pending' ? 'hsl(var(--muted))' : 
+                                       'hsl(var(--accent))',
+                        color: collection.status === 'minted' ? 'hsl(var(--primary))' : 
+                              'hsl(var(--foreground))'
+                      }}
+                      data-testid={`status-${collection.id}`}
+                    >
+                      {collection.status === 'minted' && <FileCheck className="w-3 h-3 mr-1" />}
+                      {collection.status}
+                    </div>
                   </div>
                 </div>
 
@@ -176,40 +216,83 @@ export default function Collections() {
                 </div>
 
                 {collection.status === 'minted' && collection.collectionAddress && (
-                  <div className="border-t pt-4 mt-4">
-                    <Label className="text-xs text-muted-foreground mb-2 block">
-                      Collection Address
-                    </Label>
-                    <div className="flex items-center gap-2 mb-3">
-                      <code className="flex-1 text-xs font-mono bg-muted px-3 py-2 rounded-md overflow-x-auto">
-                        {collection.collectionAddress}
-                      </code>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() => copyToClipboard(collection.collectionAddress!, collection.id)}
-                        data-testid={`button-copy-${collection.id}`}
-                      >
-                        {copiedId === collection.id ? (
-                          <Check className="w-4 h-4" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </Button>
+                  <div className="border-t pt-4 mt-4 space-y-4">
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-2 block">
+                        NFT Certificate Address
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 text-xs font-mono bg-muted px-3 py-2 rounded-md overflow-x-auto">
+                          {collection.collectionAddress}
+                        </code>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => copyToClipboard(collection.collectionAddress!, collection.id)}
+                          data-testid={`button-copy-${collection.id}`}
+                        >
+                          {copiedId === collection.id ? (
+                            <Check className="w-4 h-4" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
-                    {collection.explorerUrl && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        asChild
-                      >
-                        <a href={collection.explorerUrl} target="_blank" rel="noopener noreferrer">
-                          View on Solana Explorer
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </Button>
+                    
+                    {collection.ipfsMetadataHash && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-2 block">
+                          IPFS Metadata (all file hashes)
+                        </Label>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 text-xs font-mono bg-muted px-3 py-2 rounded-md overflow-x-auto">
+                            {collection.ipfsMetadataHash}
+                          </code>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={() => copyToClipboard(collection.ipfsMetadataHash!, `ipfs-${collection.id}`)}
+                            data-testid={`button-copy-ipfs-${collection.id}`}
+                          >
+                            {copiedId === `ipfs-${collection.id}` ? (
+                              <Check className="w-4 h-4" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
                     )}
+
+                    <div className="flex gap-2">
+                      {collection.explorerUrl && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          asChild
+                        >
+                          <a href={collection.explorerUrl} target="_blank" rel="noopener noreferrer">
+                            View on Solana
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </Button>
+                      )}
+                      {collection.ipfsMetadataHash && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          asChild
+                        >
+                          <a href={`https://ipfs.io/ipfs/${collection.ipfsMetadataHash}`} target="_blank" rel="noopener noreferrer">
+                            View on IPFS
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 )}
 

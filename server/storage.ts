@@ -57,6 +57,10 @@ export interface IStorage {
     status: string;
     mintedAt: Date;
   }): Promise<Collection>;
+  updateCollection(id: string, data: Partial<Collection>): Promise<Collection>;
+  
+  // Logo update operations
+  updateLogo(id: string, data: Partial<Logo>): Promise<Logo>;
   
   // Payment operations
   createPayment(payment: InsertPayment): Promise<Payment>;
@@ -287,6 +291,24 @@ export class DatabaseStorage implements IStorage {
       .update(collections)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(collections.id, id))
+      .returning();
+    return updated;
+  }
+
+  async updateCollection(id: string, data: Partial<Collection>): Promise<Collection> {
+    const [updated] = await db
+      .update(collections)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(collections.id, id))
+      .returning();
+    return updated;
+  }
+
+  async updateLogo(id: string, data: Partial<Logo>): Promise<Logo> {
+    const [updated] = await db
+      .update(logos)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(logos.id, id))
       .returning();
     return updated;
   }
