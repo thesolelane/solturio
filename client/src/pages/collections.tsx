@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Shield, Loader2, ExternalLink, Copy, Check, Sparkles, FileCheck } from "lucide-react";
+import { Shield, Loader2, ExternalLink, Copy, Check, Sparkles, FileCheck, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Link } from "wouter";
 import type { Collection, Logo } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -14,6 +15,19 @@ export default function Collections() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [expandedCollections, setExpandedCollections] = useState<Set<string>>(new Set());
+
+  const toggleCollection = (collectionId: string) => {
+    setExpandedCollections(prev => {
+      const next = new Set(prev);
+      if (next.has(collectionId)) {
+        next.delete(collectionId);
+      } else {
+        next.add(collectionId);
+      }
+      return next;
+    });
+  };
 
   // Set page title
   useEffect(() => {
@@ -137,218 +151,241 @@ export default function Collections() {
           </Card>
         ) : (
           <div className="space-y-6">
-            {collections.map((collection) => (
-              <Card key={collection.id} className="p-6" data-testid={`collection-${collection.id}`}>
-                <div className="flex items-start justify-between gap-4 mb-4">
-                  <div>
-                    <h2 className="text-2xl font-semibold mb-1">
-                      {collection.name}
-                    </h2>
-                    <p className="text-muted-foreground">
-                      {collection.companyName}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {collection.status === 'draft' && (
-                      <Button
-                        onClick={() => mintMutation.mutate(collection.id)}
-                        disabled={mintMutation.isPending}
-                        className="gap-2"
-                        data-testid={`button-mint-${collection.id}`}
-                      >
-                        {mintMutation.isPending ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Sparkles className="w-4 h-4" />
-                        )}
-                        Mint Collection
-                      </Button>
-                    )}
-                    <div
-                      className="inline-flex px-3 py-1 rounded-full text-xs font-medium"
-                      style={{
-                        backgroundColor: collection.status === 'minted' ? 'hsl(var(--primary) / 0.1)' : 
-                                       collection.status === 'pending' ? 'hsl(var(--muted))' : 
-                                       'hsl(var(--accent))',
-                        color: collection.status === 'minted' ? 'hsl(var(--primary))' : 
-                              'hsl(var(--foreground))'
-                      }}
-                      data-testid={`status-${collection.id}`}
-                    >
-                      {collection.status === 'minted' && <FileCheck className="w-3 h-3 mr-1" />}
-                      {collection.status}
-                    </div>
-                  </div>
-                </div>
-
-                {collection.description && (
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {collection.description}
-                  </p>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  {collection.symbol && (
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Symbol</Label>
-                      <p className="text-sm font-medium">{collection.symbol}</p>
-                    </div>
-                  )}
-                  {collection.copyrightYear && (
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Copyright Year</Label>
-                      <p className="text-sm font-medium">{collection.copyrightYear}</p>
-                    </div>
-                  )}
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Created</Label>
-                    <p className="text-sm font-medium">
-                      {collection.createdAt ? new Date(collection.createdAt).toLocaleDateString() : 'N/A'}
-                    </p>
-                  </div>
-                  {collection.mintedAt && (
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Minted</Label>
-                      <p className="text-sm font-medium">
-                        {new Date(collection.mintedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {collection.status === 'minted' && collection.collectionAddress && (
-                  <div className="border-t pt-4 mt-4 space-y-4">
-                    <div>
-                      <Label className="text-xs text-muted-foreground mb-2 block">
-                        NFT Certificate Address
-                      </Label>
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 text-xs font-mono bg-muted px-3 py-2 rounded-md overflow-x-auto">
-                          {collection.collectionAddress}
-                        </code>
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          onClick={() => copyToClipboard(collection.collectionAddress!, collection.id)}
-                          data-testid={`button-copy-${collection.id}`}
-                        >
-                          {copiedId === collection.id ? (
-                            <Check className="w-4 h-4" />
-                          ) : (
-                            <Copy className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {collection.ipfsMetadataHash && (
-                      <div>
-                        <Label className="text-xs text-muted-foreground mb-2 block">
-                          IPFS Metadata (all file hashes)
-                        </Label>
-                        <div className="flex items-center gap-2">
-                          <code className="flex-1 text-xs font-mono bg-muted px-3 py-2 rounded-md overflow-x-auto">
-                            {collection.ipfsMetadataHash}
-                          </code>
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            onClick={() => copyToClipboard(collection.ipfsMetadataHash!, `ipfs-${collection.id}`)}
-                            data-testid={`button-copy-ipfs-${collection.id}`}
-                          >
-                            {copiedId === `ipfs-${collection.id}` ? (
-                              <Check className="w-4 h-4" />
+            {collections.map((collection) => {
+              const isExpanded = expandedCollections.has(collection.id);
+              return (
+                <Card key={collection.id} className="overflow-hidden" data-testid={`collection-${collection.id}`}>
+                  <Collapsible open={isExpanded} onOpenChange={() => toggleCollection(collection.id)}>
+                    <div className="p-6">
+                      <div className="flex items-start justify-between gap-4">
+                        <CollapsibleTrigger className="flex items-start gap-3 text-left hover-elevate rounded-md p-1 -m-1" data-testid={`toggle-${collection.id}`}>
+                          <div className="mt-1">
+                            {isExpanded ? (
+                              <ChevronDown className="w-5 h-5 text-muted-foreground" />
                             ) : (
-                              <Copy className="w-4 h-4" />
+                              <ChevronRight className="w-5 h-5 text-muted-foreground" />
                             )}
-                          </Button>
+                          </div>
+                          <div>
+                            <h2 className="text-2xl font-semibold mb-1">
+                              {collection.name}
+                            </h2>
+                            <p className="text-muted-foreground">
+                              {collection.companyName}
+                            </p>
+                          </div>
+                        </CollapsibleTrigger>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {collection.status === 'draft' && (
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                mintMutation.mutate(collection.id);
+                              }}
+                              disabled={mintMutation.isPending}
+                              className="gap-2"
+                              data-testid={`button-mint-${collection.id}`}
+                            >
+                              {mintMutation.isPending ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Sparkles className="w-4 h-4" />
+                              )}
+                              Mint Collection
+                            </Button>
+                          )}
+                          <div
+                            className="inline-flex px-3 py-1 rounded-full text-xs font-medium"
+                            style={{
+                              backgroundColor: collection.status === 'minted' ? 'hsl(var(--primary) / 0.1)' : 
+                                             collection.status === 'pending' ? 'hsl(var(--muted))' : 
+                                             'hsl(var(--accent))',
+                              color: collection.status === 'minted' ? 'hsl(var(--primary))' : 
+                                    'hsl(var(--foreground))'
+                            }}
+                            data-testid={`status-${collection.id}`}
+                          >
+                            {collection.status === 'minted' && <FileCheck className="w-3 h-3 mr-1" />}
+                            {collection.status}
+                          </div>
                         </div>
                       </div>
-                    )}
-
-                    <div className="flex gap-2">
-                      {collection.explorerUrl && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-2"
-                          asChild
-                        >
-                          <a href={collection.explorerUrl} target="_blank" rel="noopener noreferrer">
-                            View on Solana
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </Button>
-                      )}
-                      {collection.ipfsMetadataHash && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-2"
-                          asChild
-                        >
-                          <a href={`https://ipfs.io/ipfs/${collection.ipfsMetadataHash}`} target="_blank" rel="noopener noreferrer">
-                            View on IPFS
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </Button>
-                      )}
                     </div>
-                  </div>
-                )}
 
-                {collection.logos && collection.logos.length > 0 && (
-                  <div className="border-t pt-4 mt-4">
-                    <Label className="text-xs text-muted-foreground mb-3 flex items-center gap-2">
-                      Files in Collection ({collection.logos.length})
-                      {collection.status === 'minted' && (
-                        <span className="flex items-center gap-1 text-primary">
-                          <VerificationBadge size="sm" />
-                          Verified
-                        </span>
-                      )}
-                    </Label>
-                    <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                      {collection.logos.map((logo) => (
-                        <div
-                          key={logo.id}
-                          className="aspect-square bg-muted rounded-md overflow-hidden relative"
-                          title={logo.fileName}
-                        >
-                          {logo.thumbnailUrl ? (
-                            <>
-                              <img
-                                src={logo.thumbnailUrl}
-                                alt={logo.fileName}
-                                className="w-full h-full object-contain"
-                              />
-                              {collection.status === 'minted' && (
-                                <VerificationBadge 
-                                  size="sm" 
-                                  className="absolute bottom-1 left-1 drop-shadow-lg"
-                                />
-                              )}
-                            </>
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <div className="text-xs text-muted-foreground text-center p-1 truncate">
-                                {logo.fileName?.split('.').pop()?.toUpperCase() || 'FILE'}
-                              </div>
-                              {collection.status === 'minted' && (
-                                <VerificationBadge 
-                                  size="sm" 
-                                  className="absolute bottom-1 left-1 drop-shadow-lg"
-                                />
-                              )}
+                    <CollapsibleContent>
+                      <div className="px-6 pb-6">
+                        {collection.description && (
+                          <p className="text-sm text-muted-foreground mb-4">
+                            {collection.description}
+                          </p>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          {collection.symbol && (
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Symbol</Label>
+                              <p className="text-sm font-medium">{collection.symbol}</p>
+                            </div>
+                          )}
+                          {collection.copyrightYear && (
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Copyright Year</Label>
+                              <p className="text-sm font-medium">{collection.copyrightYear}</p>
+                            </div>
+                          )}
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Created</Label>
+                            <p className="text-sm font-medium">
+                              {collection.createdAt ? new Date(collection.createdAt).toLocaleDateString() : 'N/A'}
+                            </p>
+                          </div>
+                          {collection.mintedAt && (
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Minted</Label>
+                              <p className="text-sm font-medium">
+                                {new Date(collection.mintedAt).toLocaleDateString()}
+                              </p>
                             </div>
                           )}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </Card>
-            ))}
+
+                        {collection.status === 'minted' && collection.collectionAddress && (
+                          <div className="border-t pt-4 mt-4 space-y-4">
+                            <div>
+                              <Label className="text-xs text-muted-foreground mb-2 block">
+                                NFT Certificate Address
+                              </Label>
+                              <div className="flex items-center gap-2">
+                                <code className="flex-1 text-xs font-mono bg-muted px-3 py-2 rounded-md overflow-x-auto">
+                                  {collection.collectionAddress}
+                                </code>
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  onClick={() => copyToClipboard(collection.collectionAddress!, collection.id)}
+                                  data-testid={`button-copy-${collection.id}`}
+                                >
+                                  {copiedId === collection.id ? (
+                                    <Check className="w-4 h-4" />
+                                  ) : (
+                                    <Copy className="w-4 h-4" />
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            {collection.ipfsMetadataHash && (
+                              <div>
+                                <Label className="text-xs text-muted-foreground mb-2 block">
+                                  IPFS Metadata (all file hashes)
+                                </Label>
+                                <div className="flex items-center gap-2">
+                                  <code className="flex-1 text-xs font-mono bg-muted px-3 py-2 rounded-md overflow-x-auto">
+                                    {collection.ipfsMetadataHash}
+                                  </code>
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    onClick={() => copyToClipboard(collection.ipfsMetadataHash!, `ipfs-${collection.id}`)}
+                                    data-testid={`button-copy-ipfs-${collection.id}`}
+                                  >
+                                    {copiedId === `ipfs-${collection.id}` ? (
+                                      <Check className="w-4 h-4" />
+                                    ) : (
+                                      <Copy className="w-4 h-4" />
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="flex flex-wrap gap-2">
+                              {collection.explorerUrl && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="gap-2"
+                                  asChild
+                                >
+                                  <a href={collection.explorerUrl} target="_blank" rel="noopener noreferrer">
+                                    View on Solana
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                </Button>
+                              )}
+                              {collection.ipfsMetadataHash && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="gap-2"
+                                  asChild
+                                >
+                                  <a href={`https://ipfs.io/ipfs/${collection.ipfsMetadataHash}`} target="_blank" rel="noopener noreferrer">
+                                    View on IPFS
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {collection.logos && collection.logos.length > 0 && (
+                          <div className="border-t pt-4 mt-4">
+                            <Label className="text-xs text-muted-foreground mb-3 flex items-center gap-2">
+                              Files in Collection ({collection.logos.length})
+                              {collection.status === 'minted' && (
+                                <span className="flex items-center gap-1 text-primary">
+                                  <VerificationBadge size="sm" />
+                                  Verified
+                                </span>
+                              )}
+                            </Label>
+                            <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                              {collection.logos.map((logo) => (
+                                <div
+                                  key={logo.id}
+                                  className="aspect-square bg-muted rounded-md overflow-hidden relative"
+                                  title={logo.fileName}
+                                >
+                                  {logo.thumbnailUrl ? (
+                                    <>
+                                      <img
+                                        src={logo.thumbnailUrl}
+                                        alt={logo.fileName}
+                                        className="w-full h-full object-contain"
+                                      />
+                                      {collection.status === 'minted' && (
+                                        <VerificationBadge 
+                                          size="sm" 
+                                          className="absolute bottom-1 left-1 drop-shadow-lg"
+                                        />
+                                      )}
+                                    </>
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <div className="text-xs text-muted-foreground text-center p-1 truncate">
+                                        {logo.fileName?.split('.').pop()?.toUpperCase() || 'FILE'}
+                                      </div>
+                                      {collection.status === 'minted' && (
+                                        <VerificationBadge 
+                                          size="sm" 
+                                          className="absolute bottom-1 left-1 drop-shadow-lg"
+                                        />
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </Card>
+              );
+            })}
           </div>
         )}
       </main>
