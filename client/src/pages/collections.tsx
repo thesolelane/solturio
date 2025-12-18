@@ -400,7 +400,7 @@ export default function Collections() {
                                   </Tooltip>
                                 </TooltipProvider>
                               </Label>
-                              <Button variant="outline" size="sm" asChild className="gap-1">
+                              <Button variant="outline" size="sm" asChild className="gap-1" data-testid="button-how-to-share">
                                 <Link href="/how-to-share">
                                   <HelpCircle className="w-3 h-3" />
                                   How to Share

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, Twitter, Send, Globe, Copy, Check, Image, Shield, ExternalLink, MessageCircle } from "lucide-react";
+import { ArrowLeft, Twitter, Send, Globe, Check, Image, Shield, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { VerificationBadge } from "@/components/verified-image";
@@ -16,7 +16,7 @@ export default function HowToShare() {
       <header className="border-b bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5">
         <div className="h-20 flex items-center px-6 lg:px-8">
           <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3 hover-elevate">
+            <Link href="/" className="flex items-center gap-3 hover-elevate" data-testid="link-home">
               <img 
                 src="/solturio-logo-light-mode.png"
                 alt="Solturio Logo"
@@ -31,7 +31,7 @@ export default function HowToShare() {
                 Solturio
               </span>
             </Link>
-            <Button variant="outline" size="sm" asChild className="gap-2">
+            <Button variant="outline" size="sm" asChild className="gap-2" data-testid="button-back-collections">
               <Link href="/collections">
                 <ArrowLeft className="w-4 h-4" />
                 Back to Collections
@@ -113,7 +113,7 @@ export default function HowToShare() {
             </CardHeader>
             <CardContent>
               <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                <li>Navigate to <Link href="/collections" className="text-primary underline">My Collections</Link></li>
+                <li>Navigate to <Link href="/collections" className="text-primary underline" data-testid="link-my-collections">My Collections</Link></li>
                 <li>Click on a <strong>minted</strong> collection to expand it</li>
                 <li>Scroll down to "Share Verified Images" section</li>
                 <li>Click the <Copy className="w-4 h-4 inline" /> copy button next to the image you want to share</li>
@@ -319,7 +319,7 @@ export default function HowToShare() {
 
         {/* CTA */}
         <div className="mt-12 text-center">
-          <Button asChild size="lg" className="gap-2">
+          <Button asChild size="lg" className="gap-2" data-testid="button-cta-back-collections">
             <Link href="/collections">
               <ArrowLeft className="w-4 h-4" />
               Back to My Collections
