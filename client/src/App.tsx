@@ -25,6 +25,7 @@ import IPGuide from "@/pages/ip-guide";
 import IPQuiz from "@/pages/ip-quiz";
 import IPQuizBattle from "@/pages/ip-quiz-battle";
 import ArtworkLicensing from "@/pages/artwork-licensing";
+import CreateLicense from "@/pages/create-license";
 import RegisterSelect from "@/pages/register-select";
 import RegisterTokenLaunch from "@/pages/register-token-launch";
 import RegisterArtwork from "@/pages/register-artwork";
@@ -67,6 +68,8 @@ function Router() {
       <Route path="/ip-quiz" component={IPQuiz} />
       <Route path="/ip-quiz-battle" component={IPQuizBattle} />
       <Route path="/artwork-licensing" component={ArtworkLicensing} />
+      <Route path="/create-license" component={CreateLicense} />
+      <Route path="/create-license/:logoId" component={CreateLicense} />
       <Route path="/register" component={RegisterSelect} />
       <Route path="/register/token-launch" component={RegisterTokenLaunch} />
       <Route path="/register/artwork" component={RegisterArtwork} />

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Shield, Loader2, ExternalLink, Copy, Check, Sparkles, FileCheck, ChevronDown, ChevronRight, Share2, HelpCircle, Eye, EyeOff, Pencil } from "lucide-react";
+import { Shield, Loader2, ExternalLink, Copy, Check, Sparkles, FileCheck, ChevronDown, ChevronRight, Share2, HelpCircle, Eye, EyeOff, Pencil, FileSignature } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -465,7 +465,7 @@ export default function Collections() {
                               {collection.logos.map((logo) => (
                                 <div
                                   key={logo.id}
-                                  className="aspect-square bg-muted rounded-md overflow-hidden relative"
+                                  className="aspect-square bg-muted rounded-md overflow-hidden relative group"
                                   title={logo.fileName}
                                 >
                                   {logo.thumbnailUrl ? (
@@ -495,6 +495,25 @@ export default function Collections() {
                                       )}
                                     </div>
                                   )}
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Link href={`/create-license/${logo.id}`}>
+                                          <Button
+                                            size="icon"
+                                            variant="secondary"
+                                            className="absolute top-1 right-1 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                                            data-testid={`button-license-${logo.id}`}
+                                          >
+                                            <FileSignature className="w-3 h-3" />
+                                          </Button>
+                                        </Link>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Create License Contract</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
                                 </div>
                               ))}
                             </div>
