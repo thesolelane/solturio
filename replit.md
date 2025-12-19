@@ -53,19 +53,32 @@ Preferred communication style: Simple, everyday language.
 
 ## Data Storage Architecture
 
-**Three-Tier Decentralized Storage:**
+**Four-Tier Decentralized Storage:**
 1. **PostgreSQL (On-Server)**: User info, thumbnails, metadata, ownership claims
-2. **IPFS (Pinata)**: Logo metadata JSON, proof of ownership records
-3. **User Wallets (`xxx.solturio.sol`)**: Full logo files (decentralized, user-controlled)
+2. **IPFS (Pinata)**: Metadata JSON with file hashes (small, cheap)
+3. **Arweave**: Verified badge images for sharing (permanent, one-time payment)
 4. **Solana Blockchain**: NFT certificates with immutable hashes (immutable proof of ownership)
+
+**Storage by Content Type:**
+| Content | Storage | Purpose | Cost |
+|---------|---------|---------|------|
+| Thumbnails | Server | Fast display in dashboard | Free |
+| Metadata JSON | IPFS | File hashes, ownership records | Low (small file) |
+| Badge Images | Arweave | Permanent shareable URLs | One-time ~$1-2/100MB |
+| NFT Certificate | Solana | Proof of ownership | Mint fee |
+| User Wallet | Solana | Holds NFT + SOL for fees | N/A |
 
 **Data Flow:**
 - User uploads logo → Server extracts metadata (SHA-256, dimensions, colors)
-- Logo file → Stored in user's `xxx.solturio.sol` wallet (user controls)
-- Metadata → Uploaded to IPFS via Pinata (referenced in NFT)
+- Server generates thumbnail → Stored locally for display
+- User mints collection → Badge overlay added to images
+- Badge images → Uploaded to Arweave (permanent URL for sharing)
+- Metadata JSON → Uploaded to IPFS via Pinata (referenced in NFT)
 - NFT Certificate → Minted on Solana with IPFS hash pointer
-- Thumbnail → Displayed on website under user's account collections
-- All hashes & NFT addresses → Stored in database for tracking
+- Arweave URLs → Stored in database, displayed to user for sharing
+
+**Environment Variables (Arweave):**
+- `ARWEAVE_WALLET_KEY` - JSON keyfile for Solturio's Arweave wallet (pays for all user uploads)
 
 ## Implementation Progress
 

@@ -103,6 +103,9 @@ export const logos = pgTable("logos", {
   ipfsMetadataHash: varchar("ipfs_metadata_hash", { length: 100 }), // IPFS hash for metadata JSON
   verifiedIpfsHash: varchar("verified_ipfs_hash", { length: 100 }), // IPFS hash for verified image with badge overlay
   
+  // Arweave storage (permanent, one-time payment)
+  arweaveUrl: text("arweave_url"), // Permanent Arweave URL for verified badge image (shareable)
+  
   // Auto-extracted metadata
   width: integer("width").notNull(),
   height: integer("height").notNull(),

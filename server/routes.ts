@@ -48,6 +48,7 @@ import {
 } from "./services/nft-minting";
 import { createVerifiedImage, isCompositableImage } from "./services/image-compositing";
 import { VERIFICATION_ASSETS } from "@shared/verification-assets";
+import { arweaveService } from "./services/arweave";
 
 // Setup file upload
 const upload = multer({ 
@@ -836,7 +837,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Generate verified images with badge overlay for image files
-      const verifiedImages: { logoId: string; verifiedIpfsHash: string; verifiedUrl: string }[] = [];
+      const verifiedImages: { logoId: string; verifiedIpfsHash: string; verifiedUrl: string; arweaveUrl?: string }[] = [];
+      
+      // Check if Arweave is configured
+      const arweaveConfigured = arweaveService.isConfigured();
+      if (!arweaveConfigured) {
+        console.log('Arweave: Not configured - badge images will only be stored on IPFS');
+      }
       
       for (const logo of logos) {
         // Only process image files that can be composited
@@ -852,7 +859,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // Create verified image with badge overlay
               const verifiedBuffer = await createVerifiedImage(thumbnailBuffer);
               
-              // Upload verified image to IPFS
+              // Upload verified image to IPFS (backup/reference)
               const verifiedResult = await uploadToIPFS(
                 verifiedBuffer, 
                 `verified-${logo.fileName?.replace(/\.[^/.]+$/, '.png') || 'image.png'}`,
@@ -864,16 +871,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
               );
               
-              if (verifiedResult) {
+              // Upload verified image to Arweave (permanent storage for sharing)
+              let arweaveUrl: string | undefined;
+              if (arweaveConfigured) {
+                try {
+                  const arweaveResult = await arweaveService.uploadFile(
+                    verifiedBuffer,
+                    'image/png',
+                    [
+                      { name: 'Logo-Id', value: logo.id },
+                      { name: 'Collection-Id', value: collectionId },
+                      { name: 'Original-Filename', value: logo.fileName || 'image.png' },
+                      { name: 'Type', value: 'verified-badge-image' },
+                    ]
+                  );
+                  if (arweaveResult) {
+                    arweaveUrl = arweaveResult.url;
+                    console.log(`Arweave: Uploaded verified image for logo ${logo.id}: ${arweaveUrl}`);
+                  }
+                } catch (arweaveError) {
+                  console.error(`Arweave: Failed to upload verified image for logo ${logo.id}:`, arweaveError);
+                }
+              }
+              
+              if (verifiedResult || arweaveUrl) {
                 verifiedImages.push({
                   logoId: logo.id,
-                  verifiedIpfsHash: verifiedResult.ipfsHash,
-                  verifiedUrl: `https://gateway.pinata.cloud/ipfs/${verifiedResult.ipfsHash}`,
+                  verifiedIpfsHash: verifiedResult?.ipfsHash || '',
+                  verifiedUrl: arweaveUrl || `https://gateway.pinata.cloud/ipfs/${verifiedResult?.ipfsHash}`,
+                  arweaveUrl,
                 });
                 
-                // Update logo with verified image hash
+                // Update logo with verified image hash and Arweave URL
                 await storage.updateLogo(logo.id, {
-                  verifiedIpfsHash: verifiedResult.ipfsHash,
+                  verifiedIpfsHash: verifiedResult?.ipfsHash || null,
+                  arweaveUrl: arweaveUrl || null,
                 });
               }
             } catch (accessError) {
@@ -889,13 +921,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Find verified image for each logo
       const getVerifiedHash = (logoId: string) => 
         verifiedImages.find(v => v.logoId === logoId)?.verifiedIpfsHash || null;
+      const getArweaveUrl = (logoId: string) => 
+        verifiedImages.find(v => v.logoId === logoId)?.arweaveUrl || null;
       
       const fileEntries = logos.map((logo, index) => ({
         index: index + 1,
         fileName: logo.fileName,
         fileHash: logo.fileHash,  // SHA-256 hash for verification
         ipfsHash: logo.ipfsHash || null,  // Individual file IPFS CID if available
-        verifiedIpfsHash: getVerifiedHash(logo.id),  // Verified image with badge overlay
+        verifiedIpfsHash: getVerifiedHash(logo.id),  // Verified image with badge overlay (IPFS backup)
+        arweaveUrl: getArweaveUrl(logo.id),  // Permanent Arweave URL for sharing
         mimeType: logo.mimeType,
         fileSize: logo.fileSize,
         dimensions: logo.width && logo.height ? `${logo.width}x${logo.height}` : null,
@@ -1001,8 +1036,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fileName: logos.find(l => l.id === v.logoId)?.fileName || 'unknown',
           ipfsHash: v.verifiedIpfsHash,
           ipfsUrl: v.verifiedUrl,
+          arweaveUrl: v.arweaveUrl,
         })),
         verifiedImagesCount: verifiedImages.length,
+        arweaveConfigured,
         nftMetadata,
       });
     } catch (error: any) {

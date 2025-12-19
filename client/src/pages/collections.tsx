@@ -502,7 +502,7 @@ export default function Collections() {
                         )}
 
                         {/* Verified Image URLs for Sharing - Only show for minted collections */}
-                        {collection.status === 'minted' && collection.logos && collection.logos.some(l => l.verifiedIpfsHash) && (
+                        {collection.status === 'minted' && collection.logos && collection.logos.some(l => l.arweaveUrl || l.verifiedIpfsHash) && (
                           <div className="border-t pt-4 mt-4">
                             <div className="flex items-center justify-between gap-2 mb-3">
                               <Label className="text-xs text-muted-foreground flex items-center gap-2">
@@ -514,7 +514,7 @@ export default function Collections() {
                                       <HelpCircle className="w-3 h-3 cursor-help" />
                                     </TooltipTrigger>
                                     <TooltipContent className="max-w-xs">
-                                      <p>Use these IPFS URLs when posting on Twitter, Telegram, or DEX platforms. The gold badge shows your ownership is verified.</p>
+                                      <p>Use these permanent URLs when posting on Twitter, Telegram, or DEX platforms. The gold badge shows your ownership is verified.</p>
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
@@ -527,78 +527,83 @@ export default function Collections() {
                               </Button>
                             </div>
                             <div className="space-y-2">
-                              {collection.logos.filter(l => l.verifiedIpfsHash).map((logo) => (
-                                <div 
-                                  key={`verified-${logo.id}`} 
-                                  className="flex items-center gap-2 bg-muted/50 rounded-md p-2"
-                                  data-testid={`verified-url-${logo.id}`}
-                                >
-                                  <div className="w-8 h-8 bg-muted rounded overflow-hidden flex-shrink-0">
-                                    {logo.thumbnailUrl ? (
-                                      <img 
-                                        src={logo.thumbnailUrl} 
-                                        alt="" 
-                                        className="w-full h-full object-cover"
-                                      />
-                                    ) : (
-                                      <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
-                                        {logo.fileName?.split('.').pop()?.toUpperCase()?.slice(0, 3) || 'F'}
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-medium truncate">{logo.fileName}</p>
-                                    <code className="text-xs text-muted-foreground font-mono truncate block">
-                                      ipfs.io/ipfs/{logo.verifiedIpfsHash?.slice(0, 12)}...
-                                    </code>
-                                  </div>
-                                  <div className="flex items-center gap-1 flex-shrink-0">
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            onClick={() => copyToClipboard(
-                                              `https://ipfs.io/ipfs/${logo.verifiedIpfsHash}`,
-                                              `verified-${logo.id}`
-                                            )}
-                                            data-testid={`button-copy-verified-${logo.id}`}
-                                          >
-                                            {copiedId === `verified-${logo.id}` ? (
-                                              <Check className="w-4 h-4 text-green-500" />
-                                            ) : (
-                                              <Copy className="w-4 h-4" />
-                                            )}
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Copy IPFS URL</TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            asChild
-                                          >
-                                            <a 
-                                              href={`https://ipfs.io/ipfs/${logo.verifiedIpfsHash}`} 
-                                              target="_blank" 
-                                              rel="noopener noreferrer"
-                                              data-testid={`button-view-verified-${logo.id}`}
+                              {collection.logos.filter(l => l.arweaveUrl || l.verifiedIpfsHash).map((logo) => {
+                                const shareUrl = logo.arweaveUrl || `https://ipfs.io/ipfs/${logo.verifiedIpfsHash}`;
+                                const isArweave = !!logo.arweaveUrl;
+                                const displayUrl = isArweave 
+                                  ? `arweave.net/${logo.arweaveUrl?.split('/').pop()?.slice(0, 12)}...`
+                                  : `ipfs.io/ipfs/${logo.verifiedIpfsHash?.slice(0, 12)}...`;
+                                
+                                return (
+                                  <div 
+                                    key={`verified-${logo.id}`} 
+                                    className="flex items-center gap-2 bg-muted/50 rounded-md p-2"
+                                    data-testid={`verified-url-${logo.id}`}
+                                  >
+                                    <div className="w-8 h-8 bg-muted rounded overflow-hidden flex-shrink-0">
+                                      {logo.thumbnailUrl ? (
+                                        <img 
+                                          src={logo.thumbnailUrl} 
+                                          alt="" 
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
+                                          {logo.fileName?.split('.').pop()?.toUpperCase()?.slice(0, 3) || 'F'}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs font-medium truncate">{logo.fileName}</p>
+                                      <code className="text-xs text-muted-foreground font-mono truncate block">
+                                        {displayUrl}
+                                      </code>
+                                    </div>
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              onClick={() => copyToClipboard(shareUrl, `verified-${logo.id}`)}
+                                              data-testid={`button-copy-verified-${logo.id}`}
                                             >
-                                              <ExternalLink className="w-4 h-4" />
-                                            </a>
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>View Verified Image</TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
+                                              {copiedId === `verified-${logo.id}` ? (
+                                                <Check className="w-4 h-4 text-green-500" />
+                                              ) : (
+                                                <Copy className="w-4 h-4" />
+                                              )}
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>Copy {isArweave ? 'Arweave' : 'IPFS'} URL</TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              asChild
+                                            >
+                                              <a 
+                                                href={shareUrl} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                data-testid={`button-view-verified-${logo.id}`}
+                                              >
+                                                <ExternalLink className="w-4 h-4" />
+                                              </a>
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>View Verified Image</TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
                             <p className="text-xs text-muted-foreground mt-2">
                               These images include the gold verification badge. Use them as your profile picture or logo on social media to prove ownership.
