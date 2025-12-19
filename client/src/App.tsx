@@ -38,6 +38,7 @@ import CeremonyStage6Terms from "@/pages/ceremony-stage-6-terms";
 import WalletRecovery from "@/pages/wallet-recovery";
 import HowToShare from "@/pages/how-to-share";
 import Discover from "@/pages/discover";
+import Activate from "@/pages/activate";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -78,6 +79,7 @@ function Router() {
       <Route path="/wallet-recovery" component={WalletRecovery} />
       <Route path="/how-to-share" component={HowToShare} />
       <Route path="/discover" component={Discover} />
+      <Route path="/activate" component={Activate} />
       <Route component={NotFound} />
     </Switch>
   );

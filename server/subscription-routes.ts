@@ -197,6 +197,75 @@ subscriptionRouter.post('/subscription/renew', isAuthenticated, async (req: any,
 });
 
 /**
+ * GET /subscription/payment-info
+ * Get payment information for account activation
+ */
+subscriptionRouter.get('/subscription/payment-info', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'Not authenticated' });
+    }
+
+    const pricing = await getSubscriptionPricing();
+    const platformWallet = process.env.PLATFORM_REVENUE_WALLET || '';
+
+    res.json({
+      recipientWallet: platformWallet,
+      cathAmount: pricing.cathAmount?.toFixed(2) || '0',
+      solEquivalent: pricing.solEquivalent?.toFixed(2) || '0.14',
+      isPromo: pricing.isPromo,
+      instructions: 'Send the exact amount of $CATH tokens to the platform wallet, then verify your transaction.',
+    });
+  } catch (error: any) {
+    console.error('Get payment info error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * POST /subscription/verify-payment
+ * Verify payment and activate account
+ */
+subscriptionRouter.post('/subscription/verify-payment', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'Not authenticated' });
+    }
+
+    const { transactionSignature } = req.body;
+    if (!transactionSignature || transactionSignature.length < 50) {
+      return res.status(400).json({ success: false, error: 'Invalid transaction signature' });
+    }
+
+    // Get pricing to know expected amount
+    const pricing = await getSubscriptionPricing();
+    
+    // Activate account with payment verification
+    const result = await activateAccount(userId, transactionSignature, pricing.cathAmount || 0);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        accountStatus: result.accountStatus,
+        subscriptionExpiresAt: result.subscriptionExpiresAt,
+        rewardsEarned: result.rewardsEarned,
+        message: 'Account activated successfully!',
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error || 'Payment verification failed',
+      });
+    }
+  } catch (error: any) {
+    console.error('Verify payment error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
  * GET /subscription/check-access
  * Check if user can create new collections (active subscription required)
  */
