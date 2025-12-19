@@ -10,9 +10,12 @@ import { requireActiveSubscription } from './subscription-routes';
 import { 
   insertLicenseContractSchema, 
   LICENSE_TEMPLATES,
+  JURISDICTION_TEMPLATES,
+  LICENSE_TYPE_DESCRIPTIONS,
   PLATFORM_BITS,
   getPermittedPlatforms,
   createPlatformBitmap,
+  type JurisdictionCode,
 } from '@shared/schema';
 import { LICENSE_FEE } from '@shared/pricing';
 import { z } from 'zod';
@@ -109,6 +112,27 @@ licenseRouter.get('/templates', (req, res) => {
     templates,
     platformOptions: Object.keys(PLATFORM_BITS),
     fee: LICENSE_FEE,
+  });
+});
+
+/**
+ * GET /api/licenses/jurisdictions
+ * Get available jurisdiction templates with requirements
+ */
+licenseRouter.get('/jurisdictions', (req, res) => {
+  const jurisdictions = Object.entries(JURISDICTION_TEMPLATES).map(([code, template]) => ({
+    code,
+    name: template.name,
+    version: template.version,
+    governingLaw: template.governingLaw,
+    disputeVenue: template.disputeVenue,
+    requirements: template.requirements,
+    clauses: template.clauses,
+  }));
+  
+  res.json({
+    jurisdictions,
+    licenseTypeDescriptions: LICENSE_TYPE_DESCRIPTIONS,
   });
 });
 
@@ -236,12 +260,48 @@ licenseRouter.post('/', isAuthenticated, requireActiveSubscription, async (req: 
       expiresAt.setDate(expiresAt.getDate() + data.durationDays);
     }
 
-    // Create the license
+    // Get jurisdiction template details
+    const jurisdictionCode = (data.jurisdictionCode || 'US') as JurisdictionCode;
+    const jurisdictionTemplate = JURISDICTION_TEMPLATES[jurisdictionCode] || JURISDICTION_TEMPLATES.US;
+    
+    // Get license type description
+    const licenseTypeDescription = LICENSE_TYPE_DESCRIPTIONS[data.licenseType as keyof typeof LICENSE_TYPE_DESCRIPTIONS] || '';
+
+    // Prepare image metadata from logo
+    const imageColorPalette = logo.colorPalette || [];
+    const imageDominantColor = imageColorPalette[0] || null;
+    const imageCreatedAt = logo.createdAt;
+
+    // Create the license with enriched metadata
     const license = await storage.createLicenseContract({
       ...data,
       startsAt,
       expiresAt,
       creationFee: LICENSE_FEE.amount,
+      // Image metadata
+      imageColorPalette: imageColorPalette.length > 0 ? imageColorPalette : null,
+      imageDominantColor,
+      imageCreatedAt,
+      licenseIssuedAt: new Date(),
+      licenseTypeDescription,
+      // Current holder (initially the licensee)
+      currentHolderName: data.licenseeName || null,
+      currentHolderWallet: data.licenseeWallet,
+      currentHolderEmail: data.licenseeEmail || null,
+      // Jurisdiction details
+      jurisdictionCode,
+      jurisdictionVersion: jurisdictionTemplate.version,
+      governingLaw: jurisdictionTemplate.governingLaw,
+      disputeVenue: jurisdictionTemplate.disputeVenue,
+      gdprCompliant: jurisdictionTemplate.requirements.gdprCompliant,
+      gdprDataProcessingAgreed: (jurisdictionTemplate.requirements as any).gdprDataProcessingAgreed || false,
+      gdprWithdrawalRightsAcknowledged: (jurisdictionTemplate.requirements as any).gdprWithdrawalRightsAcknowledged || false,
+      pipedaCompliant: jurisdictionTemplate.requirements.pipedaCompliant,
+      pdpaCompliant: jurisdictionTemplate.requirements.pdpaCompliant,
+      appiCompliant: jurisdictionTemplate.requirements.appiCompliant,
+      moralRightsWaived: jurisdictionTemplate.requirements.moralRightsWaived,
+      bilingualRequired: jurisdictionTemplate.requirements.bilingualRequired,
+      regionalClauses: jurisdictionTemplate.clauses,
     } as any);
 
     res.status(201).json({
