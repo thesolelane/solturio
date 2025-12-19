@@ -89,12 +89,7 @@ export default function AccountPage() {
   // Link wallet mutation
   const linkWalletMutation = useMutation({
     mutationFn: async (walletAddress: string) => {
-      const response = await fetch("/api/account/link-wallet", {
-        method: "POST",
-        body: JSON.stringify({ walletAddress }),
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!response.ok) throw new Error(await response.text());
+      const response = await apiRequest("POST", "/api/account/link-wallet", { walletAddress });
       return response.json();
     },
     onSuccess: () => {
@@ -117,10 +112,7 @@ export default function AccountPage() {
   // Send verification email mutation
   const sendVerificationMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/account/send-verification", {
-        method: "POST",
-      });
-      if (!response.ok) throw new Error(await response.text());
+      const response = await apiRequest("POST", "/api/account/send-verification");
       return response.json();
     },
     onSuccess: () => {
@@ -141,12 +133,7 @@ export default function AccountPage() {
   // Update notifications mutation
   const updateNotificationsMutation = useMutation({
     mutationFn: async (data: { notifyPaymentsDue: boolean; notifyRentalReminders: boolean }) => {
-      const response = await fetch("/api/account/notifications", {
-        method: "PATCH",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!response.ok) throw new Error(await response.text());
+      const response = await apiRequest("PATCH", "/api/account/notifications", data);
       return response.json();
     },
     onSuccess: () => {
@@ -160,13 +147,8 @@ export default function AccountPage() {
 
   // Update social handles mutation
   const updateSocialHandlesMutation = useMutation({
-    mutationFn: async (data: { twitterHandle?: string; telegramHandle?: string; discordHandle?: string }) => {
-      const response = await fetch("/api/account/social-handles", {
-        method: "PATCH",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!response.ok) throw new Error(await response.text());
+    mutationFn: async (data: { twitterHandle?: string; telegramHandle?: string; discordHandle?: string; instagramHandle?: string; telegramGroupLink?: string; websiteUrl?: string; bio?: string }) => {
+      const response = await apiRequest("PATCH", "/api/account/social-handles", data);
       return response.json();
     },
     onSuccess: () => {
@@ -181,13 +163,7 @@ export default function AccountPage() {
   // Generate Solturio wallet mutation
   const generateWalletMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/account/generate-solturio-wallet", {
-        method: "POST",
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to generate wallet");
-      }
+      const response = await apiRequest("POST", "/api/account/generate-solturio-wallet");
       return response.json();
     },
     onSuccess: () => {
@@ -209,13 +185,7 @@ export default function AccountPage() {
   // Export private key mutation
   const exportPrivateKeyMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/account/export-private-key", {
-        method: "POST",
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to export private key");
-      }
+      const response = await apiRequest("POST", "/api/account/export-private-key");
       return response.json();
     },
     onSuccess: (data) => {
