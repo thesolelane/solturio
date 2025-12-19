@@ -223,7 +223,49 @@ async function extractImageMetadata(buffer: Buffer, mimetype: string) {
 }
 
 // Import pricing configuration
-import { PRICING, isEligibleForFreeUpload, getRemainingFreeUploads } from "@shared/pricing";
+import { PRICING, isEligibleForFreeUpload, getRemainingFreeUploads, isAdminEmail } from "@shared/pricing";
+import { checkSubscriptionStatus, checkFreeAccess } from "./subscription-service";
+
+// Middleware to check active subscription for creation actions
+async function requireActiveSubscription(req: any, res: any, next: any) {
+  try {
+    if (!req.user?.claims?.sub) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    const userId = req.user.claims.sub;
+    const user = await storage.getUser(userId);
+    
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    // Admin emails always have access
+    if (user.email && isAdminEmail(user.email)) {
+      return next();
+    }
+
+    // Check subscription status
+    const status = await checkSubscriptionStatus(userId);
+    
+    if (status.isActive) {
+      return next();
+    }
+
+    // Expired or pending accounts cannot create new content
+    return res.status(403).json({ 
+      message: "Active subscription required",
+      accountStatus: status.status,
+      action: "activate_subscription",
+      details: status.status === 'expired' 
+        ? "Your subscription has expired. Renew to create new registrations. Your existing data is preserved."
+        : "Please activate your account with a $CATH payment to register new logos and artwork."
+    });
+  } catch (error: any) {
+    console.error("Subscription check error:", error);
+    return res.status(500).json({ message: "Failed to verify subscription status" });
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication
@@ -785,7 +827,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Logo metadata registration endpoint (NO file storage - files stored in user's .solturio.sol wallet)
-  app.post('/api/logos/upload', isAuthenticated, upload.array('logos', 50), async (req: any, res) => {
+  app.post('/api/logos/upload', isAuthenticated, requireActiveSubscription, upload.array('logos', 50), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
@@ -966,7 +1008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Token Launch Template Registration
-  app.post('/api/logos/upload-token', isAuthenticated, upload.single('file'), async (req: any, res) => {
+  app.post('/api/logos/upload-token', isAuthenticated, requireActiveSubscription, upload.single('file'), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
@@ -1047,7 +1089,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Artwork Template Registration
-  app.post('/api/logos/upload-artwork', isAuthenticated, upload.single('file'), async (req: any, res) => {
+  app.post('/api/logos/upload-artwork', isAuthenticated, requireActiveSubscription, upload.single('file'), async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);

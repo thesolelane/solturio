@@ -35,6 +35,7 @@ import {
   Trash2
 } from "lucide-react";
 import { Link } from "wouter";
+import { TokenAdminPanel } from "@/components/TokenAdminPanel";
 
 const ADMIN_EMAILS = [
   "admin@solturio.app",
@@ -468,8 +469,9 @@ export default function AdminDashboard() {
 
       {/* Admin Tools Tabs */}
       <Tabs defaultValue="treasury" className="space-y-4">
-        <TabsList className="grid grid-cols-6 w-full">
+        <TabsList className="grid grid-cols-7 w-full">
           <TabsTrigger value="treasury" data-testid="tab-treasury">Treasury</TabsTrigger>
+          <TabsTrigger value="tokens" data-testid="tab-tokens">Tokens</TabsTrigger>
           <TabsTrigger value="compliance" data-testid="tab-compliance">Compliance</TabsTrigger>
           <TabsTrigger value="partnerships" data-testid="tab-partnerships">Partnerships</TabsTrigger>
           <TabsTrigger value="operations" data-testid="tab-operations">Operations</TabsTrigger>
@@ -712,6 +714,11 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* Token Registry Tab */}
+        <TabsContent value="tokens" className="space-y-4">
+          <TokenAdminPanel isAdmin={isAdmin} />
         </TabsContent>
 
         {/* New Compliance Tab */}
