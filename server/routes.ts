@@ -242,8 +242,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all minted collections with their creators
       const allCollections = await storage.getAllMintedCollections();
       
-      // Filter based on search criteria
-      const results = allCollections.filter(collection => {
+      // Filter to only public collections, then apply search criteria
+      const publicCollections = allCollections.filter(c => c.isPublic !== false);
+      const results = publicCollections.filter(collection => {
         if (searchType === 'ticker') {
           return collection.ticker?.toLowerCase().includes(searchQuery);
         } else if (searchType === 'social') {
@@ -734,6 +735,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching collection:", error);
       res.status(500).json({ message: "Failed to fetch collection" });
+    }
+  });
+
+  // Toggle collection visibility (public/private)
+  app.patch('/api/collections/:id/visibility', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const collectionId = req.params.id;
+      const { isPublic } = req.body;
+
+      if (typeof isPublic !== 'boolean') {
+        return res.status(400).json({ message: "isPublic must be a boolean" });
+      }
+
+      const collection = await storage.getCollection(collectionId);
+      if (!collection) {
+        return res.status(404).json({ message: "Collection not found" });
+      }
+
+      if (collection.userId !== userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      const updated = await storage.updateCollection(collectionId, { isPublic });
+      res.json({ success: true, isPublic: updated.isPublic });
+    } catch (error) {
+      console.error("Error updating collection visibility:", error);
+      res.status(500).json({ message: "Failed to update visibility" });
     }
   });
 

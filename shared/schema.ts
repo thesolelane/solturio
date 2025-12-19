@@ -213,6 +213,9 @@ export const collections = pgTable("collections", {
   status: varchar("status", { length: 20 }).notNull().default('draft'), // draft, pending, minted, failed
   mintedAt: timestamp("minted_at"),
   
+  // Privacy settings
+  isPublic: boolean("is_public").notNull().default(true), // Whether collection appears in public search
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
