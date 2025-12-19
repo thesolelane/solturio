@@ -17,6 +17,17 @@ import { Link } from "wouter";
 import type { LicenseContract } from "@shared/schema";
 import { PLATFORM_BITS, LICENSE_TYPES } from "@shared/schema";
 
+const JURISDICTION_NAMES: Record<string, string> = {
+  US: 'United States',
+  EU: 'European Union',
+  UK: 'United Kingdom',
+  CA: 'Canada',
+  JP: 'Japan',
+  SG: 'Singapore',
+  AU: 'Australia',
+  INTL: 'International',
+};
+
 type LicenseWithDetails = LicenseContract & {
   logo?: {
     id: string;
@@ -269,6 +280,36 @@ export default function Licenses() {
 
                     <CollapsibleContent>
                       <div className="px-6 pb-6 space-y-4">
+                        {license.imageColorPalette && license.imageColorPalette.length > 0 && (
+                          <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg mb-4">
+                            <div className="flex-shrink-0">
+                              <p className="text-xs text-muted-foreground mb-1">Image Colors</p>
+                              <div className="flex gap-1">
+                                {license.imageColorPalette.slice(0, 6).map((color: string, i: number) => (
+                                  <div 
+                                    key={i} 
+                                    className="w-5 h-5 rounded border" 
+                                    style={{ backgroundColor: color }}
+                                    title={color}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            {license.imageCreatedAt && (
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">Image Registered</p>
+                                <p className="text-sm font-medium">{formatDate(license.imageCreatedAt)}</p>
+                              </div>
+                            )}
+                            {license.licenseIssuedAt && (
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-1">License Issued</p>
+                                <p className="text-sm font-medium">{formatDate(license.licenseIssuedAt)}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           <div>
                             <p className="text-xs text-muted-foreground mb-1">License Type</p>
@@ -281,6 +322,10 @@ export default function Licenses() {
                             <p className="text-sm font-medium">
                               {license.isPerpetual ? 'Perpetual' : license.durationDays ? `${license.durationDays} days` : 'Not specified'}
                             </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Jurisdiction</p>
+                            <p className="text-sm font-medium">{JURISDICTION_NAMES[license.jurisdictionCode || 'US'] || license.jurisdictionCode || 'United States'}</p>
                           </div>
                           <div>
                             <p className="text-xs text-muted-foreground mb-1">Territory</p>
@@ -332,6 +377,42 @@ export default function Licenses() {
                               {license.canModify && <Badge variant="outline" className="text-xs">Modify</Badge>}
                               {license.canSublicense && <Badge variant="outline" className="text-xs">Sublicense</Badge>}
                               {license.canTransfer && <Badge variant="outline" className="text-xs">Transfer</Badge>}
+                            </div>
+                          </div>
+                        )}
+
+                        {(license.currentHolderName || license.currentHolderWallet) && (
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-2">Current Holder</p>
+                            <div className="text-sm">
+                              {license.currentHolderName && <p className="font-medium">{license.currentHolderName}</p>}
+                              {license.currentHolderWallet && (
+                                <code className="text-xs font-mono text-muted-foreground">{license.currentHolderWallet.slice(0, 8)}...{license.currentHolderWallet.slice(-4)}</code>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {license.governingLaw && (
+                          <div className="p-3 bg-muted/30 rounded-lg">
+                            <p className="text-xs text-muted-foreground mb-2">Legal Framework</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <span className="text-muted-foreground">Governing Law: </span>
+                                <span className="font-medium">{license.governingLaw}</span>
+                              </div>
+                              {license.disputeVenue && (
+                                <div>
+                                  <span className="text-muted-foreground">Dispute Venue: </span>
+                                  <span className="font-medium">{license.disputeVenue}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {license.gdprCompliant && <Badge variant="secondary" className="text-xs">GDPR</Badge>}
+                              {license.pipedaCompliant && <Badge variant="secondary" className="text-xs">PIPEDA</Badge>}
+                              {license.pdpaCompliant && <Badge variant="secondary" className="text-xs">PDPA</Badge>}
+                              {license.appiCompliant && <Badge variant="secondary" className="text-xs">APPI</Badge>}
                             </div>
                           </div>
                         )}

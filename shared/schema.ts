@@ -1529,7 +1529,7 @@ export const insertLicenseContractSchema = createInsertSchema(licenseContracts).
   licenseType: z.enum(['exclusive', 'non_exclusive', 'work_for_hire', 'full_transfer']),
   geographicScope: z.enum(['worldwide', 'specific']).optional(),
   usagePurpose: z.enum(['personal', 'commercial', 'both']).optional(),
-  jurisdictionCode: z.enum(['US', 'EU', 'UK', 'CA', 'JP', 'SG', 'AU', 'INTL']).optional().default('US'),
+  jurisdictionCode: z.enum(['US', 'EU', 'UK', 'CA', 'JP', 'SG', 'AU', 'INTL']).default('US'),
   arbitrationAgreed: z.boolean().refine(val => val === true, { message: 'Arbitration agreement is required' }),
   indemnificationAgreed: z.boolean().refine(val => val === true, { message: 'Indemnification agreement is required' }),
 });

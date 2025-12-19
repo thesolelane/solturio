@@ -99,10 +99,22 @@ export default function CreateLicense() {
     autoRenew: false,
     renewalNoticeDays: 30,
     revocationConditions: '',
+    jurisdictionCode: 'US' as 'US' | 'EU' | 'UK' | 'CA' | 'JP' | 'SG' | 'AU' | 'INTL',
     arbitrationAgreed: false,
     indemnificationAgreed: false,
     customTerms: '',
   });
+
+  const JURISDICTION_OPTIONS = [
+    { code: 'US', name: 'United States', description: 'Delaware law, AAA arbitration, DMCA compliance' },
+    { code: 'EU', name: 'European Union', description: 'GDPR compliant, ICC arbitration, moral rights preserved' },
+    { code: 'UK', name: 'United Kingdom', description: 'UK GDPR, LCIA arbitration, Consumer Rights Act' },
+    { code: 'CA', name: 'Canada', description: 'PIPEDA compliant, bilingual support, moral rights' },
+    { code: 'JP', name: 'Japan', description: 'APPI compliant, JCAA arbitration, strong moral rights' },
+    { code: 'SG', name: 'Singapore', description: 'PDPA compliant, SIAC arbitration' },
+    { code: 'AU', name: 'Australia', description: 'Privacy Act, ACICA arbitration, consumer law' },
+    { code: 'INTL', name: 'International', description: 'UNIDROIT principles, UNCITRAL arbitration, neutral venue' },
+  ];
 
   const { data: logos, isLoading: logosLoading } = useQuery<Logo[]>({
     queryKey: ['/api/logos'],
@@ -815,11 +827,70 @@ export default function CreateLicense() {
           {currentStep === 7 && (
             <div className="space-y-6">
               <div>
-                <Label className="text-lg font-semibold">Legal Agreements</Label>
+                <Label className="text-lg font-semibold">Legal Agreements & Jurisdiction</Label>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Both parties must agree to these terms for the license to be valid
+                  Select the governing jurisdiction and agree to required terms
                 </p>
               </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label className="font-medium">Governing Jurisdiction</Label>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Select the legal framework that will govern this license agreement
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {JURISDICTION_OPTIONS.map((j) => (
+                      <div
+                        key={j.code}
+                        onClick={() => setFormData(prev => ({ ...prev, jurisdictionCode: j.code as typeof formData.jurisdictionCode }))}
+                        className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                          formData.jurisdictionCode === j.code 
+                            ? 'border-primary bg-primary/10' 
+                            : 'hover-elevate'
+                        }`}
+                        data-testid={`jurisdiction-${j.code.toLowerCase()}`}
+                      >
+                        <div className="font-medium text-sm">{j.name}</div>
+                        <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{j.description}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {(formData.jurisdictionCode === 'EU' || formData.jurisdictionCode === 'UK') && (
+                  <Alert className="bg-blue-500/10 border-blue-500/20">
+                    <Globe className="h-4 w-4 text-blue-500" />
+                    <AlertTitle className="text-blue-600">GDPR Compliance</AlertTitle>
+                    <AlertDescription className="text-sm">
+                      This jurisdiction requires GDPR compliance. Personal data will be processed according to GDPR requirements. 
+                      Data subjects retain rights under Articles 15-22.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {formData.jurisdictionCode === 'CA' && (
+                  <Alert className="bg-amber-500/10 border-amber-500/20">
+                    <Globe className="h-4 w-4 text-amber-500" />
+                    <AlertTitle className="text-amber-600">Canadian Requirements</AlertTitle>
+                    <AlertDescription className="text-sm">
+                      This jurisdiction requires PIPEDA compliance. For Quebec users, bilingual documentation is available.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {formData.jurisdictionCode === 'JP' && (
+                  <Alert className="bg-rose-500/10 border-rose-500/20">
+                    <Globe className="h-4 w-4 text-rose-500" />
+                    <AlertTitle className="text-rose-600">Japanese Requirements</AlertTitle>
+                    <AlertDescription className="text-sm">
+                      Japan strongly protects moral rights (著作者人格権). These cannot be waived under this agreement.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+
+              <Separator />
 
               <Alert variant="destructive" className="bg-destructive/10">
                 <Scale className="h-4 w-4" />
@@ -935,13 +1006,47 @@ export default function CreateLicense() {
 
               <Separator />
 
+              <div className="bg-muted/50 rounded-lg p-4 space-y-4">
+                <h3 className="font-semibold">Asset Information</h3>
+                <div className="flex items-start gap-4">
+                  {selectedLogo?.thumbnailUrl && (
+                    <img 
+                      src={selectedLogo.thumbnailUrl} 
+                      alt={selectedLogo.fileName} 
+                      className="w-20 h-20 rounded-lg object-cover border"
+                    />
+                  )}
+                  <div className="flex-1 text-sm space-y-2">
+                    <div>
+                      <span className="text-muted-foreground">File Name:</span>
+                      <p className="font-medium">{selectedLogo?.fileName}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Registered:</span>
+                      <p className="font-medium">{selectedLogo?.createdAt ? new Date(selectedLogo.createdAt).toLocaleDateString() : 'Unknown'}</p>
+                    </div>
+                    {selectedLogo?.colorPalette && selectedLogo.colorPalette.length > 0 && (
+                      <div>
+                        <span className="text-muted-foreground">Color Palette:</span>
+                        <div className="flex gap-1 mt-1">
+                          {selectedLogo.colorPalette.slice(0, 6).map((color, i) => (
+                            <div 
+                              key={i} 
+                              className="w-6 h-6 rounded border" 
+                              style={{ backgroundColor: color }}
+                              title={color}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                 <h3 className="font-semibold">License Summary</h3>
                 <div className="grid md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Artwork:</span>
-                    <p className="font-medium">{selectedLogo?.fileName}</p>
-                  </div>
                   <div>
                     <span className="text-muted-foreground">Template:</span>
                     <p className="font-medium">{selectedTemplate === 'custom' ? 'Custom' : LICENSE_TEMPLATES[selectedTemplate as keyof typeof LICENSE_TEMPLATES]?.name}</p>
@@ -955,6 +1060,10 @@ export default function CreateLicense() {
                     <p className="font-medium">{formData.isPerpetual ? 'Perpetual' : `${formData.durationDays} days`}</p>
                   </div>
                   <div>
+                    <span className="text-muted-foreground">Jurisdiction:</span>
+                    <p className="font-medium">{JURISDICTION_OPTIONS.find(j => j.code === formData.jurisdictionCode)?.name || formData.jurisdictionCode}</p>
+                  </div>
+                  <div>
                     <span className="text-muted-foreground">Platforms:</span>
                     <p className="font-medium">{enabledPlatforms.length > 0 ? enabledPlatforms.join(', ').replace(/_/g, ' ') : 'None selected'}</p>
                   </div>
@@ -962,7 +1071,7 @@ export default function CreateLicense() {
                     <span className="text-muted-foreground">Geographic Scope:</span>
                     <p className="font-medium capitalize">{formData.geographicScope}</p>
                   </div>
-                  <div>
+                  <div className="md:col-span-2">
                     <span className="text-muted-foreground">Rights:</span>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {formData.canTransfer && <Badge variant="secondary">Transfer</Badge>}
