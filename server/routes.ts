@@ -23,6 +23,7 @@ import { generatePriorArtCertificate, generateDMCATakedownNotice, generateCeaseA
 import { isSolturioWallet, getRestrictionErrorMessage } from "./wallet-restrictions";
 import { verifyPayment, isTransactionUsed } from "./payment-verification";
 import { licensesRouter } from "./licenses";
+import { licenseRouter } from "./license-routes";
 import { treasuryRouter } from "./treasury";
 import { ipRegistrationRouter } from "./ip-registration";
 import { subdomainsRouter } from "./subdomains";
@@ -3225,6 +3226,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api", subscriptionRouter);
   app.use("/api", rewardsRouter);
   app.use("/api", tokensRouter);
+  
+  // Comprehensive License Smart Contract Routes
+  app.use("/api/licenses", licenseRouter);
 
   // Phase 4: Register IP Registration, Subdomains, and Security Challenge Routers
   app.use("/api", ipRegistrationRouter);

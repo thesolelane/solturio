@@ -9,6 +9,7 @@ import {
   kycStatus,
   complianceTriggerRules,
   complianceCases,
+  licenseContracts,
   type User,
   type UpsertUser,
   type Logo,
@@ -26,6 +27,8 @@ import {
   type InsertKycStatus,
   type ComplianceTriggerRule,
   type ComplianceCase,
+  type LicenseContract,
+  type InsertLicenseContract,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, sql } from "drizzle-orm";
@@ -138,6 +141,17 @@ export interface IStorage {
   getComplianceCases(status?: string): Promise<ComplianceCase[]>;
   getComplianceCaseByNumber(caseNumber: string): Promise<ComplianceCase | undefined>;
   updateComplianceCase(id: string, data: Partial<ComplianceCase>): Promise<ComplianceCase>;
+  
+  // License Contract operations
+  createLicenseContract(license: InsertLicenseContract): Promise<LicenseContract>;
+  getLicenseContract(id: string): Promise<LicenseContract | undefined>;
+  getLicenseContractBySlug(slug: string): Promise<LicenseContract | undefined>;
+  getLicenseContractsByLicensor(userId: string): Promise<LicenseContract[]>;
+  getLicenseContractsByLicensee(walletAddress: string): Promise<LicenseContract[]>;
+  getLicenseContractsByLogo(logoId: string): Promise<LicenseContract[]>;
+  updateLicenseContract(id: string, data: Partial<LicenseContract>): Promise<LicenseContract>;
+  signLicenseContractAsLicensor(id: string, signature: string): Promise<LicenseContract>;
+  signLicenseContractAsLicensee(id: string, signature: string): Promise<LicenseContract>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -815,6 +829,94 @@ export class DatabaseStorage implements IStorage {
       .update(complianceCases)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(complianceCases.id, id))
+      .returning();
+    return updated;
+  }
+
+  // License Contract operations
+  async createLicenseContract(license: InsertLicenseContract): Promise<LicenseContract> {
+    // Generate shareable slug
+    const slug = `lic-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 8)}`;
+    const [created] = await db
+      .insert(licenseContracts)
+      .values({ ...license, shareableSlug: slug } as any)
+      .returning();
+    return created;
+  }
+
+  async getLicenseContract(id: string): Promise<LicenseContract | undefined> {
+    const [license] = await db
+      .select()
+      .from(licenseContracts)
+      .where(eq(licenseContracts.id, id));
+    return license;
+  }
+
+  async getLicenseContractBySlug(slug: string): Promise<LicenseContract | undefined> {
+    const [license] = await db
+      .select()
+      .from(licenseContracts)
+      .where(eq(licenseContracts.shareableSlug, slug));
+    return license;
+  }
+
+  async getLicenseContractsByLicensor(userId: string): Promise<LicenseContract[]> {
+    return db
+      .select()
+      .from(licenseContracts)
+      .where(eq(licenseContracts.licensorUserId, userId))
+      .orderBy(desc(licenseContracts.createdAt));
+  }
+
+  async getLicenseContractsByLicensee(walletAddress: string): Promise<LicenseContract[]> {
+    return db
+      .select()
+      .from(licenseContracts)
+      .where(eq(licenseContracts.licenseeWallet, walletAddress))
+      .orderBy(desc(licenseContracts.createdAt));
+  }
+
+  async getLicenseContractsByLogo(logoId: string): Promise<LicenseContract[]> {
+    return db
+      .select()
+      .from(licenseContracts)
+      .where(eq(licenseContracts.logoId, logoId))
+      .orderBy(desc(licenseContracts.createdAt));
+  }
+
+  async updateLicenseContract(id: string, data: Partial<LicenseContract>): Promise<LicenseContract> {
+    const [updated] = await db
+      .update(licenseContracts)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(licenseContracts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async signLicenseContractAsLicensor(id: string, signature: string): Promise<LicenseContract> {
+    const [updated] = await db
+      .update(licenseContracts)
+      .set({
+        licensorSignature: signature,
+        licensorSignedAt: new Date(),
+        status: 'pending_licensee_signature',
+        updatedAt: new Date(),
+      })
+      .where(eq(licenseContracts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async signLicenseContractAsLicensee(id: string, signature: string): Promise<LicenseContract> {
+    const [updated] = await db
+      .update(licenseContracts)
+      .set({
+        licenseeSignature: signature,
+        licenseeSignedAt: new Date(),
+        status: 'pending_payment',
+        updatedAt: new Date(),
+      })
+      .where(eq(licenseContracts.id, id))
       .returning();
     return updated;
   }
