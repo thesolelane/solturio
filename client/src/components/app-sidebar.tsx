@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button";
 const ADMIN_EMAILS = [
   "admin@solturio.app",
   "acooper@cooperanth.com",
+  "cooper@preferredbuildsusa.com",
 ];
 
 export function AppSidebar() {
