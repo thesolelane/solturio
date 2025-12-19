@@ -36,6 +36,12 @@ export default function DiscoverPage() {
 
   const { data: results, isLoading, refetch } = useQuery<PublicCollection[]>({
     queryKey: ["/api/public/search", searchQuery, searchType],
+    queryFn: async () => {
+      const params = new URLSearchParams({ query: searchQuery, type: searchType });
+      const res = await fetch(`/api/public/search?${params}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Search failed");
+      return res.json();
+    },
     enabled: searchQuery.length >= 2,
   });
 
