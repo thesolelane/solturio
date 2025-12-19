@@ -1286,9 +1286,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/account/social-handles', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { twitterHandle, telegramHandle, discordHandle } = req.body;
+      const { twitterHandle, telegramHandle, discordHandle, instagramHandle, telegramGroupLink, websiteUrl, bio } = req.body;
 
-      // Basic validation - remove @ symbols if included
+      // Basic validation - remove @ symbols if included for handle fields
       const cleanHandles: any = {};
       if (twitterHandle !== undefined) {
         cleanHandles.twitterHandle = twitterHandle ? twitterHandle.replace(/^@/, '') : null;
@@ -1298,6 +1298,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       if (discordHandle !== undefined) {
         cleanHandles.discordHandle = discordHandle || null;
+      }
+      if (instagramHandle !== undefined) {
+        cleanHandles.instagramHandle = instagramHandle ? instagramHandle.replace(/^@/, '') : null;
+      }
+      if (telegramGroupLink !== undefined) {
+        cleanHandles.telegramGroupLink = telegramGroupLink || null;
+      }
+      if (websiteUrl !== undefined) {
+        cleanHandles.websiteUrl = websiteUrl || null;
+      }
+      if (bio !== undefined) {
+        cleanHandles.bio = bio || null;
       }
 
       const user = await storage.updateSocialHandles(userId, cleanHandles);

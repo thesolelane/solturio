@@ -27,7 +27,7 @@ export interface IStorage {
   updateWalletAddress(userId: string, walletAddress: string): Promise<User>;
   updateEmailVerified(userId: string, verified: boolean): Promise<User>;
   updateNotificationPreferences(userId: string, notifyPaymentsDue: boolean, notifyRentalReminders: boolean): Promise<User>;
-  updateSocialHandles(userId: string, handles: { twitterHandle?: string; telegramHandle?: string; discordHandle?: string }): Promise<User>;
+  updateSocialHandles(userId: string, handles: { twitterHandle?: string; telegramHandle?: string; discordHandle?: string; instagramHandle?: string; telegramGroupLink?: string; websiteUrl?: string; bio?: string }): Promise<User>;
   createSolturioWallet(userId: string, publicKey: string, encryptedPrivateKey: string): Promise<User>;
   markPrivateKeyExported(userId: string): Promise<User>;
   getAllUsers(): Promise<User[]>;
@@ -162,7 +162,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateSocialHandles(
     userId: string,
-    handles: { twitterHandle?: string; telegramHandle?: string; discordHandle?: string }
+    handles: { twitterHandle?: string; telegramHandle?: string; discordHandle?: string; instagramHandle?: string; telegramGroupLink?: string; websiteUrl?: string; bio?: string }
   ): Promise<User> {
     const [user] = await db
       .update(users)

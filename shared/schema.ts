@@ -60,6 +60,10 @@ export const users = pgTable("users", {
   twitterHandle: varchar("twitter_handle"),
   telegramHandle: varchar("telegram_handle"),
   discordHandle: varchar("discord_handle"),
+  instagramHandle: varchar("instagram_handle"),
+  telegramGroupLink: varchar("telegram_group_link"), // TG group/channel link
+  websiteUrl: varchar("website_url"),
+  bio: text("bio"), // Company or community bio
   
   // Account preferences
   notifyPaymentsDue: boolean("notify_payments_due").default(true),

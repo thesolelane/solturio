@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Shield, Wallet, Mail, Bell, CheckCircle2, AlertCircle, Loader2, Twitter, Send, MessageSquare, Key, Copy, Download, ExternalLink, Github, Moon, Sun, Palette } from "lucide-react";
+import { Shield, Wallet, Mail, Bell, CheckCircle2, AlertCircle, Loader2, Twitter, Send, MessageSquare, Key, Copy, Download, ExternalLink, Github, Moon, Sun, Palette, Instagram, Users, Globe, FileText } from "lucide-react";
 import { GitHubLink } from "@/components/github-link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -36,6 +37,10 @@ export default function AccountPage() {
     twitterHandle: "",
     telegramHandle: "",
     discordHandle: "",
+    instagramHandle: "",
+    telegramGroupLink: "",
+    websiteUrl: "",
+    bio: "",
   });
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [exportedPrivateKey, setExportedPrivateKey] = useState<number[] | null>(null);
@@ -265,6 +270,10 @@ export default function AccountPage() {
         twitterHandle: user.twitterHandle || "",
         telegramHandle: user.telegramHandle || "",
         discordHandle: user.discordHandle || "",
+        instagramHandle: user.instagramHandle || "",
+        telegramGroupLink: user.telegramGroupLink || "",
+        websiteUrl: user.websiteUrl || "",
+        bio: user.bio || "",
       });
     }
   }, [user]);
@@ -817,6 +826,116 @@ export default function AccountPage() {
                   data-testid="button-save-discord"
                 >
                   Save
+                </Button>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Instagram */}
+            <div>
+              <Label htmlFor="instagram-handle" className="flex items-center gap-2 mb-2">
+                <Instagram className="w-4 h-4" />
+                Instagram
+              </Label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+                  <Input
+                    id="instagram-handle"
+                    placeholder="username"
+                    value={socialHandles.instagramHandle}
+                    onChange={(e) => setSocialHandles({ ...socialHandles, instagramHandle: e.target.value })}
+                    className="pl-7"
+                    data-testid="input-instagram"
+                  />
+                </div>
+                <Button
+                  onClick={() => updateSocialHandlesMutation.mutate({ instagramHandle: socialHandles.instagramHandle })}
+                  disabled={updateSocialHandlesMutation.isPending}
+                  data-testid="button-save-instagram"
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Telegram Group */}
+            <div>
+              <Label htmlFor="telegram-group" className="flex items-center gap-2 mb-2">
+                <Users className="w-4 h-4" />
+                Telegram Group / Channel
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="telegram-group"
+                  placeholder="https://t.me/yourgroup"
+                  value={socialHandles.telegramGroupLink}
+                  onChange={(e) => setSocialHandles({ ...socialHandles, telegramGroupLink: e.target.value })}
+                  data-testid="input-telegram-group"
+                />
+                <Button
+                  onClick={() => updateSocialHandlesMutation.mutate({ telegramGroupLink: socialHandles.telegramGroupLink })}
+                  disabled={updateSocialHandlesMutation.isPending}
+                  data-testid="button-save-telegram-group"
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Website */}
+            <div>
+              <Label htmlFor="website" className="flex items-center gap-2 mb-2">
+                <Globe className="w-4 h-4" />
+                Website
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="website"
+                  placeholder="https://yourwebsite.com"
+                  value={socialHandles.websiteUrl}
+                  onChange={(e) => setSocialHandles({ ...socialHandles, websiteUrl: e.target.value })}
+                  data-testid="input-website"
+                />
+                <Button
+                  onClick={() => updateSocialHandlesMutation.mutate({ websiteUrl: socialHandles.websiteUrl })}
+                  disabled={updateSocialHandlesMutation.isPending}
+                  data-testid="button-save-website"
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Bio */}
+            <div>
+              <Label htmlFor="bio" className="flex items-center gap-2 mb-2">
+                <FileText className="w-4 h-4" />
+                Company / Community Bio
+              </Label>
+              <div className="space-y-2">
+                <Textarea
+                  id="bio"
+                  placeholder="Tell us about your company or community..."
+                  value={socialHandles.bio}
+                  onChange={(e) => setSocialHandles({ ...socialHandles, bio: e.target.value })}
+                  rows={4}
+                  data-testid="input-bio"
+                />
+                <Button
+                  onClick={() => updateSocialHandlesMutation.mutate({ bio: socialHandles.bio })}
+                  disabled={updateSocialHandlesMutation.isPending}
+                  className="w-full sm:w-auto"
+                  data-testid="button-save-bio"
+                >
+                  Save Bio
                 </Button>
               </div>
             </div>
