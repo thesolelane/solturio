@@ -323,6 +323,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================
+  // ADMIN ENDPOINTS
+  // ============================================
+  
+  const ADMIN_EMAILS = [
+    "admin@solturio.app",
+    "acooper@cooperanth.com",
+    "cooper@preferredbuildersusa.com",
+  ];
+
+  // Admin middleware with proper error handling
+  const isAdmin = async (req: any, res: any, next: any) => {
+    if (!req.user?.claims?.sub) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user?.email || !ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      next();
+    } catch (error) {
+      console.error("Admin middleware error:", error);
+      return res.status(500).json({ message: "Failed to verify admin access" });
+    }
+  };
+
+  // Admin platform stats - real data from database
+  app.get('/api/admin/stats', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      const mintedCollections = await storage.getAllMintedCollections();
+      
+      // Count total logos across all users
+      let totalLogos = 0;
+      for (const user of allUsers) {
+        const userLogos = await storage.getLogosByUserId(user.id);
+        totalLogos += userLogos.length;
+      }
+      
+      // Count users with wallets
+      const usersWithWallets = allUsers.filter(u => u.solturioWalletAddress).length;
+      
+      res.json({
+        totalUsers: allUsers.length,
+        logosProtected: totalLogos,
+        mintedCollections: mintedCollections.length,
+        usersWithWallets,
+        // DEX partnerships - placeholder until we have a partnerships table
+        partnerDexs: 0,
+        pendingDexs: 0,
+      });
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ message: "Failed to fetch admin stats" });
+    }
+  });
+
+  // Admin wallet balances - SOL and Arweave
+  app.get('/api/admin/wallets', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      // Get Arweave balance
+      const arweaveBalance = await arweaveService.getWalletBalance();
+      const arweaveAddress = await arweaveService.getWalletAddress();
+      
+      // SOL balance - we need a platform treasury wallet
+      // For now, return placeholder until treasury wallet is configured
+      const solBalance = null;
+      const solAddress = null;
+      
+      res.json({
+        arweave: {
+          balance: arweaveBalance,
+          address: arweaveAddress,
+          unit: "AR",
+        },
+        solana: {
+          balance: solBalance,
+          address: solAddress,
+          unit: "SOL",
+          network: "devnet", // Will change to mainnet for production
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching wallet balances:", error);
+      res.status(500).json({ message: "Failed to fetch wallet balances" });
+    }
+  });
+
   // Logo metadata registration endpoint (NO file storage - files stored in user's .solturio.sol wallet)
   app.post('/api/logos/upload', isAuthenticated, upload.array('logos', 50), async (req: any, res) => {
     try {

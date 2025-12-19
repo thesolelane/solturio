@@ -48,6 +48,19 @@ class ArweaveService {
     }
   }
 
+  async getWalletAddress(): Promise<string | null> {
+    if (!this.wallet) {
+      return null;
+    }
+
+    try {
+      return await this.arweave.wallets.jwkToAddress(this.wallet);
+    } catch (error) {
+      console.error("Arweave: Failed to get wallet address:", error);
+      return null;
+    }
+  }
+
   async uploadFile(
     fileBuffer: Buffer,
     contentType: string,
