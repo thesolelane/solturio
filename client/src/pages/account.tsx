@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Shield, Wallet, Mail, Bell, CheckCircle2, AlertCircle, Loader2, Twitter, Send, MessageSquare, Key, Copy, Download, ExternalLink, Github } from "lucide-react";
+import { Shield, Wallet, Mail, Bell, CheckCircle2, AlertCircle, Loader2, Twitter, Send, MessageSquare, Key, Copy, Download, ExternalLink, Github, Moon, Sun, Palette } from "lucide-react";
 import { GitHubLink } from "@/components/github-link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -39,6 +39,28 @@ export default function AccountPage() {
   });
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [exportedPrivateKey, setExportedPrivateKey] = useState<number[] | null>(null);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  // Load theme on mount
+  useEffect(() => {
+    const stored = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (stored) {
+      setTheme(stored);
+    } else {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setTheme(prefersDark ? "dark" : "light");
+    }
+  }, []);
+
+  const toggleTheme = (newTheme: "light" | "dark") => {
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+    if (newTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
 
   // Set page title
   useEffect(() => {
@@ -668,6 +690,41 @@ export default function AccountPage() {
                     data-testid="switch-notify-rentals"
                   />
                 </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Appearance Settings */}
+        <Card className="p-6 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Palette className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold mb-4">Appearance</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Choose your preferred color scheme
+              </p>
+              <div className="flex gap-3">
+                <Button
+                  variant={theme === "light" ? "default" : "outline"}
+                  onClick={() => toggleTheme("light")}
+                  className="gap-2"
+                  data-testid="button-theme-light"
+                >
+                  <Sun className="w-4 h-4" />
+                  Light
+                </Button>
+                <Button
+                  variant={theme === "dark" ? "default" : "outline"}
+                  onClick={() => toggleTheme("dark")}
+                  className="gap-2"
+                  data-testid="button-theme-dark"
+                >
+                  <Moon className="w-4 h-4" />
+                  Dark
+                </Button>
               </div>
             </div>
           </div>
