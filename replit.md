@@ -112,6 +112,14 @@ Preferred communication style: Simple, everyday language.
 - ⏳ DEX copycat report UI (pending)
 - ⏳ Premium wallet naming UI (pending)
 
+### Phase 5: Treasury Wallet & AML/KYC Compliance ✅ COMPLETE
+- ✅ Database schema: 5 new tables (treasury_wallets, compliance_logs, kyc_status, compliance_trigger_rules, compliance_cases)
+- ✅ Treasury Wallet Management: 4 wallet types (funds, rewards, escrow, bank) with real-time Solana balance fetching
+- ✅ Admin API endpoints: Treasury CRUD (/api/admin/treasury/wallets), Compliance logs/triggers/cases endpoints
+- ✅ 10 Default AML/KYC Trigger Rules: Value thresholds ($2k 30-day, $10k single, $25k manual), velocity checks (8/24h, 20/7d, 5x spike), pricing anomalies (10x median), concentration patterns (60% single, 80% top 3)
+- ✅ Admin Dashboard Enhanced: Treasury tab with wallet cards, Add/Delete wallet dialogs, Compliance tab with trigger rules and case management
+- ✅ Tiered KYC System: Tier 0 (registry only), Tier 1 (light KYC for escrow), Tier 2 (enhanced verification on triggers)
+
 ## SC Integration Architecture
 
 ### App ↔ SC Communication Pattern

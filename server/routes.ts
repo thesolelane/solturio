@@ -49,6 +49,7 @@ import {
 import { createVerifiedImage, isCompositableImage } from "./services/image-compositing";
 import { VERIFICATION_ASSETS } from "@shared/verification-assets";
 import { arweaveService } from "./services/arweave";
+import { Connection, PublicKey } from "@solana/web3.js";
 
 // Setup file upload
 const upload = multer({ 
@@ -409,6 +410,374 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching wallet balances:", error);
       res.status(500).json({ message: "Failed to fetch wallet balances" });
+    }
+  });
+
+  // ============================================
+  // TREASURY WALLET MANAGEMENT ENDPOINTS
+  // ============================================
+
+  // Get all treasury wallets
+  app.get('/api/admin/treasury/wallets', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const wallets = await storage.getTreasuryWallets();
+      
+      // Fetch real-time SOL balances for each wallet
+      const walletsWithBalances = await Promise.all(wallets.map(async (wallet) => {
+        let balance = wallet.cachedBalance;
+        try {
+          // Fetch balance from Solana RPC
+          const connection = new Connection(
+            wallet.network === 'mainnet' 
+              ? 'https://api.mainnet-beta.solana.com' 
+              : 'https://api.devnet.solana.com'
+          );
+          const balanceLamports = await connection.getBalance(new PublicKey(wallet.address));
+          balance = (balanceLamports / 1e9).toFixed(6);
+          
+          // Update cached balance
+          await storage.updateTreasuryWallet(wallet.id, { 
+            cachedBalance: balance,
+            lastBalanceCheck: new Date()
+          });
+        } catch (err) {
+          console.error(`Failed to fetch balance for ${wallet.address}:`, err);
+        }
+        
+        return { ...wallet, cachedBalance: balance };
+      }));
+      
+      res.json(walletsWithBalances);
+    } catch (error) {
+      console.error("Error fetching treasury wallets:", error);
+      res.status(500).json({ message: "Failed to fetch treasury wallets" });
+    }
+  });
+
+  // Add a new treasury wallet
+  app.post('/api/admin/treasury/wallets', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { role, name, address, domainName, purpose, network, sweepThreshold, sweepSchedule, sweepDestination, requiredSignatures, authorizedSigners } = req.body;
+      
+      // Validate required fields
+      if (!role || !name || !address) {
+        return res.status(400).json({ message: "Role, name, and address are required" });
+      }
+      
+      // Check if wallet with this role already exists (except bank can have multiple)
+      if (role !== 'bank') {
+        const existing = await storage.getTreasuryWalletByRole(role);
+        if (existing) {
+          return res.status(400).json({ message: `A ${role} wallet already exists` });
+        }
+      }
+      
+      // Check if address is already registered
+      const existingAddress = await storage.getTreasuryWalletByAddress(address);
+      if (existingAddress) {
+        return res.status(400).json({ message: "This wallet address is already registered" });
+      }
+      
+      const userId = req.user.claims.sub;
+      const wallet = await storage.createTreasuryWallet({
+        role,
+        name,
+        address,
+        domainName,
+        purpose,
+        network: network || 'devnet',
+        sweepThreshold,
+        sweepSchedule,
+        sweepDestination,
+        requiredSignatures: requiredSignatures || 2,
+        authorizedSigners,
+        createdBy: userId,
+        status: 'active',
+        sweepEnabled: false,
+      });
+      
+      res.json(wallet);
+    } catch (error) {
+      console.error("Error creating treasury wallet:", error);
+      res.status(500).json({ message: "Failed to create treasury wallet" });
+    }
+  });
+
+  // Update a treasury wallet
+  app.patch('/api/admin/treasury/wallets/:id', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const wallet = await storage.updateTreasuryWallet(id, updates);
+      res.json(wallet);
+    } catch (error) {
+      console.error("Error updating treasury wallet:", error);
+      res.status(500).json({ message: "Failed to update treasury wallet" });
+    }
+  });
+
+  // Delete a treasury wallet
+  app.delete('/api/admin/treasury/wallets/:id', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteTreasuryWallet(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting treasury wallet:", error);
+      res.status(500).json({ message: "Failed to delete treasury wallet" });
+    }
+  });
+
+  // ============================================
+  // COMPLIANCE MANAGEMENT ENDPOINTS
+  // ============================================
+
+  // Get compliance logs
+  app.get('/api/admin/compliance/logs', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 100;
+      const offset = parseInt(req.query.offset as string) || 0;
+      const logs = await storage.getComplianceLogs(limit, offset);
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching compliance logs:", error);
+      res.status(500).json({ message: "Failed to fetch compliance logs" });
+    }
+  });
+
+  // Get compliance trigger rules
+  app.get('/api/admin/compliance/triggers', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const rules = await storage.getActiveTriggerRules();
+      res.json(rules);
+    } catch (error) {
+      console.error("Error fetching trigger rules:", error);
+      res.status(500).json({ message: "Failed to fetch trigger rules" });
+    }
+  });
+
+  // Create or update a trigger rule
+  app.post('/api/admin/compliance/triggers', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const rule = await storage.createTriggerRule(req.body);
+      res.json(rule);
+    } catch (error) {
+      console.error("Error creating trigger rule:", error);
+      res.status(500).json({ message: "Failed to create trigger rule" });
+    }
+  });
+
+  // Update a trigger rule
+  app.patch('/api/admin/compliance/triggers/:id', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const rule = await storage.updateTriggerRule(id, req.body);
+      res.json(rule);
+    } catch (error) {
+      console.error("Error updating trigger rule:", error);
+      res.status(500).json({ message: "Failed to update trigger rule" });
+    }
+  });
+
+  // Get compliance cases
+  app.get('/api/admin/compliance/cases', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const status = req.query.status as string | undefined;
+      const cases = await storage.getComplianceCases(status);
+      res.json(cases);
+    } catch (error) {
+      console.error("Error fetching compliance cases:", error);
+      res.status(500).json({ message: "Failed to fetch compliance cases" });
+    }
+  });
+
+  // Update a compliance case
+  app.patch('/api/admin/compliance/cases/:id', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const caseData = await storage.updateComplianceCase(id, req.body);
+      res.json(caseData);
+    } catch (error) {
+      console.error("Error updating compliance case:", error);
+      res.status(500).json({ message: "Failed to update compliance case" });
+    }
+  });
+
+  // Get user KYC status (admin viewing any user)
+  app.get('/api/admin/kyc/:userId', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const status = await storage.getKycStatus(userId);
+      res.json(status || { tier: '0', status: 'not_started' });
+    } catch (error) {
+      console.error("Error fetching KYC status:", error);
+      res.status(500).json({ message: "Failed to fetch KYC status" });
+    }
+  });
+
+  // Update user KYC status
+  app.patch('/api/admin/kyc/:userId', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const status = await storage.createOrUpdateKycStatus(userId, req.body);
+      res.json(status);
+    } catch (error) {
+      console.error("Error updating KYC status:", error);
+      res.status(500).json({ message: "Failed to update KYC status" });
+    }
+  });
+
+  // Seed default compliance trigger rules (based on user's AML/KYC policy)
+  app.post('/api/admin/compliance/seed-triggers', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const defaultRules = [
+        {
+          triggerCode: 'VALUE_30DAY_2K',
+          name: '30-Day Volume >= $2,000',
+          description: 'Rolling 30-day cumulative through escrow/installment contracts',
+          category: 'value',
+          thresholdValue: '2000',
+          thresholdPeriodDays: 30,
+          requiredTier: '2',
+          requiresDocuments: false,
+          requiresManualReview: false,
+          severity: 'medium',
+          isActive: true,
+        },
+        {
+          triggerCode: 'SINGLE_TX_10K',
+          name: 'Single Payment >= $10,000',
+          description: 'Any single payment at or above $10,000',
+          category: 'value',
+          thresholdValue: '10000',
+          requiredTier: '2',
+          requiresDocuments: true,
+          requiresManualReview: false,
+          severity: 'medium',
+          isActive: true,
+        },
+        {
+          triggerCode: 'SINGLE_TX_25K',
+          name: 'Single Payment >= $25,000',
+          description: 'Any single payment at or above $25,000 requires manual review',
+          category: 'value',
+          thresholdValue: '25000',
+          requiredTier: '2',
+          requiresDocuments: true,
+          requiresManualReview: true,
+          severity: 'high',
+          isActive: true,
+        },
+        {
+          triggerCode: 'VELOCITY_8_24H',
+          name: '8+ Payments in 24h',
+          description: '8 or more payments in 24 hours to same recipient',
+          category: 'velocity',
+          thresholdCount: 8,
+          thresholdPeriodDays: 1,
+          requiredTier: '2',
+          requiresDocuments: false,
+          requiresManualReview: true,
+          severity: 'high',
+          isActive: true,
+        },
+        {
+          triggerCode: 'VELOCITY_20_7D',
+          name: '20+ Payments in 7 Days',
+          description: '20 or more payments in 7 days to same recipient',
+          category: 'velocity',
+          thresholdCount: 20,
+          thresholdPeriodDays: 7,
+          requiredTier: '2',
+          requiresDocuments: false,
+          requiresManualReview: true,
+          severity: 'high',
+          isActive: true,
+        },
+        {
+          triggerCode: 'VELOCITY_5X_SPIKE',
+          name: '5x Volume Spike',
+          description: '7-day volume >= 5x prior 30-day average',
+          category: 'velocity',
+          thresholdMultiplier: '5',
+          thresholdPeriodDays: 7,
+          requiredTier: '2',
+          requiresDocuments: false,
+          requiresManualReview: true,
+          severity: 'high',
+          isActive: true,
+        },
+        {
+          triggerCode: 'PRICING_10X_MEDIAN',
+          name: 'Price 10x Median',
+          description: 'Price >= 10x creator median (90-180d) AND >= $2k',
+          category: 'pricing',
+          thresholdValue: '2000',
+          thresholdMultiplier: '10',
+          requiredTier: '2',
+          requiresDocuments: true,
+          requiresManualReview: true,
+          severity: 'high',
+          isActive: true,
+        },
+        {
+          triggerCode: 'NEW_CREATOR_25K',
+          name: 'New Creator High Volume',
+          description: 'New creator (<14 days) with first-week volume >= $25k',
+          category: 'pricing',
+          thresholdValue: '25000',
+          thresholdPeriodDays: 14,
+          requiredTier: '2',
+          requiresDocuments: true,
+          requiresManualReview: true,
+          severity: 'high',
+          isActive: true,
+        },
+        {
+          triggerCode: 'CONCENTRATION_60',
+          name: 'Top Payer 60% Concentration',
+          description: 'Top payer >= 60% of recipient 7-day volume',
+          category: 'concentration',
+          thresholdPercentage: 60,
+          thresholdPeriodDays: 7,
+          requiredTier: '2',
+          requiresDocuments: false,
+          requiresManualReview: true,
+          severity: 'high',
+          isActive: true,
+        },
+        {
+          triggerCode: 'CONCENTRATION_80_TOP3',
+          name: 'Top 3 Payers 80% Concentration',
+          description: 'Top 3 payers >= 80% of recipient 7-day volume',
+          category: 'concentration',
+          thresholdPercentage: 80,
+          thresholdPeriodDays: 7,
+          requiredTier: '2',
+          requiresDocuments: false,
+          requiresManualReview: true,
+          severity: 'high',
+          isActive: true,
+        },
+      ];
+
+      const created = [];
+      for (const rule of defaultRules) {
+        const existing = await storage.getTriggerRuleByCode(rule.triggerCode);
+        if (!existing) {
+          const newRule = await storage.createTriggerRule(rule);
+          created.push(newRule);
+        }
+      }
+
+      res.json({ 
+        message: `Created ${created.length} trigger rules`,
+        created 
+      });
+    } catch (error) {
+      console.error("Error seeding trigger rules:", error);
+      res.status(500).json({ message: "Failed to seed trigger rules" });
     }
   });
 

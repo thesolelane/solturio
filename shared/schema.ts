@@ -615,3 +615,278 @@ export const telegramLeaderboard = pgTable("telegram_leaderboard", {
 });
 
 export type TelegramLeaderboard = typeof telegramLeaderboard.$inferSelect;
+
+// Treasury Wallets - Platform treasury wallet management
+export const treasuryWallets = pgTable("treasury_wallets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Wallet identity
+  role: varchar("role", { length: 20 }).notNull(), // funds, rewards, escrow, bank
+  name: varchar("name").notNull(), // Display name (e.g., "Platform Operations")
+  address: varchar("address").notNull().unique(), // Solana wallet address
+  domainName: varchar("domain_name"), // e.g., "funds.solturio.sol"
+  purpose: text("purpose"), // Description of wallet's purpose
+  
+  // Network configuration
+  network: varchar("network", { length: 20 }).notNull().default('devnet'), // devnet, mainnet
+  
+  // Sweep policy (for automated fund routing to bank.cooperanth.sol)
+  sweepEnabled: boolean("sweep_enabled").default(false),
+  sweepThreshold: varchar("sweep_threshold"), // Amount in SOL that triggers sweep (as string for precision)
+  sweepSchedule: varchar("sweep_schedule"), // cron expression or 'manual', 'daily', 'weekly'
+  sweepDestination: varchar("sweep_destination"), // Target wallet for sweeps (usually bank.cooperanth.sol)
+  lastSweepAt: timestamp("last_sweep_at"),
+  lastSweepAmount: varchar("last_sweep_amount"),
+  lastSweepTxHash: varchar("last_sweep_tx_hash"),
+  
+  // Multi-sig configuration
+  requiredSignatures: integer("required_signatures").default(2), // e.g., 2-of-3
+  authorizedSigners: text("authorized_signers").array(), // Array of authorized signer addresses
+  
+  // Status and monitoring
+  status: varchar("status", { length: 20 }).notNull().default('active'), // active, inactive, pending_setup
+  lastBalanceCheck: timestamp("last_balance_check"),
+  cachedBalance: varchar("cached_balance"), // Last known SOL balance (string for precision)
+  
+  // Audit
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertTreasuryWalletSchema = createInsertSchema(treasuryWallets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastBalanceCheck: true,
+  cachedBalance: true,
+  lastSweepAt: true,
+  lastSweepAmount: true,
+  lastSweepTxHash: true,
+}).extend({
+  role: z.enum(['funds', 'rewards', 'escrow', 'bank']),
+  network: z.enum(['devnet', 'mainnet']),
+  address: z.string().min(32, "Valid Solana address required"),
+});
+
+export type InsertTreasuryWallet = z.infer<typeof insertTreasuryWalletSchema>;
+export type TreasuryWallet = typeof treasuryWallets.$inferSelect;
+
+// Compliance Logs - Immutable audit trail for AML/KYC compliance
+export const complianceLogs = pgTable("compliance_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Transaction identification
+  txSignature: varchar("tx_signature"), // Solana transaction signature
+  slot: integer("slot"), // Solana slot number
+  blockTime: timestamp("block_time"), // When tx was confirmed on-chain
+  
+  // Instruction details
+  programId: varchar("program_id"), // Solana program that executed
+  instructionType: varchar("instruction_type", { length: 50 }), // deposit, release, refund, dispute, pay_installment
+  
+  // Parties involved
+  buyerAddress: varchar("buyer_address"),
+  sellerAddress: varchar("seller_address"),
+  escrowAddress: varchar("escrow_address"),
+  
+  // Token details
+  tokenMint: varchar("token_mint"),
+  tokenType: varchar("token_type", { length: 10 }), // SOL, CATH, BONK
+  amount: varchar("amount"), // Amount as string for precision
+  usdValue: varchar("usd_value"), // USD value at time of transaction
+  pricingSource: varchar("pricing_source"), // Where USD price was obtained
+  
+  // Fees
+  platformFee: varchar("platform_fee"),
+  networkFee: varchar("network_fee"),
+  
+  // Trigger tracking (per AML/KYC policy)
+  triggersActivated: text("triggers_activated").array(), // Array of trigger IDs that fired
+  triggerDetails: jsonb("trigger_details"), // Full math/snapshot of trigger rules
+  kycTierRequired: varchar("kyc_tier_required", { length: 10 }), // 0, 1, 2
+  
+  // User identification
+  userId: varchar("user_id").references(() => users.id),
+  userKycTier: varchar("user_kyc_tier", { length: 10 }), // User's KYC tier at time of transaction
+  
+  // Compliance actions taken
+  actionTaken: varchar("action_taken", { length: 50 }), // allowed, allowed_with_limits, hold_pending_review, blocked
+  reviewerId: varchar("reviewer_id").references(() => users.id), // Admin who reviewed (if manual review)
+  reviewNotes: text("review_notes"),
+  reviewedAt: timestamp("reviewed_at"),
+  
+  // Case tracking
+  caseId: varchar("case_id"), // Link to compliance case if one was created
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertComplianceLogSchema = createInsertSchema(complianceLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertComplianceLog = z.infer<typeof insertComplianceLogSchema>;
+export type ComplianceLog = typeof complianceLogs.$inferSelect;
+
+// KYC Status - User verification tier tracking
+export const kycStatus = pgTable("kyc_status", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique().references(() => users.id, { onDelete: 'cascade' }),
+  
+  // Current tier: 0 (none), 1 (light KYC), 2 (enhanced due diligence)
+  tier: varchar("tier", { length: 10 }).notNull().default('0'),
+  
+  // Tier 1 verification data
+  idVerificationStatus: varchar("id_verification_status", { length: 20 }), // pending, verified, failed, expired
+  idVerificationVendor: varchar("id_verification_vendor"), // KYC provider name
+  idVerificationReference: varchar("id_verification_reference"), // External reference ID
+  idVerifiedAt: timestamp("id_verified_at"),
+  
+  // Sanctions and PEP screening
+  sanctionsStatus: varchar("sanctions_status", { length: 20 }), // clear, hit, pending
+  sanctionsListVersion: varchar("sanctions_list_version"), // Which sanctions list was checked
+  sanctionsScreenedAt: timestamp("sanctions_screened_at"),
+  pepStatus: varchar("pep_status", { length: 20 }), // clear, hit, pending (Politically Exposed Person)
+  
+  // Risk assessment
+  riskTier: varchar("risk_tier", { length: 20 }), // low, medium, high
+  riskReasonCodes: text("risk_reason_codes").array(), // Array of reason codes for risk determination
+  riskAssessedAt: timestamp("risk_assessed_at"),
+  
+  // Tier 2 enhanced due diligence
+  sourceOfFunds: varchar("source_of_funds", { length: 50 }), // income, business_revenue, exchange_proceeds, sale_proceeds, other
+  sourceOfFundsVerified: boolean("source_of_funds_verified").default(false),
+  dealDocumentHash: varchar("deal_document_hash"), // Hash of uploaded deal docs
+  dealDocumentUploadedAt: timestamp("deal_document_uploaded_at"),
+  
+  // Attestation
+  sanctionsAttestationAt: timestamp("sanctions_attestation_at"), // When user attested not acting for sanctioned parties
+  tosVersion: varchar("tos_version"), // Version of ToS accepted
+  tosAcceptedAt: timestamp("tos_accepted_at"),
+  
+  // Limits based on tier
+  dailyLimit: varchar("daily_limit"), // USD daily limit
+  monthlyLimit: varchar("monthly_limit"), // USD monthly limit
+  singleTxLimit: varchar("single_tx_limit"), // USD per-transaction limit
+  
+  // Cumulative tracking for trigger rules
+  rolling30DayVolume: varchar("rolling_30_day_volume").default('0'), // USD volume in last 30 days
+  last30DayVolumeUpdatedAt: timestamp("last_30_day_volume_updated_at"),
+  
+  // Status
+  status: varchar("status", { length: 20 }).notNull().default('active'), // active, suspended, blocked
+  statusReason: text("status_reason"),
+  
+  // Manual review notes
+  manualReviewRequired: boolean("manual_review_required").default(false),
+  manualReviewNotes: text("manual_review_notes"),
+  lastReviewedBy: varchar("last_reviewed_by").references(() => users.id),
+  lastReviewedAt: timestamp("last_reviewed_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertKycStatusSchema = createInsertSchema(kycStatus).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  tier: z.enum(['0', '1', '2']),
+});
+
+export type InsertKycStatus = z.infer<typeof insertKycStatusSchema>;
+export type KycStatus = typeof kycStatus.$inferSelect;
+
+// Compliance Trigger Rules - Configurable thresholds for compliance triggers
+export const complianceTriggerRules = pgTable("compliance_trigger_rules", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Trigger identification
+  triggerCode: varchar("trigger_code", { length: 50 }).notNull().unique(), // e.g., "VALUE_30DAY_2K", "SINGLE_TX_10K"
+  name: varchar("name").notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 30 }).notNull(), // value, velocity, pricing, concentration, layering
+  
+  // Threshold values (in USD unless otherwise specified)
+  thresholdValue: varchar("threshold_value"), // Main threshold value
+  thresholdPeriodDays: integer("threshold_period_days"), // Period for rolling thresholds (e.g., 30 for 30-day)
+  thresholdCount: integer("threshold_count"), // For frequency triggers (e.g., 8 payments)
+  thresholdMultiplier: varchar("threshold_multiplier"), // For ratio triggers (e.g., 5x, 10x)
+  thresholdPercentage: integer("threshold_percentage"), // For concentration triggers (e.g., 60%)
+  
+  // Action when triggered
+  requiredTier: varchar("required_tier", { length: 10 }).notNull(), // KYC tier required: 1, 2
+  requiresDocuments: boolean("requires_documents").default(false),
+  requiresManualReview: boolean("requires_manual_review").default(false),
+  
+  // Severity
+  severity: varchar("severity", { length: 20 }).notNull().default('medium'), // low, medium, high
+  
+  // Status
+  isActive: boolean("is_active").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertComplianceTriggerRuleSchema = createInsertSchema(complianceTriggerRules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertComplianceTriggerRule = z.infer<typeof insertComplianceTriggerRuleSchema>;
+export type ComplianceTriggerRule = typeof complianceTriggerRules.$inferSelect;
+
+// Compliance Cases - Case management for flagged transactions
+export const complianceCases = pgTable("compliance_cases", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Case identification
+  caseNumber: varchar("case_number").notNull().unique(), // e.g., "CASE-2024-0001"
+  userId: varchar("user_id").notNull().references(() => users.id),
+  
+  // Associated logs
+  triggeringLogIds: text("triggering_log_ids").array(), // Compliance log IDs that created this case
+  
+  // Case details
+  caseType: varchar("case_type", { length: 30 }).notNull(), // threshold_breach, sanctions_hit, manual_escalation
+  triggersActivated: text("triggers_activated").array(), // Array of trigger codes
+  totalAmount: varchar("total_amount"), // Total USD amount involved
+  
+  // Evidence
+  evidenceAttached: jsonb("evidence_attached"), // Array of evidence documents/tx records
+  ruleSnapshot: jsonb("rule_snapshot"), // Snapshot of trigger rules at time of case creation
+  
+  // Status
+  status: varchar("status", { length: 30 }).notNull().default('open'), // open, under_review, pending_info, resolved, closed
+  
+  // Decision
+  decision: varchar("decision", { length: 30 }), // allow, allow_with_limits, hold, block, offboard
+  decisionReason: text("decision_reason"),
+  decisionMadeBy: varchar("decision_made_by").references(() => users.id),
+  decisionMadeAt: timestamp("decision_made_at"),
+  
+  // Assignment
+  assignedTo: varchar("assigned_to").references(() => users.id), // Admin assigned to review
+  assignedAt: timestamp("assigned_at"),
+  
+  // Priority
+  priority: varchar("priority", { length: 10 }).notNull().default('medium'), // low, medium, high, critical
+  dueDate: timestamp("due_date"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertComplianceCaseSchema = createInsertSchema(complianceCases).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertComplianceCase = z.infer<typeof insertComplianceCaseSchema>;
+export type ComplianceCase = typeof complianceCases.$inferSelect;

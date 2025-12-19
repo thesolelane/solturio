@@ -4,6 +4,11 @@ import {
   collections,
   payments,
   authorizedUsages,
+  treasuryWallets,
+  complianceLogs,
+  kycStatus,
+  complianceTriggerRules,
+  complianceCases,
   type User,
   type UpsertUser,
   type Logo,
@@ -14,9 +19,16 @@ import {
   type InsertPayment,
   type AuthorizedUsage,
   type InsertAuthorizedUsage,
+  type TreasuryWallet,
+  type InsertTreasuryWallet,
+  type ComplianceLog,
+  type KycStatus,
+  type InsertKycStatus,
+  type ComplianceTriggerRule,
+  type ComplianceCase,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, gte, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -93,6 +105,38 @@ export interface IStorage {
   // Phase 1: Replay Prevention
   getNonceByValue(nonce: string): Promise<any | undefined>;
   storeNonce(nonce: string): Promise<void>;
+  
+  // Treasury Wallet operations
+  createTreasuryWallet(wallet: InsertTreasuryWallet): Promise<TreasuryWallet>;
+  getTreasuryWallets(): Promise<TreasuryWallet[]>;
+  getTreasuryWalletByRole(role: string): Promise<TreasuryWallet | undefined>;
+  getTreasuryWalletByAddress(address: string): Promise<TreasuryWallet | undefined>;
+  updateTreasuryWallet(id: string, data: Partial<TreasuryWallet>): Promise<TreasuryWallet>;
+  deleteTreasuryWallet(id: string): Promise<void>;
+  
+  // Compliance Log operations
+  createComplianceLog(log: Partial<ComplianceLog>): Promise<ComplianceLog>;
+  getComplianceLogs(limit?: number, offset?: number): Promise<ComplianceLog[]>;
+  getComplianceLogsByUser(userId: string): Promise<ComplianceLog[]>;
+  getComplianceLogsByTrigger(triggerCode: string): Promise<ComplianceLog[]>;
+  
+  // KYC Status operations
+  getKycStatus(userId: string): Promise<KycStatus | undefined>;
+  createOrUpdateKycStatus(userId: string, data: Partial<InsertKycStatus>): Promise<KycStatus>;
+  updateKycTier(userId: string, tier: string): Promise<KycStatus>;
+  updateRolling30DayVolume(userId: string, volume: string): Promise<KycStatus>;
+  
+  // Compliance Trigger Rules operations
+  getActiveTriggerRules(): Promise<ComplianceTriggerRule[]>;
+  getTriggerRuleByCode(code: string): Promise<ComplianceTriggerRule | undefined>;
+  createTriggerRule(rule: Partial<ComplianceTriggerRule>): Promise<ComplianceTriggerRule>;
+  updateTriggerRule(id: string, data: Partial<ComplianceTriggerRule>): Promise<ComplianceTriggerRule>;
+  
+  // Compliance Case operations
+  createComplianceCase(caseData: Partial<ComplianceCase>): Promise<ComplianceCase>;
+  getComplianceCases(status?: string): Promise<ComplianceCase[]>;
+  getComplianceCaseByNumber(caseNumber: string): Promise<ComplianceCase | undefined>;
+  updateComplianceCase(id: string, data: Partial<ComplianceCase>): Promise<ComplianceCase>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -569,6 +613,204 @@ export class DatabaseStorage implements IStorage {
         throw error;
       }
     }
+  }
+
+  // Treasury Wallet operations
+  async createTreasuryWallet(wallet: InsertTreasuryWallet): Promise<TreasuryWallet> {
+    const [created] = await db
+      .insert(treasuryWallets)
+      .values(wallet)
+      .returning();
+    return created;
+  }
+
+  async getTreasuryWallets(): Promise<TreasuryWallet[]> {
+    return db
+      .select()
+      .from(treasuryWallets)
+      .orderBy(treasuryWallets.role);
+  }
+
+  async getTreasuryWalletByRole(role: string): Promise<TreasuryWallet | undefined> {
+    const [wallet] = await db
+      .select()
+      .from(treasuryWallets)
+      .where(eq(treasuryWallets.role, role));
+    return wallet;
+  }
+
+  async getTreasuryWalletByAddress(address: string): Promise<TreasuryWallet | undefined> {
+    const [wallet] = await db
+      .select()
+      .from(treasuryWallets)
+      .where(eq(treasuryWallets.address, address));
+    return wallet;
+  }
+
+  async updateTreasuryWallet(id: string, data: Partial<TreasuryWallet>): Promise<TreasuryWallet> {
+    const [updated] = await db
+      .update(treasuryWallets)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(treasuryWallets.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteTreasuryWallet(id: string): Promise<void> {
+    await db.delete(treasuryWallets).where(eq(treasuryWallets.id, id));
+  }
+
+  // Compliance Log operations
+  async createComplianceLog(log: Partial<ComplianceLog>): Promise<ComplianceLog> {
+    const [created] = await db
+      .insert(complianceLogs)
+      .values(log as any)
+      .returning();
+    return created;
+  }
+
+  async getComplianceLogs(limit: number = 100, offset: number = 0): Promise<ComplianceLog[]> {
+    return db
+      .select()
+      .from(complianceLogs)
+      .orderBy(desc(complianceLogs.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async getComplianceLogsByUser(userId: string): Promise<ComplianceLog[]> {
+    return db
+      .select()
+      .from(complianceLogs)
+      .where(eq(complianceLogs.userId, userId))
+      .orderBy(desc(complianceLogs.createdAt));
+  }
+
+  async getComplianceLogsByTrigger(triggerCode: string): Promise<ComplianceLog[]> {
+    return db
+      .select()
+      .from(complianceLogs)
+      .where(sql`${triggerCode} = ANY(${complianceLogs.triggersActivated})`)
+      .orderBy(desc(complianceLogs.createdAt));
+  }
+
+  // KYC Status operations
+  async getKycStatus(userId: string): Promise<KycStatus | undefined> {
+    const [status] = await db
+      .select()
+      .from(kycStatus)
+      .where(eq(kycStatus.userId, userId));
+    return status;
+  }
+
+  async createOrUpdateKycStatus(userId: string, data: Partial<InsertKycStatus>): Promise<KycStatus> {
+    const existing = await this.getKycStatus(userId);
+    
+    if (existing) {
+      const [updated] = await db
+        .update(kycStatus)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(kycStatus.userId, userId))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(kycStatus)
+        .values({ userId, ...data } as any)
+        .returning();
+      return created;
+    }
+  }
+
+  async updateKycTier(userId: string, tier: string): Promise<KycStatus> {
+    return this.createOrUpdateKycStatus(userId, { tier } as any);
+  }
+
+  async updateRolling30DayVolume(userId: string, volume: string): Promise<KycStatus> {
+    const [updated] = await db
+      .update(kycStatus)
+      .set({ 
+        rolling30DayVolume: volume, 
+        last30DayVolumeUpdatedAt: new Date(),
+        updatedAt: new Date() 
+      })
+      .where(eq(kycStatus.userId, userId))
+      .returning();
+    return updated;
+  }
+
+  // Compliance Trigger Rules operations
+  async getActiveTriggerRules(): Promise<ComplianceTriggerRule[]> {
+    return db
+      .select()
+      .from(complianceTriggerRules)
+      .where(eq(complianceTriggerRules.isActive, true))
+      .orderBy(complianceTriggerRules.category);
+  }
+
+  async getTriggerRuleByCode(code: string): Promise<ComplianceTriggerRule | undefined> {
+    const [rule] = await db
+      .select()
+      .from(complianceTriggerRules)
+      .where(eq(complianceTriggerRules.triggerCode, code));
+    return rule;
+  }
+
+  async createTriggerRule(rule: Partial<ComplianceTriggerRule>): Promise<ComplianceTriggerRule> {
+    const [created] = await db
+      .insert(complianceTriggerRules)
+      .values(rule as any)
+      .returning();
+    return created;
+  }
+
+  async updateTriggerRule(id: string, data: Partial<ComplianceTriggerRule>): Promise<ComplianceTriggerRule> {
+    const [updated] = await db
+      .update(complianceTriggerRules)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(complianceTriggerRules.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Compliance Case operations
+  async createComplianceCase(caseData: Partial<ComplianceCase>): Promise<ComplianceCase> {
+    const [created] = await db
+      .insert(complianceCases)
+      .values(caseData as any)
+      .returning();
+    return created;
+  }
+
+  async getComplianceCases(status?: string): Promise<ComplianceCase[]> {
+    if (status) {
+      return db
+        .select()
+        .from(complianceCases)
+        .where(eq(complianceCases.status, status))
+        .orderBy(desc(complianceCases.createdAt));
+    }
+    return db
+      .select()
+      .from(complianceCases)
+      .orderBy(desc(complianceCases.createdAt));
+  }
+
+  async getComplianceCaseByNumber(caseNumber: string): Promise<ComplianceCase | undefined> {
+    const [caseRecord] = await db
+      .select()
+      .from(complianceCases)
+      .where(eq(complianceCases.caseNumber, caseNumber));
+    return caseRecord;
+  }
+
+  async updateComplianceCase(id: string, data: Partial<ComplianceCase>): Promise<ComplianceCase> {
+    const [updated] = await db
+      .update(complianceCases)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(complianceCases.id, id))
+      .returning();
+    return updated;
   }
 }
 
