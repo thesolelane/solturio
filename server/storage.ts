@@ -49,6 +49,7 @@ export interface IStorage {
   createCollection(collection: InsertCollection): Promise<Collection>;
   getCollection(id: string): Promise<Collection | undefined>;
   getCollectionsByUserId(userId: string): Promise<Collection[]>;
+  getAllMintedCollections(): Promise<Array<Collection & { user: User | null; logoCount: number }>>;
   updateCollectionStatus(id: string, status: string): Promise<Collection>;
   updateCollectionBlockchainData(id: string, data: {
     collectionAddress: string;
@@ -269,6 +270,30 @@ export class DatabaseStorage implements IStorage {
       .from(collections)
       .where(eq(collections.userId, userId))
       .orderBy(desc(collections.createdAt));
+  }
+
+  async getAllMintedCollections(): Promise<Array<Collection & { user: User | null; logoCount: number }>> {
+    // Get all minted collections with their users
+    const mintedCollections = await db
+      .select()
+      .from(collections)
+      .where(eq(collections.status, 'minted'))
+      .orderBy(desc(collections.mintedAt));
+    
+    // Enrich with user data and logo count
+    const results = await Promise.all(
+      mintedCollections.map(async (collection) => {
+        const [user] = await db.select().from(users).where(eq(users.id, collection.userId));
+        const collectionLogos = await db.select().from(logos).where(eq(logos.collectionId, collection.id));
+        return {
+          ...collection,
+          user: user || null,
+          logoCount: collectionLogos.length,
+        };
+      })
+    );
+    
+    return results;
   }
 
   async updateCollectionStatus(id: string, status: string): Promise<Collection> {

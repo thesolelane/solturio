@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { Shield, Lock, Clock, CheckCircle2, ArrowRight } from "lucide-react";
+import { Shield, Lock, Clock, CheckCircle2, ArrowRight, Search } from "lucide-react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 // Using public folder logos directly
@@ -66,11 +67,19 @@ export default function Landing() {
             Protect PFPs, logos, tickers, and evolving digital assets BEFORE posting anywhere. 
             Gold check verified users get automatic takedown support.
           </p>
-          <Button size="lg" className="gap-2" asChild data-testid="button-get-started">
-            <a href="/api/login">
-              Start Your IP Journey <ArrowRight className="w-4 h-4" />
-            </a>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" className="gap-2" asChild data-testid="button-get-started">
+              <a href="/api/login">
+                Start Your IP Journey <ArrowRight className="w-4 h-4" />
+              </a>
+            </Button>
+            <Link href="/discover">
+              <Button size="lg" variant="outline" className="gap-2" data-testid="button-discover">
+                <Search className="w-4 h-4" />
+                Discover Artists
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 

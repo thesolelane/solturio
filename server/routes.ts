@@ -227,6 +227,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply CSRF protection to all routes (automatically skips GET/HEAD/OPTIONS)
   app.use(csrfProtection);
 
+  // Public search endpoint (no authentication required)
+  app.get('/api/public/search', async (req, res) => {
+    try {
+      const { query, type } = req.query as { query?: string; type?: string };
+      
+      if (!query || query.length < 2) {
+        return res.json([]);
+      }
+
+      const searchQuery = query.toLowerCase().replace(/^[@$]/, ''); // Remove @ or $ prefix
+      const searchType = type || 'all';
+      
+      // Get all minted collections with their creators
+      const allCollections = await storage.getAllMintedCollections();
+      
+      // Filter based on search criteria
+      const results = allCollections.filter(collection => {
+        if (searchType === 'ticker') {
+          return collection.ticker?.toLowerCase().includes(searchQuery);
+        } else if (searchType === 'social') {
+          const user = collection.user;
+          return (
+            user?.twitterHandle?.toLowerCase().includes(searchQuery) ||
+            user?.telegramHandle?.toLowerCase().includes(searchQuery) ||
+            user?.instagramHandle?.toLowerCase().includes(searchQuery) ||
+            user?.discordHandle?.toLowerCase().includes(searchQuery)
+          );
+        } else {
+          // Search all fields
+          const user = collection.user;
+          return (
+            collection.name?.toLowerCase().includes(searchQuery) ||
+            collection.ticker?.toLowerCase().includes(searchQuery) ||
+            user?.twitterHandle?.toLowerCase().includes(searchQuery) ||
+            user?.telegramHandle?.toLowerCase().includes(searchQuery) ||
+            user?.instagramHandle?.toLowerCase().includes(searchQuery) ||
+            user?.firstName?.toLowerCase().includes(searchQuery) ||
+            user?.lastName?.toLowerCase().includes(searchQuery)
+          );
+        }
+      });
+
+      // Return only public information
+      const publicResults = results.map(c => ({
+        id: c.id,
+        name: c.name,
+        ticker: c.ticker,
+        registrationType: c.registrationType,
+        status: c.status,
+        logoCount: c.logoCount || 0,
+        mintedAt: c.mintedAt,
+        user: {
+          firstName: c.user?.firstName || null,
+          lastName: c.user?.lastName || null,
+          twitterHandle: c.user?.twitterHandle || null,
+          telegramHandle: c.user?.telegramHandle || null,
+          instagramHandle: c.user?.instagramHandle || null,
+          telegramGroupLink: c.user?.telegramGroupLink || null,
+          websiteUrl: c.user?.websiteUrl || null,
+          bio: c.user?.bio || null,
+        },
+      }));
+
+      res.json(publicResults);
+    } catch (error) {
+      console.error("Error in public search:", error);
+      res.status(500).json({ message: "Search failed" });
+    }
+  });
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
