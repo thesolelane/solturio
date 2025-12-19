@@ -34,6 +34,7 @@ export interface IStorage {
   // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   getUserById(id: string): Promise<User | undefined>;
+  getUserByWalletAddress(walletAddress: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(userId: string, updates: Partial<User>): Promise<User>;
   updateWalletAddress(userId: string, walletAddress: string): Promise<User>;
@@ -148,6 +149,11 @@ export class DatabaseStorage implements IStorage {
 
   async getUserById(id: string): Promise<User | undefined> {
     return this.getUser(id);
+  }
+
+  async getUserByWalletAddress(walletAddress: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.walletAddress, walletAddress));
+    return user;
   }
 
   async updateUser(userId: string, updates: Partial<User>): Promise<User> {

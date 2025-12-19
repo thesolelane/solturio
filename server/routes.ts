@@ -345,6 +345,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public wallet verification lookup (no authentication required)
+  app.get('/api/public/verify-wallet/:walletAddress', async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      if (!walletAddress || walletAddress.length < 32) {
+        return res.status(400).json({ message: "Invalid wallet address" });
+      }
+
+      // Look up user by wallet address
+      const user = await storage.getUserByWalletAddress(walletAddress);
+      
+      if (!user) {
+        return res.json({
+          verified: false,
+          message: "No registered creator found for this wallet address",
+          walletAddress,
+        });
+      }
+
+      // Get user's public collections
+      const collections = await storage.getCollectionsByUserId(user.id);
+      const publicCollections = collections.filter(c => 
+        c.isPublic !== false && (c.status === 'minted' || c.status === 'complete')
+      );
+
+      // Return public verification data
+      res.json({
+        verified: true,
+        walletAddress,
+        walletDomain: user.solturioWalletDomain || null,
+        creator: {
+          firstName: user.firstName || null,
+          lastName: user.lastName || null,
+          twitterHandle: user.twitterHandle || null,
+          telegramHandle: user.telegramHandle || null,
+          instagramHandle: user.instagramHandle || null,
+          websiteUrl: user.websiteUrl || null,
+          bio: user.bio || null,
+          memberSince: user.createdAt,
+        },
+        collections: publicCollections.map(c => ({
+          id: c.id,
+          name: c.name,
+          ticker: c.ticker,
+          registrationType: c.registrationType,
+          status: c.status,
+          mintedAt: c.mintedAt,
+        })),
+        totalCollections: publicCollections.length,
+      });
+    } catch (error) {
+      console.error("Error in wallet verification lookup:", error);
+      res.status(500).json({ message: "Verification lookup failed" });
+    }
+  });
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
