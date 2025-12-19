@@ -1075,59 +1075,248 @@ export const rewardsLog = pgTable("rewards_log", {
 
 export type RewardsLog = typeof rewardsLog.$inferSelect;
 
-// License Contracts - Smart contracts created for IP licensing
+// ============================================================================
+// LICENSE SMART CONTRACTS - Comprehensive IP licensing system
+// ============================================================================
+
+// License Types
+export const LICENSE_TYPES = {
+  EXCLUSIVE: 'exclusive',           // Only licensee can use
+  NON_EXCLUSIVE: 'non_exclusive',   // Licensor can license to others
+  WORK_FOR_HIRE: 'work_for_hire',   // Licensee paid for full rights, may transfer
+  FULL_TRANSFER: 'full_transfer',   // Complete ownership transfer
+} as const;
+
+// Platform Permission Bitmap (12 bits)
+export const PLATFORM_BITS = {
+  WEBSITE: 0,           // bit 0
+  YOUTUBE: 1,           // bit 1
+  DISCORD: 2,           // bit 2
+  TIKTOK: 3,            // bit 3
+  TELEGRAM: 4,          // bit 4
+  X_TWITTER: 5,         // bit 5
+  INSTAGRAM: 6,         // bit 6
+  PRINT_PHYSICAL: 7,    // bit 7
+  MERCHANDISE: 8,       // bit 8
+  GAMING_METAVERSE: 9,  // bit 9
+  NFT_MARKETPLACES: 10, // bit 10
+  ADVERTISING: 11,      // bit 11
+} as const;
+
+// License Templates (quick presets)
+export const LICENSE_TEMPLATES = {
+  SOCIAL_MEDIA_POST: {
+    name: 'Social Media Post',
+    type: 'non_exclusive',
+    platformBitmap: (1 << 5) | (1 << 6) | (1 << 3), // X, Instagram, TikTok
+    isPerpetual: false,
+    durationDays: 365,
+    canTransfer: false,
+    canSublicense: false,
+    canModify: false,
+    requiresAttribution: true,
+  },
+  BRAND_AMBASSADOR: {
+    name: 'Brand Ambassador',
+    type: 'non_exclusive',
+    platformBitmap: 0b111111111111, // All platforms
+    isPerpetual: true,
+    canTransfer: false,
+    canSublicense: false,
+    canModify: true,
+    requiresAttribution: true,
+  },
+  WEBSITE_ONLY: {
+    name: 'Website Only',
+    type: 'non_exclusive',
+    platformBitmap: 1 << 0, // Website only
+    isPerpetual: true,
+    canTransfer: false,
+    canSublicense: false,
+    canModify: false,
+    requiresAttribution: false,
+  },
+  MERCHANDISE: {
+    name: 'Merchandise License',
+    type: 'exclusive',
+    platformBitmap: (1 << 7) | (1 << 8), // Print + Merchandise
+    isPerpetual: false,
+    durationDays: 730, // 2 years
+    canTransfer: false,
+    canSublicense: false,
+    canModify: true,
+    requiresAttribution: false,
+  },
+  FULL_BUYOUT: {
+    name: 'Full Buyout',
+    type: 'full_transfer',
+    platformBitmap: 0b111111111111, // All platforms
+    isPerpetual: true,
+    canTransfer: true,
+    canSublicense: true,
+    canModify: true,
+    requiresAttribution: false,
+  },
+  NFT_WEB3: {
+    name: 'NFT/Web3 Use',
+    type: 'non_exclusive',
+    platformBitmap: (1 << 9) | (1 << 10), // Gaming + NFT marketplaces
+    isPerpetual: true,
+    canTransfer: false,
+    canSublicense: false,
+    canModify: false,
+    requiresAttribution: true,
+  },
+} as const;
+
+// License Contracts - Comprehensive IP licensing smart contracts
 export const licenseContracts = pgTable("license_contracts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   
-  // Ownership
-  creatorUserId: varchar("creator_user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
-  logoId: varchar("logo_id").references(() => logos.id, { onDelete: 'set null' }),
+  // ===== PARTIES =====
+  licensorUserId: varchar("licensor_user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  licensorWallet: varchar("licensor_wallet").notNull(), // Signing wallet
+  licenseeWallet: varchar("licensee_wallet").notNull(), // Licensee signing wallet
+  licenseeEmail: varchar("licensee_email"), // Optional contact
+  licenseeName: varchar("licensee_name"), // Licensee display name
   
-  // Contract details
-  contractAddress: varchar("contract_address"), // On-chain address
-  contractType: varchar("contract_type", { length: 30 }).notNull(), // commercial, non_commercial, exclusive
+  // ===== ASSET =====
+  logoId: varchar("logo_id").notNull().references(() => logos.id, { onDelete: 'cascade' }),
   
-  // License terms
-  licenseeInfo: jsonb("licensee_info"), // Who the license is granted to
-  termsDescription: text("terms_description"),
-  usageRights: text("usage_rights").array(), // Array of allowed uses
-  territoryRestrictions: text("territory_restrictions"),
-  durationDays: integer("duration_days"), // License validity
-  expiresAt: timestamp("expires_at"),
+  // ===== LICENSE TYPE & TEMPLATE =====
+  licenseType: varchar("license_type", { length: 30 }).notNull(), // exclusive, non_exclusive, work_for_hire, full_transfer
+  templateUsed: varchar("template_used", { length: 50 }), // Which quick template was used, or 'custom'
   
-  // Metadata for shareable link
+  // ===== PLATFORM PERMISSIONS (WHERE) =====
+  platformBitmap: integer("platform_bitmap").notNull().default(0), // 12-bit bitmap for platforms
+  otherPlatforms: text("other_platforms"), // Custom platforms not in bitmap
+  
+  // ===== RIGHTS GRANTED =====
+  canTransfer: boolean("can_transfer").notNull().default(false), // Licensee can transfer rights
+  canSublicense: boolean("can_sublicense").notNull().default(false), // Licensee can grant sub-licenses
+  canModify: boolean("can_modify").notNull().default(false), // Licensee can alter image
+  requiresAttribution: boolean("requires_attribution").notNull().default(true), // Must credit creator
+  
+  // ===== PERMITTED WALLETS =====
+  permittedWallets: text("permitted_wallets").array(), // Additional wallets allowed to use
+  
+  // ===== SCOPE & LIMITS =====
+  geographicScope: varchar("geographic_scope", { length: 50 }).default('worldwide'), // worldwide, specific regions
+  geographicDetails: text("geographic_details"), // If specific regions, list them
+  usagePurpose: varchar("usage_purpose", { length: 30 }).default('both'), // personal, commercial, both
+  
+  // ===== DURATION =====
+  isPerpetual: boolean("is_perpetual").notNull().default(false),
+  durationDays: integer("duration_days"), // If not perpetual
+  startsAt: timestamp("starts_at"), // When license becomes active
+  expiresAt: timestamp("expires_at"), // Calculated expiry
+  
+  // ===== EXCLUSIVITY =====
+  isExclusivityTimeLimited: boolean("is_exclusivity_time_limited").default(false),
+  exclusivityEndsAt: timestamp("exclusivity_ends_at"), // If exclusive but time-limited
+  
+  // ===== FINANCIAL TERMS (P2P - Solturio not involved) =====
+  hasRevenueShare: boolean("has_revenue_share").default(false),
+  royaltyPercentage: varchar("royalty_percentage"), // e.g., "5" for 5%
+  paymentTermsHash: varchar("payment_terms_hash", { length: 100 }), // IPFS hash of detailed payment terms
+  upfrontPaymentAmount: varchar("upfront_payment_amount"), // Any upfront P2P payment
+  upfrontPaymentCurrency: varchar("upfront_payment_currency", { length: 10 }), // SOL, USDC, etc.
+  
+  // ===== RENEWAL & REVOCATION =====
+  autoRenew: boolean("auto_renew").default(false),
+  renewalNoticeDays: integer("renewal_notice_days").default(30),
+  revocationConditions: text("revocation_conditions"), // What voids the license
+  
+  // ===== LEGAL (Required) =====
+  arbitrationAgreed: boolean("arbitration_agreed").notNull().default(false), // Both parties agree
+  indemnificationAgreed: boolean("indemnification_agreed").notNull().default(false), // Both indemnify Solturio
+  customTerms: text("custom_terms"), // Additional custom terms
+  customTermsHash: varchar("custom_terms_hash", { length: 100 }), // IPFS hash if long
+  
+  // ===== SIGNATURES =====
+  licensorSignedAt: timestamp("licensor_signed_at"),
+  licensorSignature: varchar("licensor_signature"), // Wallet signature
+  licenseeSignedAt: timestamp("licensee_signed_at"),
+  licenseeSignature: varchar("licensee_signature"), // Wallet signature
+  
+  // ===== ON-CHAIN DATA =====
+  pdaAddress: varchar("pda_address"), // Program Derived Account on Solana
+  contractAddress: varchar("contract_address"), // On-chain smart contract address
+  transactionHash: varchar("transaction_hash"), // Deployment tx
+  mintedAt: timestamp("minted_at"),
+  
+  // ===== STORAGE =====
+  metadataIpfsHash: varchar("metadata_ipfs_hash", { length: 100 }), // Full license JSON on IPFS
+  badgeImageArweaveUrl: text("badge_image_arweave_url"), // Badge-overlaid image on Arweave
+  badgeImageIpfsHash: varchar("badge_image_ipfs_hash", { length: 100 }),
+  
+  // ===== SHAREABLE LINK =====
   shareableSlug: varchar("shareable_slug", { length: 50 }).unique(), // solturio.app/license/[slug]
-  metadataIpfsHash: varchar("metadata_ipfs_hash", { length: 100 }),
   
-  // Fee tracking (REGULATORY: SOL only, platform revenue)
+  // ===== FEE TRACKING (SOL only, platform revenue) =====
   creationFee: varchar("creation_fee").notNull().default('0.025'), // SOL amount
   creationFeePaid: boolean("creation_fee_paid").default(false),
   creationFeePaymentTx: varchar("creation_fee_payment_tx"),
   creationFeePaidAt: timestamp("creation_fee_paid_at"),
   
-  // Status
-  status: varchar("status", { length: 20 }).notNull().default('pending_payment'), // pending_payment, active, expired, revoked
-  
-  // On-chain data
-  mintedAt: timestamp("minted_at"),
-  transactionHash: varchar("transaction_hash"),
+  // ===== STATUS =====
+  status: varchar("status", { length: 30 }).notNull().default('draft'),
+  // draft → pending_licensee_signature → pending_payment → pending_deployment → active → expired/revoked/transferred
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Helper to check if platform is permitted
+export function isPlatformPermitted(bitmap: number, platform: keyof typeof PLATFORM_BITS): boolean {
+  return (bitmap & (1 << PLATFORM_BITS[platform])) !== 0;
+}
+
+// Helper to get all permitted platforms from bitmap
+export function getPermittedPlatforms(bitmap: number): string[] {
+  const platforms: string[] = [];
+  for (const [name, bit] of Object.entries(PLATFORM_BITS)) {
+    if (bitmap & (1 << bit)) {
+      platforms.push(name);
+    }
+  }
+  return platforms;
+}
+
+// Helper to create bitmap from platform array
+export function createPlatformBitmap(platforms: (keyof typeof PLATFORM_BITS)[]): number {
+  let bitmap = 0;
+  for (const platform of platforms) {
+    bitmap |= (1 << PLATFORM_BITS[platform]);
+  }
+  return bitmap;
+}
+
 export const insertLicenseContractSchema = createInsertSchema(licenseContracts).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  pdaAddress: true,
   contractAddress: true,
+  transactionHash: true,
+  mintedAt: true,
   creationFeePaid: true,
   creationFeePaymentTx: true,
   creationFeePaidAt: true,
-  mintedAt: true,
-  transactionHash: true,
+  licensorSignedAt: true,
+  licensorSignature: true,
+  licenseeSignedAt: true,
+  licenseeSignature: true,
+  metadataIpfsHash: true,
+  badgeImageArweaveUrl: true,
+  badgeImageIpfsHash: true,
+  shareableSlug: true,
 }).extend({
-  contractType: z.enum(['commercial', 'non_commercial', 'exclusive']),
+  licenseType: z.enum(['exclusive', 'non_exclusive', 'work_for_hire', 'full_transfer']),
+  geographicScope: z.enum(['worldwide', 'specific']).optional(),
+  usagePurpose: z.enum(['personal', 'commercial', 'both']).optional(),
+  arbitrationAgreed: z.boolean().refine(val => val === true, { message: 'Arbitration agreement is required' }),
+  indemnificationAgreed: z.boolean().refine(val => val === true, { message: 'Indemnification agreement is required' }),
 });
 
 export type InsertLicenseContract = z.infer<typeof insertLicenseContractSchema>;
