@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { TokenAdminPanel } from "@/components/TokenAdminPanel";
+import { SubscriptionAdminPanel } from "@/components/SubscriptionAdminPanel";
 
 const ADMIN_EMAILS = [
   "admin@solturio.app",
@@ -470,6 +471,7 @@ export default function AdminDashboard() {
       {/* Admin Tools Tabs */}
       <Tabs defaultValue="treasury" className="space-y-4">
         <TabsList className="grid grid-cols-7 w-full">
+          <TabsTrigger value="subscriptions" data-testid="tab-subscriptions">Subscriptions</TabsTrigger>
           <TabsTrigger value="treasury" data-testid="tab-treasury">Treasury</TabsTrigger>
           <TabsTrigger value="tokens" data-testid="tab-tokens">Tokens</TabsTrigger>
           <TabsTrigger value="compliance" data-testid="tab-compliance">Compliance</TabsTrigger>
@@ -478,6 +480,10 @@ export default function AdminDashboard() {
           <TabsTrigger value="analytics" data-testid="tab-analytics">Analytics</TabsTrigger>
           <TabsTrigger value="settings" data-testid="tab-settings">Settings</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="subscriptions" className="space-y-4">
+          <SubscriptionAdminPanel />
+        </TabsContent>
 
         <TabsContent value="treasury" className="space-y-4">
           {/* Treasury Wallets Section */}

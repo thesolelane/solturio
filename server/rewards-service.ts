@@ -260,6 +260,91 @@ export async function getRemainingRewardsPool(): Promise<number> {
 }
 
 /**
+ * Admin manual reward award - bypasses action lookup but still enforces pool cap
+ * SECURITY: Only call from admin-verified routes
+ */
+export async function awardManualReward(
+  userId: string,
+  amount: number,
+  reason: string,
+  adminUserId: string
+): Promise<RewardResult> {
+  try {
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return { success: false, baseAmount: 0, multiplier: 1, finalAmount: 0, newBalance: '0', error: 'User not found' };
+    }
+
+    if (amount <= 0) {
+      return { success: false, baseAmount: 0, multiplier: 1, finalAmount: 0, newBalance: '0', error: 'Amount must be positive' };
+    }
+
+    // SECURITY: Enforce pool cap
+    const remainingPool = await getRemainingRewardsPool();
+    if (remainingPool <= 0) {
+      return {
+        success: false,
+        baseAmount: amount,
+        multiplier: 1,
+        finalAmount: 0,
+        newBalance: user.sltrBalance || '0',
+        error: 'Rewards pool exhausted',
+      };
+    }
+
+    let finalAmount = amount;
+    if (finalAmount > remainingPool) {
+      console.warn(`Admin award capped from ${finalAmount} to ${remainingPool} (pool cap)`);
+      finalAmount = remainingPool;
+    }
+
+    // Calculate new balance
+    const currentBalance = parseFloat(user.sltrBalance || '0');
+    const currentTotalEarned = parseFloat(user.sltrTotalEarned || '0');
+    const newBalance = (currentBalance + finalAmount).toString();
+    const newTotalEarned = (currentTotalEarned + finalAmount).toString();
+
+    // Update user balance
+    await storage.updateUser(userId, {
+      sltrBalance: newBalance,
+      sltrTotalEarned: newTotalEarned,
+    });
+
+    // Log the admin reward with audit trail
+    try {
+      const db = (storage as any).$client;
+      if (db) {
+        await db.query(
+          `INSERT INTO rewards_log (user_id, action_type, base_amount, multiplier, final_amount, related_entity_id, related_entity_type)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [userId, 'admin_manual', amount.toString(), 1, finalAmount.toString(), adminUserId, `reason:${reason}`]
+        );
+      }
+    } catch (logError) {
+      console.error('Failed to log admin reward:', logError);
+    }
+
+    return {
+      success: true,
+      baseAmount: amount,
+      multiplier: 1,
+      finalAmount,
+      newBalance,
+    };
+  } catch (error: any) {
+    console.error('Admin award reward error:', error);
+    return {
+      success: false,
+      baseAmount: 0,
+      multiplier: 1,
+      finalAmount: 0,
+      newBalance: '0',
+      error: error.message,
+    };
+  }
+}
+
+/**
  * Generate unique referral code for user
  */
 export function generateReferralCode(): string {

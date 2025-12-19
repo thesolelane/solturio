@@ -14,6 +14,7 @@ import {
   checkSubscriptionStatus,
 } from './subscription-service';
 import { isAdminEmail, ADMIN_EMAILS } from '@shared/pricing';
+import { awardManualReward } from './rewards-service';
 import { z } from 'zod';
 
 export const subscriptionRouter = Router();
@@ -298,6 +299,169 @@ subscriptionRouter.get('/subscription/check-access', isAuthenticated, async (req
     });
   } catch (error: any) {
     console.error('Check access error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// ADMIN SUBSCRIPTION MANAGEMENT ROUTES
+// ============================================
+
+/**
+ * Admin middleware for subscription routes
+ */
+async function requireAdmin(req: any, res: any, next: any) {
+  try {
+    const userId = req.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'Not authenticated' });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || !isAdminEmail(user.email)) {
+      return res.status(403).json({ success: false, error: 'Admin access required' });
+    }
+    
+    next();
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+/**
+ * GET /admin/subscriptions/users
+ * Get all users with subscription data (admin only)
+ */
+subscriptionRouter.get('/admin/subscriptions/users', isAuthenticated, requireAdmin, async (req: any, res) => {
+  try {
+    const users = await storage.getAllUsers();
+    
+    const subscriptionUsers = users.map(user => ({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      accountStatus: user.accountStatus || 'pending',
+      subscriptionExpiresAt: user.subscriptionExpiresAt,
+      sltrBalance: user.sltrBalance || '0',
+      createdAt: user.createdAt,
+    }));
+    
+    res.json(subscriptionUsers);
+  } catch (error: any) {
+    console.error('Get subscription users error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * POST /admin/subscriptions/grant-free
+ * Grant admin/free access to a user
+ */
+subscriptionRouter.post('/admin/subscriptions/grant-free', isAuthenticated, requireAdmin, async (req: any, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ success: false, error: 'User ID required' });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    
+    await storage.updateUser(userId, {
+      accountStatus: 'admin',
+    });
+    
+    res.json({ success: true, message: 'Admin access granted' });
+  } catch (error: any) {
+    console.error('Grant free access error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * POST /admin/subscriptions/extend
+ * Extend a user's subscription by specified days
+ */
+subscriptionRouter.post('/admin/subscriptions/extend', isAuthenticated, requireAdmin, async (req: any, res) => {
+  try {
+    const { userId, days } = req.body;
+    if (!userId || !days) {
+      return res.status(400).json({ success: false, error: 'User ID and days required' });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    
+    // Calculate new expiration date
+    const currentExpiry = user.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt) : new Date();
+    const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
+    const newExpiry = new Date(baseDate.getTime() + (days * 24 * 60 * 60 * 1000));
+    
+    await storage.updateUser(userId, {
+      accountStatus: 'active',
+      subscriptionExpiresAt: newExpiry,
+    });
+    
+    res.json({ 
+      success: true, 
+      message: `Subscription extended by ${days} days`,
+      newExpiresAt: newExpiry.toISOString(),
+    });
+  } catch (error: any) {
+    console.error('Extend subscription error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * POST /admin/subscriptions/award-rewards
+ * Manually award SLTR rewards to a user
+ * SECURITY: Uses rewards-service to enforce pool cap and audit logging
+ */
+subscriptionRouter.post('/admin/subscriptions/award-rewards', isAuthenticated, requireAdmin, async (req: any, res) => {
+  try {
+    const adminUserId = req.user?.claims?.sub;
+    const { userId, amount, reason } = req.body;
+    
+    if (!userId || !amount) {
+      return res.status(400).json({ success: false, error: 'User ID and amount required' });
+    }
+    
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      return res.status(400).json({ success: false, error: 'Amount must be a positive number' });
+    }
+    
+    // Use rewards service for proper pool cap enforcement and audit logging
+    const result = await awardManualReward(
+      userId,
+      parsedAmount,
+      reason || 'admin_manual',
+      adminUserId
+    );
+    
+    if (!result.success) {
+      return res.status(400).json({ 
+        success: false, 
+        error: result.error || 'Failed to award rewards',
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: `Awarded ${result.finalAmount} SLTR to user`,
+      requestedAmount: parsedAmount,
+      awardedAmount: result.finalAmount,
+      newBalance: result.newBalance,
+      reason: reason || 'admin_manual',
+    });
+  } catch (error: any) {
+    console.error('Award rewards error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
