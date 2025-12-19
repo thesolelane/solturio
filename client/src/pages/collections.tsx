@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Shield, Loader2, ExternalLink, Copy, Check, Sparkles, FileCheck, ChevronDown, ChevronRight, Share2, HelpCircle } from "lucide-react";
+import { Shield, Loader2, ExternalLink, Copy, Check, Sparkles, FileCheck, ChevronDown, ChevronRight, Share2, HelpCircle, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Link } from "wouter";
 import type { Collection, Logo } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -69,6 +71,30 @@ export default function Collections() {
     onError: (error: Error) => {
       toast({
         title: "Minting Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Toggle collection visibility mutation
+  const visibilityMutation = useMutation({
+    mutationFn: async ({ collectionId, isPublic }: { collectionId: string; isPublic: boolean }) => {
+      const response = await apiRequest("PATCH", `/api/collections/${collectionId}/visibility`, { isPublic });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: data.isPublic ? "Collection Public" : "Collection Private",
+        description: data.isPublic 
+          ? "This collection can now be found in public search" 
+          : "This collection is now hidden from public search",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/collections"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -328,6 +354,34 @@ export default function Collections() {
                                 </Button>
                               )}
                             </div>
+
+                            <div className="border-t pt-4 mt-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  {collection.isPublic !== false ? (
+                                    <Eye className="w-4 h-4 text-muted-foreground" />
+                                  ) : (
+                                    <EyeOff className="w-4 h-4 text-muted-foreground" />
+                                  )}
+                                  <div>
+                                    <Label className="text-sm font-medium">Discoverable in Public Search</Label>
+                                    <p className="text-xs text-muted-foreground">
+                                      {collection.isPublic !== false 
+                                        ? "Others can find this collection by searching your handle or ticker" 
+                                        : "This collection is hidden from public search"}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Switch
+                                  checked={collection.isPublic !== false}
+                                  onCheckedChange={(checked) => {
+                                    visibilityMutation.mutate({ collectionId: collection.id, isPublic: checked });
+                                  }}
+                                  disabled={visibilityMutation.isPending}
+                                  data-testid={`switch-visibility-${collection.id}`}
+                                />
+                              </div>
+                            </div>
                           </div>
                         )}
 
@@ -497,8 +551,4 @@ export default function Collections() {
       </main>
     </div>
   );
-}
-
-function Label({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={className}>{children}</div>;
 }
