@@ -24,7 +24,7 @@ import { Link } from "wouter";
 // Admin email whitelist - in production this should be in environment variables
 const ADMIN_EMAILS = [
   "admin@solturio.app",
-  "admin@cooperanth.com",
+  "acooper@cooperanth.com",
   // Add more admin emails here
 ];
 

@@ -24,7 +24,7 @@ import {
 // Admin email whitelist - should match admin-dashboard.tsx
 const ADMIN_EMAILS = [
   "admin@solturio.app",
-  "admin@cooperanth.com",
+  "acooper@cooperanth.com",
 ];
 
 export default function AdminPartnerships() {
