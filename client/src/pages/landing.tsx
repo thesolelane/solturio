@@ -232,47 +232,42 @@ export default function Landing() {
       {/* Pricing */}
       <section className="py-16 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl font-semibold text-center mb-12">
-            Pay with Crypto - No Fiat
+          <h2 className="text-2xl font-semibold text-center mb-4">
+            Simple, Transparent Pricing
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            <Card className="p-6 border-2">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Solana</h3>
-                <div className="text-3xl font-bold mb-2">0.5 SOL</div>
-                <div className="text-sm text-muted-foreground mb-4">or 100,000 BONK</div>
-                <p className="text-sm text-muted-foreground mb-6">Up to 5 logos</p>
-                <Button className="w-full" variant="outline" asChild data-testid="button-pricing-starter">
-                  <a href="/api/login">Pay with SOL</a>
-                </Button>
-              </div>
-            </Card>
-            
+          <p className="text-center text-muted-foreground mb-12">Pay with $CATH - No Fiat</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <Card className="p-6 border-2 border-primary">
               <div className="text-center">
-                <div className="text-xs font-semibold text-primary mb-2">BEST VALUE - 50% OFF</div>
-                <h3 className="text-lg font-semibold mb-2">$CATH Token</h3>
-                <div className="text-3xl font-bold mb-2">500 CATH</div>
-                <div className="text-sm text-green-600 dark:text-green-400 line-through mb-1">1,000 CATH</div>
-                <p className="text-sm text-muted-foreground mb-6">Up to 20 logos</p>
-                <Button className="w-full" asChild data-testid="button-pricing-professional">
-                  <a href="/api/login">Pay with CATH</a>
+                <div className="text-xs font-semibold text-primary mb-2">LAUNCH PROMO - 72% OFF</div>
+                <h3 className="text-lg font-semibold mb-2">Platform Access</h3>
+                <div className="text-3xl font-bold mb-1">0.14 SOL</div>
+                <div className="text-sm text-muted-foreground mb-1">worth of $CATH</div>
+                <div className="text-sm text-muted-foreground line-through mb-4">0.5 SOL standard</div>
+                <p className="text-sm text-muted-foreground mb-6">1 Year Full Access</p>
+                <Button className="w-full" asChild data-testid="button-pricing-promo">
+                  <a href="/api/login">Get Started</a>
                 </Button>
               </div>
             </Card>
             
             <Card className="p-6 border-2">
               <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Arweave Storage</h3>
-                <div className="text-2xl font-bold mb-2">1 AR</div>
-                <div className="text-sm text-muted-foreground mb-4">+ 0.3 SOL network fee</div>
-                <p className="text-sm text-muted-foreground mb-6">Permanent storage, unlimited logos</p>
-                <Button className="w-full" variant="outline" asChild data-testid="button-pricing-enterprise">
-                  <a href="/api/login">Pay with AR</a>
+                <h3 className="text-lg font-semibold mb-2 mt-5">License Smart Contract</h3>
+                <div className="text-3xl font-bold mb-1">0.025 SOL</div>
+                <div className="text-sm text-muted-foreground mb-4">per contract deployment</div>
+                <p className="text-sm text-muted-foreground mb-6">Dual-signature workflow, on-chain proof</p>
+                <Button className="w-full" variant="outline" asChild data-testid="button-pricing-license">
+                  <a href="/api/login">Learn More</a>
                 </Button>
               </div>
             </Card>
           </div>
+          
+          <p className="text-center text-xs text-muted-foreground mt-8">
+            All payments are non-refundable service fees. $SLTR utility rewards for platform engagement.
+          </p>
         </div>
       </section>
 
