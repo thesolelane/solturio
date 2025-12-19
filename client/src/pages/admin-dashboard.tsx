@@ -25,7 +25,7 @@ import { Link } from "wouter";
 const ADMIN_EMAILS = [
   "admin@solturio.app",
   "acooper@cooperanth.com",
-  "cooper@preferredbuildsusa.com",
+  "cooper@preferredbuildersusa.com",
   // Add more admin emails here
 ];
 

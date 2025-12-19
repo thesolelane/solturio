@@ -25,7 +25,7 @@ import {
 const ADMIN_EMAILS = [
   "admin@solturio.app",
   "acooper@cooperanth.com",
-  "cooper@preferredbuildsusa.com",
+  "cooper@preferredbuildersusa.com",
 ];
 
 export default function AdminPartnerships() {
