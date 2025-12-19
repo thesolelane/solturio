@@ -21,7 +21,7 @@ export const licenseRouter = Router();
 
 /**
  * GET /api/licenses
- * Get all licenses for the authenticated user (as licensor)
+ * Get all licenses for the authenticated user (as licensor OR licensee)
  */
 licenseRouter.get('/', isAuthenticated, async (req: any, res) => {
   try {
@@ -30,11 +30,42 @@ licenseRouter.get('/', isAuthenticated, async (req: any, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const licenses = await storage.getLicenseContractsByLicensor(userId);
+    // Get user's wallet addresses to find licensee licenses
+    const user = await storage.getUser(userId);
+    
+    // Collect all possible wallet identifiers for the user
+    const userWallets: string[] = [];
+    if (user?.walletAddress) userWallets.push(user.walletAddress);
+    if (user?.solanaPublicKey) userWallets.push(user.solanaPublicKey);
+
+    // Get licenses as licensor
+    const licensorLicenses = await storage.getLicenseContractsByLicensor(userId);
+    
+    // Get licenses as licensee (by all wallet addresses)
+    let licenseeLicenses: any[] = [];
+    for (const wallet of userWallets) {
+      const licenses = await storage.getLicenseContractsByLicensee(wallet);
+      licenseeLicenses.push(...licenses);
+    }
+    
+    // Combine and deduplicate (in case same license appears in both)
+    const licenseMap = new Map();
+    
+    for (const license of licensorLicenses) {
+      licenseMap.set(license.id, { ...license, userRole: 'licensor' });
+    }
+    
+    for (const license of licenseeLicenses) {
+      if (!licenseMap.has(license.id)) {
+        licenseMap.set(license.id, { ...license, userRole: 'licensee' });
+      }
+    }
+    
+    const allLicenses = Array.from(licenseMap.values());
     
     // Enrich with logo info
     const enrichedLicenses = await Promise.all(
-      licenses.map(async (license) => {
+      allLicenses.map(async (license) => {
         const logo = await storage.getLogoById(license.logoId);
         return {
           ...license,
@@ -48,6 +79,13 @@ licenseRouter.get('/', isAuthenticated, async (req: any, res) => {
         };
       })
     );
+
+    // Sort by creation date
+    enrichedLicenses.sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
 
     res.json(enrichedLicenses);
   } catch (error: any) {
