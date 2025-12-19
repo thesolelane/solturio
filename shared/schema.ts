@@ -1169,6 +1169,190 @@ export const LICENSE_TEMPLATES = {
   },
 } as const;
 
+// International Jurisdiction Templates with region-specific legal requirements
+export const JURISDICTION_TEMPLATES = {
+  US: {
+    code: 'US',
+    name: 'United States',
+    version: '1.0',
+    governingLaw: 'State of Delaware, United States',
+    disputeVenue: 'Binding arbitration in Wilmington, Delaware, USA',
+    requirements: {
+      gdprCompliant: false,
+      pipedaCompliant: false,
+      pdpaCompliant: false,
+      appiCompliant: false,
+      moralRightsWaived: true, // US allows moral rights waiver
+      bilingualRequired: false,
+    },
+    clauses: {
+      arbitration: 'All disputes shall be resolved through binding arbitration under AAA Commercial Arbitration Rules.',
+      jurisdiction: 'This agreement is governed by the laws of the State of Delaware, USA.',
+      dmca: 'Both parties agree to comply with DMCA takedown procedures for IP infringement.',
+    },
+  },
+  EU: {
+    code: 'EU',
+    name: 'European Union',
+    version: '1.0',
+    governingLaw: 'Laws of the European Union',
+    disputeVenue: 'Arbitration in accordance with ICC Rules, Paris, France',
+    requirements: {
+      gdprCompliant: true,
+      gdprDataProcessingAgreed: true,
+      gdprWithdrawalRightsAcknowledged: true,
+      pipedaCompliant: false,
+      pdpaCompliant: false,
+      appiCompliant: false,
+      moralRightsWaived: false, // EU generally protects moral rights
+      bilingualRequired: false,
+    },
+    clauses: {
+      gdprNotice: 'Personal data will be processed in accordance with GDPR. Data subjects retain rights under Articles 15-22.',
+      dataProcessing: 'Any personal data transferred is subject to appropriate safeguards under GDPR Article 46.',
+      withdrawal: 'Consumers may have withdrawal rights under the Consumer Rights Directive within 14 days.',
+      moralRights: 'Moral rights of the author are preserved and cannot be waived under this agreement.',
+      vatStatement: 'VAT will be applied according to the place of supply rules for digital services.',
+    },
+  },
+  UK: {
+    code: 'UK',
+    name: 'United Kingdom',
+    version: '1.0',
+    governingLaw: 'Laws of England and Wales',
+    disputeVenue: 'Arbitration under LCIA Rules, London, United Kingdom',
+    requirements: {
+      gdprCompliant: true, // UK GDPR
+      gdprDataProcessingAgreed: true,
+      gdprWithdrawalRightsAcknowledged: true,
+      pipedaCompliant: false,
+      pdpaCompliant: false,
+      appiCompliant: false,
+      moralRightsWaived: false,
+      bilingualRequired: false,
+    },
+    clauses: {
+      ukGdpr: 'Personal data processing complies with UK GDPR and Data Protection Act 2018.',
+      consumerRights: 'Consumer Rights Act 2015 protections apply where applicable.',
+      withdrawal: 'Consumer contracts may be subject to 14-day cancellation rights under CCR 2013.',
+      vatStatement: 'UK VAT applies to digital services at the standard rate.',
+    },
+  },
+  CA: {
+    code: 'CA',
+    name: 'Canada',
+    version: '1.0',
+    governingLaw: 'Federal laws of Canada and laws of Ontario',
+    disputeVenue: 'Arbitration under ADR Institute of Canada Rules, Toronto, Ontario',
+    requirements: {
+      gdprCompliant: false,
+      pipedaCompliant: true,
+      pdpaCompliant: false,
+      appiCompliant: false,
+      moralRightsWaived: false, // Canada protects moral rights
+      bilingualRequired: true, // French language requirements in Quebec
+    },
+    clauses: {
+      pipeda: 'Personal information is collected and used in accordance with PIPEDA.',
+      moralRights: 'Moral rights under the Copyright Act are acknowledged and preserved.',
+      bilingual: 'Pour les utilisateurs du Québec, ce contrat est également disponible en français.',
+      antiSpam: 'Commercial electronic messages comply with CASL requirements.',
+    },
+  },
+  JP: {
+    code: 'JP',
+    name: 'Japan',
+    version: '1.0',
+    governingLaw: 'Laws of Japan',
+    disputeVenue: 'Arbitration under JCAA Commercial Arbitration Rules, Tokyo, Japan',
+    requirements: {
+      gdprCompliant: false,
+      pipedaCompliant: false,
+      pdpaCompliant: false,
+      appiCompliant: true,
+      moralRightsWaived: false, // Japan strongly protects moral rights
+      bilingualRequired: false,
+    },
+    clauses: {
+      appi: 'Personal data handling complies with Japan\'s Act on Protection of Personal Information (APPI).',
+      moralRights: 'The author\'s moral rights (著作者人格権) under Article 18-20 of the Copyright Act are preserved.',
+      crossBorder: 'Cross-border data transfers comply with APPI Article 28 requirements.',
+      consumerContract: 'Consumer Contract Act protections apply where the licensee is a consumer.',
+    },
+  },
+  SG: {
+    code: 'SG',
+    name: 'Singapore',
+    version: '1.0',
+    governingLaw: 'Laws of the Republic of Singapore',
+    disputeVenue: 'Arbitration under SIAC Rules, Singapore',
+    requirements: {
+      gdprCompliant: false,
+      pipedaCompliant: false,
+      pdpaCompliant: true,
+      appiCompliant: false,
+      moralRightsWaived: true,
+      bilingualRequired: false,
+    },
+    clauses: {
+      pdpa: 'Personal data is collected and used in accordance with the Personal Data Protection Act 2012.',
+      consent: 'Express consent is obtained for collection, use, and disclosure of personal data.',
+      crossBorder: 'Data transfers comply with PDPA Transfer Limitation Obligation.',
+    },
+  },
+  AU: {
+    code: 'AU',
+    name: 'Australia',
+    version: '1.0',
+    governingLaw: 'Laws of the Commonwealth of Australia',
+    disputeVenue: 'Arbitration under ACICA Rules, Sydney, Australia',
+    requirements: {
+      gdprCompliant: false,
+      pipedaCompliant: false,
+      pdpaCompliant: false,
+      appiCompliant: false,
+      moralRightsWaived: false, // Australia recognizes moral rights
+      bilingualRequired: false,
+    },
+    clauses: {
+      privacyAct: 'Personal information handling complies with the Privacy Act 1988 and Australian Privacy Principles.',
+      moralRights: 'Moral rights under Part IX of the Copyright Act 1968 are acknowledged.',
+      consumerLaw: 'Australian Consumer Law guarantees apply and cannot be excluded.',
+      gst: 'GST applies to taxable supplies under A New Tax System (Goods and Services Tax) Act 1999.',
+    },
+  },
+  INTL: {
+    code: 'INTL',
+    name: 'International (Default)',
+    version: '1.0',
+    governingLaw: 'International commercial law principles (UNIDROIT)',
+    disputeVenue: 'Arbitration under UNCITRAL Rules, Geneva, Switzerland',
+    requirements: {
+      gdprCompliant: false,
+      pipedaCompliant: false,
+      pdpaCompliant: false,
+      appiCompliant: false,
+      moralRightsWaived: false,
+      bilingualRequired: false,
+    },
+    clauses: {
+      general: 'This agreement follows international commercial law principles.',
+      arbitration: 'Disputes resolved under UNCITRAL Arbitration Rules with neutral venue.',
+      crossBorder: 'Parties acknowledge cross-border nature and agree to cooperate on jurisdictional matters.',
+    },
+  },
+} as const;
+
+export type JurisdictionCode = keyof typeof JURISDICTION_TEMPLATES;
+
+// License type descriptions for human-readable contract display
+export const LICENSE_TYPE_DESCRIPTIONS = {
+  exclusive: 'Exclusive License - Only the licensee may use this asset during the license term. The licensor retains ownership but cannot license to others.',
+  non_exclusive: 'Non-Exclusive License - The licensee receives rights to use this asset, but the licensor may grant similar rights to others.',
+  work_for_hire: 'Work-for-Hire Agreement - The licensee is commissioning work where the resulting IP belongs to the licensee upon creation.',
+  full_transfer: 'Full Transfer of Rights - Complete assignment of all intellectual property rights from licensor to licensee.',
+} as const;
+
 // License Contracts - Comprehensive IP licensing smart contracts
 export const licenseContracts = pgTable("license_contracts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1250,6 +1434,36 @@ export const licenseContracts = pgTable("license_contracts", {
   badgeImageArweaveUrl: text("badge_image_arweave_url"), // Badge-overlaid image on Arweave
   badgeImageIpfsHash: varchar("badge_image_ipfs_hash", { length: 100 }),
   
+  // ===== IMAGE METADATA (snapshot at license creation) =====
+  imageColorPalette: text("image_color_palette").array(), // Array of hex colors from image
+  imageDominantColor: varchar("image_dominant_color", { length: 7 }), // Primary hex color
+  imagePantoneColors: text("image_pantone_colors").array(), // Pantone color codes if available
+  imageCreatedAt: timestamp("image_created_at"), // When the image was originally registered
+  licenseIssuedAt: timestamp("license_issued_at"), // When this license was formally issued
+  licenseTypeDescription: text("license_type_description"), // Human-readable description of license type
+  
+  // ===== CURRENT HOLDER TRACKING =====
+  currentHolderName: varchar("current_holder_name"), // Current license holder display name
+  currentHolderWallet: varchar("current_holder_wallet"), // Current holder's wallet address
+  currentHolderEmail: varchar("current_holder_email"), // Current holder contact
+  holderTransferHistory: jsonb("holder_transfer_history"), // Array of {from, to, date, txHash}
+  
+  // ===== JURISDICTION & COMPLIANCE =====
+  jurisdictionCode: varchar("jurisdiction_code", { length: 10 }).default('US'), // US, EU, UK, CA, JP, SG, AU
+  jurisdictionVersion: varchar("jurisdiction_version", { length: 10 }).default('1.0'), // Template version
+  governingLaw: varchar("governing_law"), // e.g., "State of Delaware, United States"
+  disputeVenue: varchar("dispute_venue"), // e.g., "Arbitration in New York, NY"
+  gdprCompliant: boolean("gdpr_compliant").default(false), // EU GDPR requirements
+  gdprDataProcessingAgreed: boolean("gdpr_data_processing_agreed").default(false),
+  gdprWithdrawalRightsAcknowledged: boolean("gdpr_withdrawal_rights_acknowledged").default(false),
+  pipedaCompliant: boolean("pipeda_compliant").default(false), // Canada PIPEDA
+  pdpaCompliant: boolean("pdpa_compliant").default(false), // Singapore PDPA
+  appiCompliant: boolean("appi_compliant").default(false), // Japan APPI
+  moralRightsWaived: boolean("moral_rights_waived").default(false), // Important for Japan, France
+  bilingualRequired: boolean("bilingual_required").default(false), // Canada French requirement
+  vatStatement: text("vat_statement"), // EU/UK VAT handling
+  regionalClauses: jsonb("regional_clauses"), // Additional jurisdiction-specific clauses
+  
   // ===== SHAREABLE LINK =====
   shareableSlug: varchar("shareable_slug", { length: 50 }).unique(), // solturio.app/license/[slug]
   
@@ -1315,6 +1529,7 @@ export const insertLicenseContractSchema = createInsertSchema(licenseContracts).
   licenseType: z.enum(['exclusive', 'non_exclusive', 'work_for_hire', 'full_transfer']),
   geographicScope: z.enum(['worldwide', 'specific']).optional(),
   usagePurpose: z.enum(['personal', 'commercial', 'both']).optional(),
+  jurisdictionCode: z.enum(['US', 'EU', 'UK', 'CA', 'JP', 'SG', 'AU', 'INTL']).optional().default('US'),
   arbitrationAgreed: z.boolean().refine(val => val === true, { message: 'Arbitration agreement is required' }),
   indemnificationAgreed: z.boolean().refine(val => val === true, { message: 'Indemnification agreement is required' }),
 });
