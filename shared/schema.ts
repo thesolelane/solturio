@@ -69,6 +69,42 @@ export const users = pgTable("users", {
   notifyPaymentsDue: boolean("notify_payments_due").default(true),
   notifyRentalReminders: boolean("notify_rental_reminders").default(true),
   
+  // Account status and subscription (REGULATORY: Non-refundable service fee, not custody)
+  accountStatus: varchar("account_status", { length: 20 }).default('pending'), // pending, active, expired, admin
+  isAdmin: boolean("is_admin").default(false), // Admin accounts bypass payment
+  subscriptionTier: varchar("subscription_tier", { length: 20 }), // standard, premium
+  subscriptionExpiresAt: timestamp("subscription_expires_at"),
+  subscriptionPaymentTx: varchar("subscription_payment_tx"), // $CATH payment transaction hash
+  subscriptionPaidAt: timestamp("subscription_paid_at"),
+  subscriptionPricePaid: varchar("subscription_price_paid"), // Amount of $CATH paid
+  wasPromoPrice: boolean("was_promo_price").default(false), // True if paid launch promo price
+  
+  // License fee tracking (SOL only, pay after SC creation)
+  pendingLicenseFee: varchar("pending_license_fee"), // Outstanding license SC fee in SOL
+  pendingLicenseFeeCount: integer("pending_license_fee_count").default(0), // Number of unpaid SCs
+  totalLicenseFeePaid: varchar("total_license_fee_paid").default('0'), // Total SOL paid for licenses
+  
+  // $SLTR Rewards (REGULATORY: Utility rewards only, no investment language)
+  sltrBalance: varchar("sltr_balance").default('0'), // Accumulated $SLTR tokens
+  sltrTotalEarned: varchar("sltr_total_earned").default('0'), // Lifetime earnings
+  sltrClaimedAmount: varchar("sltr_claimed_amount").default('0'), // Amount claimed via Streamflow
+  lastSltrClaimAt: timestamp("last_sltr_claim_at"),
+  earlyAdopterMultiplier: integer("early_adopter_multiplier").default(1), // 1x, 2x, 3x, 5x based on signup order
+  
+  // Referral system
+  referralCode: varchar("referral_code", { length: 20 }).unique(), // Unique referral code
+  referredBy: varchar("referred_by"), // Referral code of who referred this user
+  referralCount: integer("referral_count").default(0), // Number of successful referrals
+  referralRewardsEarned: varchar("referral_rewards_earned").default('0'), // $SLTR from referrals
+  
+  // Profile completion tracking (for rewards)
+  profileCompletedAt: timestamp("profile_completed_at"),
+  socialsLinkedAt: timestamp("socials_linked_at"),
+  firstImageUploadedAt: timestamp("first_image_uploaded_at"),
+  
+  // Discoverability
+  isDiscoverable: boolean("is_discoverable").default(true), // Show in public search
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -890,3 +926,243 @@ export const insertComplianceCaseSchema = createInsertSchema(complianceCases).om
 
 export type InsertComplianceCase = z.infer<typeof insertComplianceCaseSchema>;
 export type ComplianceCase = typeof complianceCases.$inferSelect;
+
+// ============================================================================
+// NEW PAYMENT MODEL TABLES (REGULATORY: Non-refundable service revenue)
+// ============================================================================
+
+// Platform Configuration - Admin-controlled settings
+export const platformConfig = pgTable("platform_config", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: varchar("key", { length: 100 }).notNull().unique(),
+  value: text("value").notNull(),
+  description: text("description"),
+  updatedBy: varchar("updated_by").references(() => users.id),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type PlatformConfig = typeof platformConfig.$inferSelect;
+
+// Accepted Tokens Registry - Three-tier token system
+export const acceptedTokens = pgTable("accepted_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Token identity
+  symbol: varchar("symbol", { length: 20 }).notNull().unique(), // CATH, SOL, BONK, etc.
+  name: varchar("name").notNull(),
+  mintAddress: varchar("mint_address").notNull().unique(), // Solana mint address
+  decimals: integer("decimals").notNull().default(9),
+  logoUrl: text("logo_url"),
+  
+  // Tier classification (REGULATORY: Platform controls accepted payment methods)
+  tier: varchar("tier", { length: 20 }).notNull(), // primary, whitelisted, community
+  
+  // Payment permissions
+  allowedForAccess: boolean("allowed_for_access").default(false), // Can pay for platform access
+  allowedForLicensing: boolean("allowed_for_licensing").default(false), // Can pay for license SCs
+  
+  // Status
+  isActive: boolean("is_active").default(false), // Toggle on/off
+  activatedAt: timestamp("activated_at"),
+  deactivatedAt: timestamp("deactivated_at"),
+  
+  // Price source
+  priceSource: varchar("price_source", { length: 50 }), // jupiter, raydium, manual
+  lastPriceUsd: varchar("last_price_usd"), // Cached USD price
+  lastPriceUpdatedAt: timestamp("last_price_updated_at"),
+  
+  // Community token metadata (Tier 3 only)
+  communityWebsite: text("community_website"),
+  communityTwitter: varchar("community_twitter"),
+  communityTelegram: varchar("community_telegram"),
+  communityDiscord: varchar("community_discord"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAcceptedTokenSchema = createInsertSchema(acceptedTokens).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  activatedAt: true,
+  deactivatedAt: true,
+  lastPriceUpdatedAt: true,
+}).extend({
+  tier: z.enum(['primary', 'whitelisted', 'community']),
+});
+
+export type InsertAcceptedToken = z.infer<typeof insertAcceptedTokenSchema>;
+export type AcceptedToken = typeof acceptedTokens.$inferSelect;
+
+// Token Applications - Community tokens applying for acceptance
+export const tokenApplications = pgTable("token_applications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Token info
+  symbol: varchar("symbol", { length: 20 }).notNull(),
+  name: varchar("name").notNull(),
+  mintAddress: varchar("mint_address").notNull(),
+  decimals: integer("decimals").notNull().default(9),
+  logoUrl: text("logo_url"),
+  
+  // Community info
+  website: text("website"),
+  twitter: varchar("twitter"),
+  telegram: varchar("telegram"),
+  discord: varchar("discord"),
+  
+  // Verification criteria
+  tokenAgeMonths: integer("token_age_months"), // Must be 6+ months old
+  dailyVolume: varchar("daily_volume"), // Estimated daily trading volume
+  holderCount: integer("holder_count"), // Number of holders
+  
+  // Applicant
+  applicantUserId: varchar("applicant_user_id").references(() => users.id),
+  applicantEmail: varchar("applicant_email"),
+  applicantNotes: text("applicant_notes"),
+  
+  // Review status
+  status: varchar("status", { length: 20 }).notNull().default('pending'), // pending, approved, rejected
+  reviewedBy: varchar("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewNotes: text("review_notes"),
+  rejectionReason: text("rejection_reason"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertTokenApplicationSchema = createInsertSchema(tokenApplications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  status: true,
+  reviewedBy: true,
+  reviewedAt: true,
+  reviewNotes: true,
+  rejectionReason: true,
+});
+
+export type InsertTokenApplication = z.infer<typeof insertTokenApplicationSchema>;
+export type TokenApplication = typeof tokenApplications.$inferSelect;
+
+// Rewards Log - Track all $SLTR reward events (REGULATORY: Utility rewards only)
+export const rewardsLog = pgTable("rewards_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  
+  // Reward details
+  actionType: varchar("action_type", { length: 50 }).notNull(), // profile_complete, image_upload, sc_create, referral, quiz_win, social_post
+  baseAmount: varchar("base_amount").notNull(), // Base $SLTR amount before multiplier
+  multiplier: integer("multiplier").notNull().default(1), // Early adopter multiplier
+  finalAmount: varchar("final_amount").notNull(), // Final $SLTR credited
+  
+  // Context
+  relatedEntityId: varchar("related_entity_id"), // Logo ID, SC ID, etc.
+  relatedEntityType: varchar("related_entity_type", { length: 30 }), // logo, license, referral, quiz
+  
+  // For referrals
+  referredUserId: varchar("referred_user_id"),
+  
+  // For social rewards
+  socialPlatform: varchar("social_platform", { length: 30 }), // twitter, telegram
+  socialPostUrl: text("social_post_url"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type RewardsLog = typeof rewardsLog.$inferSelect;
+
+// License Contracts - Smart contracts created for IP licensing
+export const licenseContracts = pgTable("license_contracts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Ownership
+  creatorUserId: varchar("creator_user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  logoId: varchar("logo_id").references(() => logos.id, { onDelete: 'set null' }),
+  
+  // Contract details
+  contractAddress: varchar("contract_address"), // On-chain address
+  contractType: varchar("contract_type", { length: 30 }).notNull(), // commercial, non_commercial, exclusive
+  
+  // License terms
+  licenseeInfo: jsonb("licensee_info"), // Who the license is granted to
+  termsDescription: text("terms_description"),
+  usageRights: text("usage_rights").array(), // Array of allowed uses
+  territoryRestrictions: text("territory_restrictions"),
+  durationDays: integer("duration_days"), // License validity
+  expiresAt: timestamp("expires_at"),
+  
+  // Metadata for shareable link
+  shareableSlug: varchar("shareable_slug", { length: 50 }).unique(), // solturio.app/license/[slug]
+  metadataIpfsHash: varchar("metadata_ipfs_hash", { length: 100 }),
+  
+  // Fee tracking (REGULATORY: SOL only, platform revenue)
+  creationFee: varchar("creation_fee").notNull().default('0.025'), // SOL amount
+  creationFeePaid: boolean("creation_fee_paid").default(false),
+  creationFeePaymentTx: varchar("creation_fee_payment_tx"),
+  creationFeePaidAt: timestamp("creation_fee_paid_at"),
+  
+  // Status
+  status: varchar("status", { length: 20 }).notNull().default('pending_payment'), // pending_payment, active, expired, revoked
+  
+  // On-chain data
+  mintedAt: timestamp("minted_at"),
+  transactionHash: varchar("transaction_hash"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertLicenseContractSchema = createInsertSchema(licenseContracts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  contractAddress: true,
+  creationFeePaid: true,
+  creationFeePaymentTx: true,
+  creationFeePaidAt: true,
+  mintedAt: true,
+  transactionHash: true,
+}).extend({
+  contractType: z.enum(['commercial', 'non_commercial', 'exclusive']),
+});
+
+export type InsertLicenseContract = z.infer<typeof insertLicenseContractSchema>;
+export type LicenseContract = typeof licenseContracts.$inferSelect;
+
+// Referral Tracking - Track referral chain and rewards
+export const referralTracking = pgTable("referral_tracking", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  referrerUserId: varchar("referrer_user_id").notNull().references(() => users.id),
+  referredUserId: varchar("referred_user_id").notNull().references(() => users.id),
+  referralCode: varchar("referral_code").notNull(),
+  
+  // Status
+  signedUpAt: timestamp("signed_up_at").defaultNow(),
+  activatedAt: timestamp("activated_at"), // When referred user paid $CATH
+  
+  // Rewards
+  referrerRewardAmount: varchar("referrer_reward_amount"), // $SLTR credited to referrer
+  referrerRewardPaidAt: timestamp("referrer_reward_paid_at"),
+  referredBonusAmount: varchar("referred_bonus_amount"), // $SLTR bonus to new user
+  referredBonusPaidAt: timestamp("referred_bonus_paid_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type ReferralTracking = typeof referralTracking.$inferSelect;
+
+// Used Transactions - Replay attack protection
+export const usedTransactions = pgTable("used_transactions", {
+  txHash: varchar("tx_hash").primaryKey(),
+  userId: varchar("user_id").references(() => users.id),
+  purpose: varchar("purpose", { length: 30 }).notNull(), // subscription, license, renewal
+  amount: varchar("amount"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export type UsedTransaction = typeof usedTransactions.$inferSelect;

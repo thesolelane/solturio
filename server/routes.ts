@@ -27,6 +27,9 @@ import { treasuryRouter } from "./treasury";
 import { ipRegistrationRouter } from "./ip-registration";
 import { subdomainsRouter } from "./subdomains";
 import { githubProxyRouter } from "./github-proxy";
+import { subscriptionRouter } from "./subscription-routes";
+import { rewardsRouter } from "./rewards-routes";
+import { tokensRouter } from "./tokens-routes";
 import { applyValidationToRoutes } from "./validation-middleware";
 import { formatError, formatSuccess } from "./error-handler";
 import { auditLogger } from "./audit-logger";
@@ -3118,6 +3121,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Phase 2: Register License Management & Treasury Routers
   app.use("/api", licensesRouter);
   app.use("/api", treasuryRouter);
+
+  // New Payment Model Routes: Subscription, Rewards, Tokens
+  app.use("/api", subscriptionRouter);
+  app.use("/api", rewardsRouter);
+  app.use("/api", tokensRouter);
 
   // Phase 4: Register IP Registration, Subdomains, and Security Challenge Routers
   app.use("/api", ipRegistrationRouter);
