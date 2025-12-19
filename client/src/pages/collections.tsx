@@ -2,13 +2,16 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Shield, Loader2, ExternalLink, Copy, Check, Sparkles, FileCheck, ChevronDown, ChevronRight, Share2, HelpCircle, Eye, EyeOff } from "lucide-react";
+import { Shield, Loader2, ExternalLink, Copy, Check, Sparkles, FileCheck, ChevronDown, ChevronRight, Share2, HelpCircle, Eye, EyeOff, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Link } from "wouter";
 import type { Collection, Logo } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -19,6 +22,9 @@ export default function Collections() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expandedCollections, setExpandedCollections] = useState<Set<string>>(new Set());
+  const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
 
   const toggleCollection = (collectionId: string) => {
     setExpandedCollections(prev => {
@@ -100,6 +106,45 @@ export default function Collections() {
       });
     },
   });
+
+  // Edit collection mutation
+  const editMutation = useMutation({
+    mutationFn: async ({ collectionId, name, description }: { collectionId: string; name: string; description: string }) => {
+      const response = await apiRequest("PATCH", `/api/collections/${collectionId}`, { name, description });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Collection Updated",
+        description: "Your collection details have been saved",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/collections"] });
+      setEditingCollection(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const openEditDialog = (collection: Collection) => {
+    setEditingCollection(collection);
+    setEditName(collection.name);
+    setEditDescription(collection.description || "");
+  };
+
+  const handleSaveEdit = () => {
+    if (editingCollection && editName.trim()) {
+      editMutation.mutate({
+        collectionId: editingCollection.id,
+        name: editName.trim(),
+        description: editDescription.trim(),
+      });
+    }
+  };
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -355,7 +400,7 @@ export default function Collections() {
                               )}
                             </div>
 
-                            <div className="border-t pt-4 mt-4">
+                            <div className="border-t pt-4 mt-4 space-y-4">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   {collection.isPublic !== false ? (
@@ -380,6 +425,26 @@ export default function Collections() {
                                   disabled={visibilityMutation.isPending}
                                   data-testid={`switch-visibility-${collection.id}`}
                                 />
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Pencil className="w-4 h-4 text-muted-foreground" />
+                                  <div>
+                                    <Label className="text-sm font-medium">Edit Collection Details</Label>
+                                    <p className="text-xs text-muted-foreground">
+                                      Change collection name or description
+                                    </p>
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openEditDialog(collection)}
+                                  data-testid={`button-edit-${collection.id}`}
+                                >
+                                  <Pencil className="w-3 h-3 mr-1" />
+                                  Edit
+                                </Button>
                               </div>
                             </div>
                           </div>
@@ -549,6 +614,61 @@ export default function Collections() {
           </div>
         )}
       </main>
+
+      {/* Edit Collection Dialog */}
+      <Dialog open={!!editingCollection} onOpenChange={(open) => !open && setEditingCollection(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Collection</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Collection Name</Label>
+              <Input
+                id="edit-name"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Enter collection name"
+                data-testid="input-edit-name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description (optional)</Label>
+              <Textarea
+                id="edit-description"
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Enter collection description"
+                rows={3}
+                data-testid="input-edit-description"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setEditingCollection(null)}
+              data-testid="button-cancel-edit"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveEdit}
+              disabled={!editName.trim() || editMutation.isPending}
+              data-testid="button-save-edit"
+            >
+              {editMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
