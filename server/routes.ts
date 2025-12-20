@@ -280,9 +280,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // In production, this would fetch real data from Solana blockchain
       // For now, return placeholder config that indicates token is not yet deployed
-      const SLTR_MINT_ADDRESS = process.env.SLTR_MINT_ADDRESS;
+      const SOLT_MINT_ADDRESS = process.env.SOLT_MINT_ADDRESS;
       
-      if (!SLTR_MINT_ADDRESS) {
+      if (!SOLT_MINT_ADDRESS) {
         // Token not yet deployed
         return res.json(null);
       }
@@ -293,7 +293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'confirmed'
         );
         
-        const mintPubkey = new PublicKey(SLTR_MINT_ADDRESS);
+        const mintPubkey = new PublicKey(SOLT_MINT_ADDRESS);
         const mintInfo = await connection.getAccountInfo(mintPubkey);
         
         if (!mintInfo) {
@@ -324,7 +324,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         res.json({
           verified: true,
-          mintAddress: SLTR_MINT_ADDRESS,
+          mintAddress: SOLT_MINT_ADDRESS,
           totalSupply: formattedSupply,
           decimals: decimals,
           authority: authority,
@@ -334,7 +334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             duration: 730, // 24 months
             interval: 30, // Monthly
           },
-          rewardPoolCap: '50,000,000 SLTR',
+          rewardPoolCap: '50,000,000 SOLT',
           lastUpdated: new Date().toISOString(),
         });
       } catch (rpcError) {

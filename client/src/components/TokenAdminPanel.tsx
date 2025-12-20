@@ -177,7 +177,7 @@ export function TokenAdminPanel({ isAdmin }: TokenAdminPanelProps) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Token Registry</h3>
-          <p className="text-sm text-muted-foreground">Manage accepted payment tokens and $SLTR rewards</p>
+          <p className="text-sm text-muted-foreground">Manage accepted payment tokens and $SOLT rewards</p>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -295,7 +295,7 @@ export function TokenAdminPanel({ isAdmin }: TokenAdminPanelProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
               <Coins className="w-4 h-4" />
-              Total $SLTR Pool
+              Total $SOLT Pool
             </CardTitle>
           </CardHeader>
           <CardContent>

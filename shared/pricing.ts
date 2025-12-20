@@ -79,7 +79,7 @@ export const TOKEN_MINTS = {
   CATH: '48rmvKgpGpUNUuH3n2UYTZS2AUxZEkaCiNjQ57q1duMA',
   SOL: 'So11111111111111111111111111111111111111112', // Wrapped SOL
   BONK: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
-  SLTR: 'SLTR_MINT_ADDRESS_PLACEHOLDER', // Solturio rewards token - update when created
+  SOLT: 'SOLT_MINT_ADDRESS_PLACEHOLDER', // Solturio rewards token - update when created
 };
 
 export const PLATFORM_WALLETS = {
@@ -89,11 +89,11 @@ export const PLATFORM_WALLETS = {
 };
 
 // ============================================================================
-// $SLTR REWARDS SYSTEM (50M pool via Streamflow)
+// $SOLT REWARDS SYSTEM (50M pool via Streamflow)
 // ============================================================================
 
-export const SLTR_REWARDS_POOL = {
-  total: 50_000_000, // 50M $SLTR tokens
+export const SOLT_REWARDS_POOL = {
+  total: 50_000_000, // 50M $SOLT tokens
   allocations: {
     platformActions: 0.40, // 40% = 20M
     referrals: 0.25, // 25% = 12.5M
@@ -110,8 +110,8 @@ export const EARLY_ADOPTER_MULTIPLIERS = {
   after1000: 1,
 };
 
-// Base reward amounts (in $SLTR)
-export const SLTR_REWARDS = {
+// Base reward amounts (in $SOLT)
+export const SOLT_REWARDS = {
   // Account setup actions
   PROFILE_COMPLETE: 100,
   EMAIL_VERIFIED: 50,
@@ -138,12 +138,12 @@ export const SLTR_REWARDS = {
 
 // Calculate total setup rewards (for display)
 export function calculateSetupRewards(multiplier: number = 1): number {
-  const base = SLTR_REWARDS.PROFILE_COMPLETE + 
-               SLTR_REWARDS.EMAIL_VERIFIED + 
-               SLTR_REWARDS.WALLET_CONNECTED + 
-               SLTR_REWARDS.FIRST_IMAGE + 
-               SLTR_REWARDS.KEY_CEREMONY_COMPLETE + 
-               SLTR_REWARDS.SOCIALS_LINKED;
+  const base = SOLT_REWARDS.PROFILE_COMPLETE + 
+               SOLT_REWARDS.EMAIL_VERIFIED + 
+               SOLT_REWARDS.WALLET_CONNECTED + 
+               SOLT_REWARDS.FIRST_IMAGE + 
+               SOLT_REWARDS.KEY_CEREMONY_COMPLETE + 
+               SOLT_REWARDS.SOCIALS_LINKED;
   return base * multiplier;
 }
 
@@ -176,7 +176,7 @@ export const PRICING = {
   },
 } as const;
 
-export type PaymentToken = 'SOL' | 'CATH' | 'SLTR';
+export type PaymentToken = 'SOL' | 'CATH' | 'SOLT';
 
 // Legacy helpers
 export function isEligibleForFreeUpload(logoCount: number): boolean {
@@ -192,5 +192,5 @@ export function calculateUploadCost(logoCount: number, token: PaymentToken): str
   if (isEligibleForFreeUpload(logoCount)) {
     return '0';
   }
-  return token === 'SLTR' ? '0' : PRICING.MINTING_FEE[token as 'SOL' | 'CATH'];
+  return token === 'SOLT' ? '0' : PRICING.MINTING_FEE[token as 'SOL' | 'CATH'];
 }

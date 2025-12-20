@@ -297,7 +297,7 @@ export default function ActivatePage() {
                       <li>Upload and protect unlimited logos</li>
                       <li>Blockchain-verified ownership certificates</li>
                       <li>Create license smart contracts (SOL fee per contract)</li>
-                      <li>Earn $SLTR rewards for platform actions</li>
+                      <li>Earn $SOLT rewards for platform actions</li>
                       <li>DEX anti-copycat verification</li>
                     </ul>
                   </div>

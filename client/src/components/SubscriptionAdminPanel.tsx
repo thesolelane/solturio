@@ -32,7 +32,7 @@ interface SubscriptionUser {
   lastName: string | null;
   accountStatus: string;
   subscriptionExpiresAt: string | null;
-  sltrBalance: string | null;
+  soltBalance: string | null;
   createdAt: string | null;
 }
 
@@ -94,7 +94,7 @@ export function SubscriptionAdminPanel() {
       return response.json();
     },
     onSuccess: () => {
-      toast({ title: "Rewards awarded", description: "SLTR rewards have been credited to the user." });
+      toast({ title: "Rewards awarded", description: "SOLT rewards have been credited to the user." });
       setRewardDialogOpen(false);
       setManualRewardAmount("");
       refetchUsers();
@@ -232,7 +232,7 @@ export function SubscriptionAdminPanel() {
                     <TableHead>User</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Expires</TableHead>
-                    <TableHead className="text-right">SLTR Balance</TableHead>
+                    <TableHead className="text-right">SOLT Balance</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -252,7 +252,7 @@ export function SubscriptionAdminPanel() {
                         {user.accountStatus === 'admin' ? 'Never' : formatDate(user.subscriptionExpiresAt)}
                       </TableCell>
                       <TableCell className="text-right font-mono">
-                        {parseFloat(user.sltrBalance || '0').toLocaleString()} SLTR
+                        {parseFloat(user.soltBalance || '0').toLocaleString()} SOLT
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
@@ -311,14 +311,14 @@ export function SubscriptionAdminPanel() {
       <Dialog open={rewardDialogOpen} onOpenChange={setRewardDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Award SLTR Rewards</DialogTitle>
+            <DialogTitle>Award SOLT Rewards</DialogTitle>
             <DialogDescription>
-              Manually award SLTR tokens to {selectedUser?.firstName} {selectedUser?.lastName}
+              Manually award SOLT tokens to {selectedUser?.firstName} {selectedUser?.lastName}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="reward-amount">Amount (SLTR)</Label>
+              <Label htmlFor="reward-amount">Amount (SOLT)</Label>
               <Input
                 id="reward-amount"
                 type="number"

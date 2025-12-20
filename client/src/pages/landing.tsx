@@ -266,7 +266,7 @@ export default function Landing() {
           </div>
           
           <p className="text-center text-xs text-muted-foreground mt-8">
-            All payments are non-refundable service fees. $SLTR utility rewards for platform engagement.
+            All payments are non-refundable service fees. $SOLT utility rewards for platform engagement.
           </p>
         </div>
       </section>

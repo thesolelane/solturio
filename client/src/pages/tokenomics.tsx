@@ -42,7 +42,7 @@ export default function TokenomicsPage() {
 
   const TOKENOMICS = {
     token: {
-      name: '$SLTR',
+      name: '$SOLT',
       type: 'SPL Utility Token',
       totalSupply: '1,000,000,000',
       decimals: 9,
@@ -72,7 +72,7 @@ export default function TokenomicsPage() {
       risk: 'Token Price Volatility',
       likelihood: 'High',
       impact: 'Medium',
-      mitigation: '$SLTR is utility-only, rewards capped, no trading promises',
+      mitigation: '$SOLT is utility-only, rewards capped, no trading promises',
     },
     {
       risk: 'Regulatory Changes',
@@ -98,7 +98,7 @@ export default function TokenomicsPage() {
     { name: 'Total Users Registered', value: '---', target: '10,000', icon: Users },
     { name: 'Logos Protected', value: '---', target: '50,000', icon: Shield },
     { name: 'License Contracts Deployed', value: '---', target: '5,000', icon: Target },
-    { name: '$SLTR Distributed', value: '---', target: '50M', icon: Coins },
+    { name: '$SOLT Distributed', value: '---', target: '50M', icon: Coins },
   ];
 
   const OPERATIONS = {
@@ -106,7 +106,7 @@ export default function TokenomicsPage() {
       description: 'Automated service that processes pending reward distributions and updates on-chain state',
       frequency: 'Every 5 minutes',
       functions: [
-        'Process pending $SLTR reward claims',
+        'Process pending $SOLT reward claims',
         'Update leaderboard snapshots',
         'Verify subscription status',
         'Clean up expired sessions',
@@ -146,7 +146,7 @@ export default function TokenomicsPage() {
   return (
     <div className="container max-w-6xl mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">$SLTR Tokenomics</h1>
+        <h1 className="text-3xl font-bold mb-2">$SOLT Tokenomics</h1>
         <p className="text-muted-foreground">
           Complete transparency on token distribution, risks, operations, and on-chain verification
         </p>
@@ -294,7 +294,7 @@ export default function TokenomicsPage() {
               Important Disclaimers
             </h3>
             <ul className="text-sm text-muted-foreground space-y-2">
-              <li>$SLTR is a utility token only. It does not represent investment, equity, or ownership.</li>
+              <li>$SOLT is a utility token only. It does not represent investment, equity, or ownership.</li>
               <li>Token value may fluctuate. Do not purchase expecting financial returns.</li>
               <li>All platform fees are non-refundable service fees.</li>
               <li>Past performance does not guarantee future results.</li>

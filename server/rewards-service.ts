@@ -1,14 +1,14 @@
 /**
- * $SLTR Rewards Service
+ * $SOLT Rewards Service
  * Tracks and distributes rewards for platform actions
  * REGULATORY: Utility rewards only - no investment language
  */
 
 import { storage } from './storage';
 import { 
-  SLTR_REWARDS, 
+  SOLT_REWARDS, 
   getEarlyAdopterMultiplier,
-  SLTR_REWARDS_POOL 
+  SOLT_REWARDS_POOL 
 } from '@shared/pricing';
 
 type RewardAction = 
@@ -38,24 +38,24 @@ interface RewardResult {
 
 // Map action types to base reward amounts
 const ACTION_REWARDS: Record<RewardAction, number> = {
-  profile_complete: SLTR_REWARDS.PROFILE_COMPLETE,
-  email_verified: SLTR_REWARDS.EMAIL_VERIFIED,
-  wallet_connected: SLTR_REWARDS.WALLET_CONNECTED,
-  first_image: SLTR_REWARDS.FIRST_IMAGE,
-  additional_image: SLTR_REWARDS.ADDITIONAL_IMAGE,
-  key_ceremony_complete: SLTR_REWARDS.KEY_CEREMONY_COMPLETE,
-  socials_linked: SLTR_REWARDS.SOCIALS_LINKED,
-  license_sc_created: SLTR_REWARDS.LICENSE_SC_CREATED,
-  quiz_win: SLTR_REWARDS.QUIZ_WIN_NO_BET,
-  referral_signup: SLTR_REWARDS.REFERRAL_SIGNUP,
-  referral_activated: SLTR_REWARDS.REFERRAL_ACTIVATED,
-  referred_user_bonus: SLTR_REWARDS.REFERRED_USER_BONUS,
-  social_tag_cooperanthllc: SLTR_REWARDS.TAG_COOPERANTHLLC,
-  social_tag_dex: SLTR_REWARDS.TAG_DEX_MENTION_SOLTURIO,
+  profile_complete: SOLT_REWARDS.PROFILE_COMPLETE,
+  email_verified: SOLT_REWARDS.EMAIL_VERIFIED,
+  wallet_connected: SOLT_REWARDS.WALLET_CONNECTED,
+  first_image: SOLT_REWARDS.FIRST_IMAGE,
+  additional_image: SOLT_REWARDS.ADDITIONAL_IMAGE,
+  key_ceremony_complete: SOLT_REWARDS.KEY_CEREMONY_COMPLETE,
+  socials_linked: SOLT_REWARDS.SOCIALS_LINKED,
+  license_sc_created: SOLT_REWARDS.LICENSE_SC_CREATED,
+  quiz_win: SOLT_REWARDS.QUIZ_WIN_NO_BET,
+  referral_signup: SOLT_REWARDS.REFERRAL_SIGNUP,
+  referral_activated: SOLT_REWARDS.REFERRAL_ACTIVATED,
+  referred_user_bonus: SOLT_REWARDS.REFERRED_USER_BONUS,
+  social_tag_cooperanthllc: SOLT_REWARDS.TAG_COOPERANTHLLC,
+  social_tag_dex: SOLT_REWARDS.TAG_DEX_MENTION_SOLTURIO,
 };
 
 /**
- * Award $SLTR tokens to a user for an action
+ * Award $SOLT tokens to a user for an action
  * SECURITY: Enforces 50M total pool cap
  */
 export async function awardReward(
@@ -83,7 +83,7 @@ export async function awardReward(
 
     // SECURITY: Check pool cap before awarding
     const totalDistributed = await getTotalRewardsDistributed();
-    const remainingPool = SLTR_REWARDS_POOL.total - totalDistributed;
+    const remainingPool = SOLT_REWARDS_POOL.total - totalDistributed;
     
     if (remainingPool <= 0) {
       return { 
@@ -256,7 +256,7 @@ export async function getTotalRewardsDistributed(): Promise<number> {
  */
 export async function getRemainingRewardsPool(): Promise<number> {
   const distributed = await getTotalRewardsDistributed();
-  return SLTR_REWARDS_POOL.total - distributed;
+  return SOLT_REWARDS_POOL.total - distributed;
 }
 
 /**

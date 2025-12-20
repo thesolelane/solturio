@@ -667,7 +667,7 @@ tokensRouter.post('/admin/tokens/seed', isAuthenticated, async (req: any, res) =
       { symbol: 'CATH', name: 'CATH Token', mintAddress: 'CATHYjt15smqH9JuHGpdxEWaWvTM4mBWqsHSZivhpump', tier: 'primary', decimals: 9 },
       { symbol: 'SOL', name: 'Solana', mintAddress: 'So11111111111111111111111111111111111111112', tier: 'primary', decimals: 9 },
       { symbol: 'BONK', name: 'Bonk', mintAddress: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263', tier: 'whitelisted', decimals: 5 },
-      { symbol: 'SLTR', name: 'Solturio Rewards', mintAddress: 'SLTR_PLACEHOLDER_MINT_ADDRESS', tier: 'primary', decimals: 9 },
+      { symbol: 'SOLT', name: 'Solturio Rewards', mintAddress: 'SOLT_PLACEHOLDER_MINT_ADDRESS', tier: 'primary', decimals: 9 },
     ];
     
     for (const token of defaultTokens) {
@@ -710,7 +710,7 @@ tokensRouter.get('/admin/rewards/pool', isAuthenticated, async (req: any, res) =
     }
 
     const db = (storage as any).$client;
-    const TOTAL_POOL = 50_000_000; // 50M $SLTR
+    const TOTAL_POOL = 50_000_000; // 50M $SOLT
     
     // Get total distributed from rewards log
     const result = await db.query(

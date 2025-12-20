@@ -1,5 +1,5 @@
 /**
- * $SLTR Rewards API Routes
+ * $SOLT Rewards API Routes
  * REGULATORY: Utility rewards only - no investment language
  */
 
@@ -14,10 +14,10 @@ import {
   generateReferralCode,
 } from './rewards-service';
 import { 
-  SLTR_REWARDS, 
+  SOLT_REWARDS, 
   getEarlyAdopterMultiplier, 
   calculateSetupRewards,
-  SLTR_REWARDS_POOL,
+  SOLT_REWARDS_POOL,
 } from '@shared/pricing';
 import { z } from 'zod';
 
@@ -25,7 +25,7 @@ export const rewardsRouter = Router();
 
 /**
  * GET /rewards/balance
- * Get current user's $SLTR balance and stats
+ * Get current user's $SOLT balance and stats
  */
 rewardsRouter.get('/rewards/balance', isAuthenticated, async (req: any, res) => {
   try {
@@ -92,11 +92,11 @@ rewardsRouter.get('/rewards/pool-stats', async (req, res) => {
     res.json({
       success: true,
       pool: {
-        total: SLTR_REWARDS_POOL.total,
+        total: SOLT_REWARDS_POOL.total,
         distributed,
         remaining,
-        percentDistributed: ((distributed / SLTR_REWARDS_POOL.total) * 100).toFixed(2),
-        allocations: SLTR_REWARDS_POOL.allocations,
+        percentDistributed: ((distributed / SOLT_REWARDS_POOL.total) * 100).toFixed(2),
+        allocations: SOLT_REWARDS_POOL.allocations,
       },
     });
   } catch (error: any) {
@@ -113,7 +113,7 @@ rewardsRouter.get('/rewards/rates', async (req, res) => {
   try {
     res.json({
       success: true,
-      rates: SLTR_REWARDS,
+      rates: SOLT_REWARDS,
       multipliers: {
         first100: 5,
         users101to500: 3,
@@ -160,8 +160,8 @@ rewardsRouter.get('/rewards/referral-code', isAuthenticated, async (req: any, re
       referralLink,
       referralCount: user.referralCount || 0,
       rewardsEarned: user.referralRewardsEarned || '0',
-      rewardPerReferral: SLTR_REWARDS.REFERRAL_ACTIVATED,
-      newUserBonus: SLTR_REWARDS.REFERRED_USER_BONUS,
+      rewardPerReferral: SOLT_REWARDS.REFERRAL_ACTIVATED,
+      newUserBonus: SOLT_REWARDS.REFERRED_USER_BONUS,
     });
   } catch (error: any) {
     console.error('Get referral code error:', error);
@@ -246,7 +246,7 @@ rewardsRouter.post('/rewards/verify-referral', isAuthenticated, async (req: any,
       success: true,
       message: 'Referral code applied! You\'ll both earn rewards when you activate your account.',
       referrerName: referrer.first_name || 'A friend',
-      bonusAmount: SLTR_REWARDS.REFERRED_USER_BONUS,
+      bonusAmount: SOLT_REWARDS.REFERRED_USER_BONUS,
     });
   } catch (error: any) {
     console.error('Verify referral error:', error);
@@ -334,31 +334,31 @@ rewardsRouter.get('/rewards/setup-checklist', isAuthenticated, async (req: any, 
         id: 'profile_complete',
         label: 'Complete your profile',
         completed: !!user.profileCompletedAt,
-        reward: SLTR_REWARDS.PROFILE_COMPLETE * multiplier,
+        reward: SOLT_REWARDS.PROFILE_COMPLETE * multiplier,
       },
       {
         id: 'wallet_connected',
         label: 'Connect Solana wallet',
         completed: !!user.walletAddress,
-        reward: SLTR_REWARDS.WALLET_CONNECTED * multiplier,
+        reward: SOLT_REWARDS.WALLET_CONNECTED * multiplier,
       },
       {
         id: 'first_image',
         label: 'Upload your first image',
         completed: !!user.firstImageUploadedAt,
-        reward: SLTR_REWARDS.FIRST_IMAGE * multiplier,
+        reward: SOLT_REWARDS.FIRST_IMAGE * multiplier,
       },
       {
         id: 'socials_linked',
         label: 'Link social media accounts',
         completed: !!user.socialsLinkedAt,
-        reward: SLTR_REWARDS.SOCIALS_LINKED * multiplier,
+        reward: SOLT_REWARDS.SOCIALS_LINKED * multiplier,
       },
       {
         id: 'key_ceremony',
         label: 'Complete key handover ceremony',
         completed: user.ceremonyCompleted,
-        reward: SLTR_REWARDS.KEY_CEREMONY_COMPLETE * multiplier,
+        reward: SOLT_REWARDS.KEY_CEREMONY_COMPLETE * multiplier,
       },
     ];
 

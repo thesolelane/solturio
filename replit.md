@@ -46,7 +46,7 @@ Preferred communication style: Simple, everyday language.
 - **NFT Minting**: JSON-only on-chain metadata via Metaplex SDK.
 - **Authorized Usage Tracking**: Users pre-register where logos will be used to strengthen IP protection claims.
 - **Payment Model**: Subscription-based (annual, paid in $CATH) with a tiered token registry for accepted cryptocurrencies.
-- **Rewards System**: $SLTR token rewards for platform engagement and social actions.
+- **Rewards System**: $SOLT token rewards for platform engagement and social actions.
 
 ### Data Storage Architecture
 - **Four-Tier Decentralized Storage**:

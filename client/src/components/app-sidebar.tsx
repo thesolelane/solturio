@@ -155,7 +155,7 @@ export function AppSidebar() {
       requireAuth: false,
     },
     {
-      title: "$SLTR Tokenomics",
+      title: "$SOLT Tokenomics",
       url: "/tokenomics",
       icon: Coins,
       requireAuth: false,

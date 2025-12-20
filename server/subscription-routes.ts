@@ -343,7 +343,7 @@ subscriptionRouter.get('/admin/subscriptions/users', isAuthenticated, requireAdm
       lastName: user.lastName,
       accountStatus: user.accountStatus || 'pending',
       subscriptionExpiresAt: user.subscriptionExpiresAt,
-      sltrBalance: user.sltrBalance || '0',
+      soltBalance: user.sltrBalance || '0',
       createdAt: user.createdAt,
     }));
     
@@ -420,7 +420,7 @@ subscriptionRouter.post('/admin/subscriptions/extend', isAuthenticated, requireA
 
 /**
  * POST /admin/subscriptions/award-rewards
- * Manually award SLTR rewards to a user
+ * Manually award SOLT rewards to a user
  * SECURITY: Uses rewards-service to enforce pool cap and audit logging
  */
 subscriptionRouter.post('/admin/subscriptions/award-rewards', isAuthenticated, requireAdmin, async (req: any, res) => {
@@ -454,7 +454,7 @@ subscriptionRouter.post('/admin/subscriptions/award-rewards', isAuthenticated, r
     
     res.json({ 
       success: true, 
-      message: `Awarded ${result.finalAmount} SLTR to user`,
+      message: `Awarded ${result.finalAmount} SOLT to user`,
       requestedAmount: parsedAmount,
       awardedAmount: result.finalAmount,
       newBalance: result.newBalance,
