@@ -14,7 +14,8 @@ import {
   Users,
   Brain,
   Award,
-  KeyRound
+  KeyRound,
+  Coins
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -151,6 +152,12 @@ export function AppSidebar() {
       title: "Wallet Recovery",
       url: "/wallet-recovery",
       icon: KeyRound,
+      requireAuth: false,
+    },
+    {
+      title: "$SLTR Tokenomics",
+      url: "/tokenomics",
+      icon: Coins,
       requireAuth: false,
     },
   ];

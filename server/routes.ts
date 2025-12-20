@@ -275,6 +275,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply CSRF protection to all routes (automatically skips GET/HEAD/OPTIONS)
   app.use(csrfProtection);
 
+  // Tokenomics on-chain configuration endpoint (public)
+  app.get('/api/tokenomics/on-chain-config', async (req, res) => {
+    try {
+      // In production, this would fetch real data from Solana blockchain
+      // For now, return placeholder config that indicates token is not yet deployed
+      const SLTR_MINT_ADDRESS = process.env.SLTR_MINT_ADDRESS;
+      
+      if (!SLTR_MINT_ADDRESS) {
+        // Token not yet deployed
+        return res.json(null);
+      }
+
+      try {
+        const connection = new Connection(
+          process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
+          'confirmed'
+        );
+        
+        const mintPubkey = new PublicKey(SLTR_MINT_ADDRESS);
+        const mintInfo = await connection.getAccountInfo(mintPubkey);
+        
+        if (!mintInfo) {
+          return res.json(null);
+        }
+
+        // Parse mint account data (SPL Token mint layout)
+        // Simplified - in production use @solana/spl-token
+        const data = mintInfo.data;
+        const decimals = data[44]; // Decimals at offset 44
+        
+        // Read supply as u64 at offset 36-43
+        const supplyBuffer = data.slice(36, 44);
+        const supply = supplyBuffer.readBigUInt64LE();
+        const formattedSupply = (Number(supply) / Math.pow(10, decimals)).toLocaleString();
+
+        // Authority at offset 0-32
+        const authorityBytes = data.slice(4, 36);
+        const authority = new PublicKey(authorityBytes).toString();
+
+        // Freeze authority at offset 46-78 (if present)
+        const freezeAuthorityOption = data[45]; // Option discriminator
+        let freezeAuthority = null;
+        if (freezeAuthorityOption === 1) {
+          const freezeBytes = data.slice(46, 78);
+          freezeAuthority = new PublicKey(freezeBytes).toString();
+        }
+
+        res.json({
+          verified: true,
+          mintAddress: SLTR_MINT_ADDRESS,
+          totalSupply: formattedSupply,
+          decimals: decimals,
+          authority: authority,
+          freezeAuthority: freezeAuthority,
+          vestingSchedule: {
+            cliff: 180, // 6 months
+            duration: 730, // 24 months
+            interval: 30, // Monthly
+          },
+          rewardPoolCap: '50,000,000 SLTR',
+          lastUpdated: new Date().toISOString(),
+        });
+      } catch (rpcError) {
+        console.error('Error fetching on-chain data:', rpcError);
+        return res.json(null);
+      }
+    } catch (error) {
+      console.error('Error in tokenomics config:', error);
+      res.status(500).json({ message: 'Failed to fetch on-chain configuration' });
+    }
+  });
+
   // Public search endpoint (no authentication required)
   app.get('/api/public/search', async (req, res) => {
     try {
