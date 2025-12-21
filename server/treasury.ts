@@ -11,19 +11,48 @@ import { isAuthenticated } from "./replitAuth";
 import { formatError, formatSuccess, ERROR_CODES } from "./error-handler";
 import { auditLogger } from "./audit-logger";
 import { validateRequest, multiSigSchema, treasuryTransferSchema } from "./validation";
+import { isAdminEmail } from "@shared/pricing";
 
 export const treasuryRouter = Router();
+
+/**
+ * Admin middleware for treasury routes
+ * Verifies the user is in the admin email whitelist
+ */
+async function requireAdmin(req: any, res: any, next: any) {
+  try {
+    const userId = req.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || !isAdminEmail(user.email)) {
+      auditLogger.log({
+        action: "ADMIN_ACCESS_DENIED",
+        endpoint: req.path,
+        method: req.method,
+        statusCode: 403,
+        userId,
+        details: { email: user?.email, reason: 'Not in admin whitelist' },
+      });
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    
+    next();
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+}
 
 /**
  * SETUP MULTI-SIG WALLET (Admin only)
  * POST /api/treasury/setup-multisig
  */
-treasuryRouter.post("/treasury/setup-multisig", isAuthenticated, async (req: any, res) => {
+treasuryRouter.post("/treasury/setup-multisig", isAuthenticated, requireAdmin, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { signers, threshold } = req.body;
-
-    // TODO: Verify user is admin
     if (!signers || !Array.isArray(signers) || signers.length === 0) {
       return res.status(400).json({ error: "Invalid signers array" });
     }
@@ -49,7 +78,7 @@ treasuryRouter.post("/treasury/setup-multisig", isAuthenticated, async (req: any
  * PROPOSE TRANSFER
  * POST /api/treasury/propose-transfer
  */
-treasuryRouter.post("/treasury/propose-transfer", isAuthenticated, async (req: any, res) => {
+treasuryRouter.post("/treasury/propose-transfer", isAuthenticated, requireAdmin, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { amount, description, recipient } = req.body;
@@ -82,7 +111,7 @@ treasuryRouter.post("/treasury/propose-transfer", isAuthenticated, async (req: a
  * APPROVE PROPOSAL
  * POST /api/treasury/approve-transfer/:proposalId
  */
-treasuryRouter.post("/treasury/approve-transfer/:proposalId", isAuthenticated, async (req: any, res) => {
+treasuryRouter.post("/treasury/approve-transfer/:proposalId", isAuthenticated, requireAdmin, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
     const { proposalId } = req.params;
@@ -104,7 +133,7 @@ treasuryRouter.post("/treasury/approve-transfer/:proposalId", isAuthenticated, a
  * EXECUTE TRANSFER
  * POST /api/treasury/execute-transfer/:proposalId
  */
-treasuryRouter.post("/treasury/execute-transfer/:proposalId", isAuthenticated, async (req: any, res) => {
+treasuryRouter.post("/treasury/execute-transfer/:proposalId", isAuthenticated, requireAdmin, async (req: any, res) => {
   try {
     const { proposalId } = req.params;
 
@@ -125,7 +154,7 @@ treasuryRouter.post("/treasury/execute-transfer/:proposalId", isAuthenticated, a
  * CANCEL PROPOSAL
  * POST /api/treasury/cancel-transfer/:proposalId
  */
-treasuryRouter.post("/treasury/cancel-transfer/:proposalId", isAuthenticated, async (req: any, res) => {
+treasuryRouter.post("/treasury/cancel-transfer/:proposalId", isAuthenticated, requireAdmin, async (req: any, res) => {
   try {
     const { proposalId } = req.params;
 
@@ -145,7 +174,7 @@ treasuryRouter.post("/treasury/cancel-transfer/:proposalId", isAuthenticated, as
  * VIEW TREASURY STATUS
  * GET /api/treasury/status
  */
-treasuryRouter.get("/treasury/status", isAuthenticated, async (req: any, res) => {
+treasuryRouter.get("/treasury/status", isAuthenticated, requireAdmin, async (req: any, res) => {
   try {
     return res.json({
       balance: "10000",
@@ -165,7 +194,7 @@ treasuryRouter.get("/treasury/status", isAuthenticated, async (req: any, res) =>
  * VIEW PROPOSALS
  * GET /api/treasury/proposals
  */
-treasuryRouter.get("/treasury/proposals", isAuthenticated, async (req: any, res) => {
+treasuryRouter.get("/treasury/proposals", isAuthenticated, requireAdmin, async (req: any, res) => {
   try {
     return res.json([
       {
