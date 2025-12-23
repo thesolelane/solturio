@@ -31,6 +31,7 @@ import { githubProxyRouter } from "./github-proxy";
 import { subscriptionRouter } from "./subscription-routes";
 import { rewardsRouter } from "./rewards-routes";
 import { tokensRouter } from "./tokens-routes";
+import { musicRouter } from "./routes/music";
 import { applyValidationToRoutes } from "./validation-middleware";
 import { formatError, formatSuccess } from "./error-handler";
 import { auditLogger } from "./audit-logger";
@@ -3312,6 +3313,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // GitHub Integration Proxy (connects to SC Replit)
   app.use("/api/github", githubProxyRouter);
+  
+  // Music IP Protection Routes
+  app.use("/api/music", musicRouter);
 
   // Phase 3: Apply global validation and error handling
   applyValidationToRoutes(app);
