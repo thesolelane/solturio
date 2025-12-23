@@ -1932,3 +1932,16 @@ export const IP_ASSET_TYPES = {
 } as const;
 
 export type IpAssetType = typeof IP_ASSET_TYPES[keyof typeof IP_ASSET_TYPES];
+
+// ============================================
+// MASTER ACCESS RESPONSE - License gating
+// ============================================
+
+export const masterAccessResponseSchema = z.object({
+  authorized: z.boolean(),
+  playbackUrl: z.string().optional(),
+  expiresAt: z.string().optional(),
+  reason: z.string().optional(),
+});
+
+export type MasterAccessResponse = z.infer<typeof masterAccessResponseSchema>;

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,11 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   ArrowLeft, Music2, Play, Pause, Shield, FileText, 
-  Clock, Disc3, Hash, Volume2, VolumeX
+  Clock, Disc3, Hash, Volume2, VolumeX, Headphones, Lock
 } from "lucide-react";
-import type { Track } from "@shared/schema";
+import type { Track, MasterAccessResponse } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function MusicTrackDetail() {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +25,25 @@ export default function MusicTrackDetail() {
   const { data: track, isLoading } = useQuery<Track>({
     queryKey: ["/api/music/tracks", id],
   });
+
+  // Master access state
+  const [masterAccess, setMasterAccess] = useState<MasterAccessResponse | null>(null);
+  const [masterRequested, setMasterRequested] = useState(false);
+
+  const masterAccessMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("GET", `/api/music/tracks/${id}/master-access`);
+      return res.json() as Promise<MasterAccessResponse>;
+    },
+    onSuccess: (data) => {
+      setMasterAccess(data);
+      setMasterRequested(true);
+    },
+  });
+
+  const requestMasterAccess = () => {
+    masterAccessMutation.mutate();
+  };
 
   const togglePlay = () => {
     if (!audioRef.current || !track?.previewUri) return;
@@ -126,35 +147,83 @@ export default function MusicTrackDetail() {
             )}
           </div>
 
-          {track.previewUri && track.previewUri !== "ar://PREVIEW_TX" && (
-            <div className="mt-6 space-y-2">
-              <audio
-                ref={audioRef}
-                src={track.previewUri}
-                onTimeUpdate={handleTimeUpdate}
-                onEnded={handleEnded}
-              />
-              <div className="flex items-center gap-4">
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={togglePlay}
-                  data-testid="button-play-pause"
-                >
-                  {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                </Button>
-                <Progress value={progress} className="flex-1" />
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={toggleMute}
-                  data-testid="button-mute"
-                >
-                  {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                </Button>
-              </div>
+          {/* Preview Player - Always available */}
+          <div className="mt-6 space-y-3">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs">Preview</Badge>
+              <span className="text-xs text-muted-foreground">30s sample</span>
             </div>
-          )}
+            {track.previewUri && track.previewUri !== "ar://PREVIEW_TX" ? (
+              <div className="space-y-2">
+                <audio
+                  ref={audioRef}
+                  src={track.previewUri}
+                  onTimeUpdate={handleTimeUpdate}
+                  onEnded={handleEnded}
+                />
+                <div className="flex items-center gap-4">
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={togglePlay}
+                    data-testid="button-play-preview"
+                  >
+                    {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                  </Button>
+                  <Progress value={progress} className="flex-1" />
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={toggleMute}
+                    data-testid="button-mute"
+                  >
+                    {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Preview not available yet</p>
+            )}
+          </div>
+
+          {/* Master Access Section */}
+          <div className="mt-6 space-y-3">
+            <div className="flex items-center gap-2">
+              <Headphones className="w-4 h-4" />
+              <span className="font-medium">Master Quality</span>
+            </div>
+            
+            {!masterRequested ? (
+              <Button 
+                variant="secondary"
+                onClick={requestMasterAccess}
+                disabled={masterAccessMutation.isPending}
+                data-testid="button-play-master"
+              >
+                <Headphones className="w-4 h-4 mr-2" />
+                {masterAccessMutation.isPending ? "Checking..." : "Play Master"}
+              </Button>
+            ) : masterAccess?.authorized ? (
+              <Alert>
+                <Headphones className="w-4 h-4" />
+                <AlertDescription>
+                  Master access granted. Full quality playback expires at {new Date(masterAccess.expiresAt!).toLocaleTimeString()}.
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <Alert>
+                <Lock className="w-4 h-4" />
+                <AlertDescription className="flex flex-col gap-2">
+                  <span>{masterAccess?.reason}</span>
+                  <Link href={`/create-license?assetId=${track.assetId || track.id}&assetType=track`}>
+                    <Button size="sm" variant="default" data-testid="button-purchase-license">
+                      Purchase License
+                    </Button>
+                  </Link>
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
 
           <div className="flex gap-3 mt-6">
             <Link href={`/create-license?assetId=${track.assetId || track.id}&assetType=track`}>
