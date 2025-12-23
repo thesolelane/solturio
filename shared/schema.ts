@@ -1692,23 +1692,35 @@ export const tracks = pgTable("tracks", {
   artistName: text("artist_name").notNull(),
   featuredArtists: text("featured_artists").array(), // Collaborators
   
+  // Canonical hashes (per user's preferred schema)
+  audioHashSha256: varchar("audio_hash_sha256", { length: 64 }).notNull(), // sha256(master bytes)
+  previewHashSha256: varchar("preview_hash_sha256", { length: 64 }), // sha256(preview bytes)
+  contextHashSha256: varchar("context_hash_sha256", { length: 64 }).notNull(), // hybrid hash for registration
+  
+  // Storage pointers (per user's preferred schema)
+  manifestUri: text("manifest_uri").notNull(), // Arweave/IPFS manifest JSON
+  audioEncryptedUri: text("audio_encrypted_uri").notNull(), // encrypted master on Arweave
+  previewUri: text("preview_uri").notNull(), // public preview
+  
   // Audio file metadata
-  fileHash: varchar("file_hash", { length: 64 }).notNull().unique(), // SHA-256, never duplicated
   fileName: text("file_name").notNull(),
   fileSize: integer("file_size").notNull(), // bytes
   mimeType: varchar("mime_type", { length: 50 }).notNull(), // audio/mpeg, audio/wav, etc.
-  durationMs: integer("duration_ms"), // Length in milliseconds
+  durationMs: integer("duration_ms"), // Length in milliseconds (replaces durationSec)
   sampleRate: integer("sample_rate"), // 44100, 48000, etc.
   bitDepth: integer("bit_depth"), // 16, 24, 32
   channels: integer("channels"), // 1 (mono), 2 (stereo)
+  isExplicit: boolean("is_explicit").default(false), // Explicit content flag
   
   // Audio analysis
   bpm: integer("bpm"), // Beats per minute
   key: varchar("key", { length: 10 }), // C major, A minor, etc.
   waveformData: jsonb("waveform_data"), // Visualization data
   
-  // Storage
-  primaryUri: text("primary_uri"), // IPFS/Arweave location
+  // Cover art (per-track override)
+  coverUri: text("cover_uri"), // Optional per-track cover
+  
+  // Storage / IPFS
   metadataIpfsHash: varchar("metadata_ipfs_hash", { length: 100 }),
   
   // Rights management
@@ -1823,8 +1835,11 @@ export const releaseTracks = pgTable("release_tracks", {
   trackId: varchar("track_id").notNull().references(() => tracks.id, { onDelete: 'cascade' }),
   
   // Positioning
-  discNumber: integer("disc_number").default(1),
+  discNumber: integer("disc_number").default(1).notNull(),
   trackNumber: integer("track_number").notNull(),
+  
+  // Hybrid ID: sha256(audioHash + releaseId + trackNumber + version) - unique per track-in-release
+  hybridId: varchar("hybrid_id", { length: 64 }).notNull(),
   
   // Context-specific metadata (may differ from canonical track)
   displayTitle: text("display_title"), // Override title for this release
