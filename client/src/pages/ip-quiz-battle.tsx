@@ -91,12 +91,12 @@ export default function IPQuizBattle() {
     },
     {
       id: "2",
-      name: "BONK vs CATH Community War",
+      name: "BONK vs SOLT Community War",
       type: "community",
       wagerAmount: "100",
       participants: [
         { id: "1", username: "BONKArmy", score: 1200, community: "BONK" },
-        { id: "2", username: "CATHCrew", score: 800, community: "CATH" }
+        { id: "2", username: "SOLTCrew", score: 800, community: "SOLT" }
       ],
       maxParticipants: 100,
       status: "active",
@@ -135,7 +135,7 @@ export default function IPQuizBattle() {
 
     toast({
       title: "Battle Room Created! ⚔️",
-      description: `${roomName} created with ${wagerAmount} $CATH wager`
+      description: `${roomName} created with ${wagerAmount} $SOLT wager`
     });
     setCreateRoomOpen(false);
     setRoomName("");
@@ -145,7 +145,7 @@ export default function IPQuizBattle() {
   const joinBattle = (battle: BattleRoom) => {
     toast({
       title: "Joined Battle! 🎮",
-      description: `You've entered ${battle.name} with ${battle.wagerAmount} $CATH wager`
+      description: `You've entered ${battle.name} with ${battle.wagerAmount} $SOLT wager`
     });
   };
 
@@ -161,7 +161,7 @@ export default function IPQuizBattle() {
             <div>
               <h1 className="text-3xl font-bold">IP Quiz Battles</h1>
               <p className="text-muted-foreground">
-                Bet $CATH tokens • Challenge players • Winner takes all
+                Bet $SOLT tokens • Challenge players • Winner takes all
               </p>
             </div>
           </div>
@@ -170,7 +170,7 @@ export default function IPQuizBattle() {
               <Coins className="h-5 w-5 text-yellow-500" />
               <div>
                 <p className="text-sm text-muted-foreground">Your Balance</p>
-                <p className="text-2xl font-bold">{userBalance} $CATH</p>
+                <p className="text-2xl font-bold">{userBalance} $SOLT</p>
               </div>
             </div>
           </Card>
@@ -281,7 +281,7 @@ export default function IPQuizBattle() {
                   </Select>
                 </div>
                 <div>
-                  <Label>Wager Amount ($CATH per player)</Label>
+                  <Label>Wager Amount ($SOLT per player)</Label>
                   <Input
                     type="number"
                     placeholder="100"
@@ -290,7 +290,7 @@ export default function IPQuizBattle() {
                     data-testid="input-wager-amount"
                   />
                   <p className="text-sm text-muted-foreground mt-1">
-                    Minimum: 10 $CATH • Maximum: 1000 $CATH
+                    Minimum: 10 $SOLT • Maximum: 1000 $SOLT
                   </p>
                 </div>
                 {selectedBattleType === "community" && (
@@ -302,7 +302,7 @@ export default function IPQuizBattle() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="bonk">BONK Army</SelectItem>
-                        <SelectItem value="cath">CATH Crew</SelectItem>
+                        <SelectItem value="solt">SOLT Crew</SelectItem>
                         <SelectItem value="sol">SOL Squad</SelectItem>
                         <SelectItem value="custom">Custom Token</SelectItem>
                       </SelectContent>
@@ -311,7 +311,7 @@ export default function IPQuizBattle() {
                 )}
                 <Button onClick={createBattleRoom} className="w-full" data-testid="button-create-room">
                   <Zap className="h-4 w-4 mr-2" />
-                  Create Battle (Cost: {wagerAmount} $CATH)
+                  Create Battle (Cost: {wagerAmount} $SOLT)
                 </Button>
               </div>
             </DialogContent>
@@ -327,7 +327,7 @@ export default function IPQuizBattle() {
                   <div>
                     <CardTitle>{battle.name}</CardTitle>
                     <CardDescription>
-                      Wager: {battle.wagerAmount} $CATH • Prize: {battle.totalPrizePool} $CATH
+                      Wager: {battle.wagerAmount} $SOLT • Prize: {battle.totalPrizePool} $SOLT
                     </CardDescription>
                   </div>
                   <Badge variant={battle.status === "waiting" ? "secondary" : "default"}>
@@ -392,7 +392,7 @@ export default function IPQuizBattle() {
                       {battle.name}
                     </CardTitle>
                     <CardDescription>
-                      Community War • Entry: {battle.wagerAmount} $CATH • Total Pool: {battle.totalPrizePool} $CATH
+                      Community War • Entry: {battle.wagerAmount} $SOLT • Total Pool: {battle.totalPrizePool} $SOLT
                     </CardDescription>
                   </div>
                   <Badge variant="destructive">
@@ -416,7 +416,7 @@ export default function IPQuizBattle() {
                   <Card>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="font-bold">CATH Crew</p>
+                        <p className="font-bold">SOLT Crew</p>
                         <Badge>38 players</Badge>
                       </div>
                       <p className="text-3xl font-bold">9,200</p>
@@ -450,7 +450,7 @@ export default function IPQuizBattle() {
                       {battle.name}
                     </CardTitle>
                     <CardDescription>
-                      Entry: {battle.wagerAmount} $CATH • Prize Pool: {battle.totalPrizePool} $CATH
+                      Entry: {battle.wagerAmount} $SOLT • Prize Pool: {battle.totalPrizePool} $SOLT
                     </CardDescription>
                   </div>
                   <Badge variant={battle.status === "waiting" ? "secondary" : "default"}>
