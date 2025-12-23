@@ -541,10 +541,12 @@ export class DatabaseStorage implements IStorage {
         .insert(quizStats)
         .values({ userId, totalPoints: 0, totalCathEarned: '0' })
         .returning();
-      return newStats;
+      // Map to frontend expected field name
+      return { ...newStats, totalSoltEarned: newStats.totalCathEarned };
     }
     
-    return stats;
+    // Map to frontend expected field name (column is totalCathEarned but we expose as totalSoltEarned)
+    return { ...stats, totalSoltEarned: stats.totalCathEarned };
   }
   
   async submitQuizAnswer(userId: string, data: any): Promise<any> {
@@ -563,10 +565,66 @@ export class DatabaseStorage implements IStorage {
     // Check if answer is correct
     const isCorrect = data.answer === question.answer;
     let pointsEarned = 0;
+    let soltReward = "0";
+    
+    // Get or create user stats
+    let [userStats] = await db
+      .select()
+      .from(quizStats)
+      .where(eq(quizStats.userId, userId));
+    
+    if (!userStats) {
+      const [newStats] = await db
+        .insert(quizStats)
+        .values({ userId, totalPoints: 0, totalCathEarned: '0' })
+        .returning();
+      userStats = newStats;
+    }
     
     if (isCorrect) {
       // Calculate points (reduced by 75% if hint used)
       pointsEarned = data.hintUsed ? Math.floor(data.originalPoints * 0.25) : data.originalPoints;
+      
+      // Calculate new streak
+      const newStreak = (userStats.streak || 0) + 1;
+      const newLongestStreak = Math.max(newStreak, userStats.longestStreak || 0);
+      
+      // Calculate $SOLT reward based on streak
+      if (newStreak >= 10) {
+        soltReward = "0.5";
+      } else if (newStreak >= 5) {
+        soltReward = "0.25";
+      } else if (newStreak >= 3) {
+        soltReward = "0.1";
+      }
+      
+      // Update totals
+      const currentSoltEarned = parseFloat(userStats.totalCathEarned || '0');
+      const newSoltTotal = (currentSoltEarned + parseFloat(soltReward)).toFixed(2);
+      
+      // Update user stats
+      await db
+        .update(quizStats)
+        .set({
+          totalPoints: userStats.totalPoints + pointsEarned,
+          totalQuestions: userStats.totalQuestions + 1,
+          correctAnswers: userStats.correctAnswers + 1,
+          streak: newStreak,
+          longestStreak: newLongestStreak,
+          totalCathEarned: newSoltTotal,
+          lastQuizAt: new Date(),
+        })
+        .where(eq(quizStats.userId, userId));
+    } else {
+      // Wrong answer - reset streak, still count the question
+      await db
+        .update(quizStats)
+        .set({
+          totalQuestions: userStats.totalQuestions + 1,
+          streak: 0,
+          lastQuizAt: new Date(),
+        })
+        .where(eq(quizStats.userId, userId));
     }
     
     // Record the attempt
@@ -580,25 +638,7 @@ export class DatabaseStorage implements IStorage {
       hintUsed: data.hintUsed,
     });
     
-    // Update user stats if correct
-    if (isCorrect) {
-      const [userStats] = await db
-        .select()
-        .from(quizStats)
-        .where(eq(quizStats.userId, userId));
-      
-      if (userStats) {
-        await db
-          .update(quizStats)
-          .set({
-            totalPoints: userStats.totalPoints + pointsEarned,
-            lastQuizAt: new Date(),
-          })
-          .where(eq(quizStats.userId, userId));
-      }
-    }
-    
-    return { isCorrect, pointsEarned, correctAnswer: question.answer };
+    return { isCorrect, pointsEarned, correctAnswer: question.answer, soltReward };
   }
   
   async createQuizQuestions(questions: any[]): Promise<void> {

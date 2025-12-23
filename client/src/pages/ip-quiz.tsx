@@ -54,8 +54,8 @@ export default function IPQuiz() {
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [sessionScore, setSessionScore] = useState(0);
   const [sessionStreak, setSessionStreak] = useState(0);
-  const [showCathReward, setShowCathReward] = useState(false);
-  const [cathEarned, setCathEarned] = useState<string>("0");
+  const [showSoltReward, setShowSoltReward] = useState(false);
+  const [soltEarned, setSoltEarned] = useState<string>("0");
   const [hintUsed, setHintUsed] = useState(false);
   const [eliminatedOptions, setEliminatedOptions] = useState<string[]>([]);
 
@@ -91,15 +91,15 @@ export default function IPQuiz() {
         setSessionScore(sessionScore + data.pointsEarned);
         setSessionStreak(sessionStreak + 1);
         
-        if (data.cathReward && parseFloat(data.cathReward) > 0) {
-          setCathEarned(data.cathReward);
-          setShowCathReward(true);
-          setTimeout(() => setShowCathReward(false), 3000);
+        if (data.soltReward && parseFloat(data.soltReward) > 0) {
+          setSoltEarned(data.soltReward);
+          setShowSoltReward(true);
+          setTimeout(() => setShowSoltReward(false), 3000);
         }
         
         toast({
-          title: "Correct! 🎉",
-          description: `You earned ${data.pointsEarned} points${data.cathReward ? ` and ${data.cathReward} $CATH` : ""}!`,
+          title: "Correct!",
+          description: `You earned ${data.pointsEarned} points${data.soltReward ? ` and ${data.soltReward} $SOLT` : ""}!`,
         });
       } else {
         setSessionStreak(0);
@@ -256,7 +256,7 @@ export default function IPQuiz() {
                 IP Knowledge Quiz
               </CardTitle>
               <CardDescription>
-                Test your IP knowledge and earn $CATH rewards!
+                Test your IP knowledge and earn $SOLT rewards!
               </CardDescription>
             </div>
             
@@ -269,9 +269,9 @@ export default function IPQuiz() {
               <div className="text-center">
                 <p className="text-2xl font-bold flex items-center gap-1">
                   <Coins className="w-5 h-5" />
-                  {stats?.totalCathEarned || "0"}
+                  {(stats as any)?.totalSoltEarned || "0"}
                 </p>
-                <p className="text-xs text-muted-foreground">$CATH Earned</p>
+                <p className="text-xs text-muted-foreground">$SOLT Earned</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold flex items-center gap-1">
@@ -340,12 +340,12 @@ export default function IPQuiz() {
         </Card>
       </div>
 
-      {/* $CATH Reward Animation */}
-      {showCathReward && (
+      {/* $SOLT Reward Animation */}
+      {showSoltReward && (
         <Alert className="bg-gradient-to-r from-yellow-100 to-yellow-50 border-yellow-300">
           <Sparkles className="w-4 h-4 text-yellow-600" />
           <AlertDescription className="font-bold text-yellow-900">
-            +{cathEarned} $CATH earned! Keep your streak going for bigger rewards!
+            +{soltEarned} $SOLT earned! Keep your streak going for bigger rewards!
           </AlertDescription>
         </Alert>
       )}
@@ -356,7 +356,7 @@ export default function IPQuiz() {
           <CardHeader>
             <CardTitle>Choose Your Question</CardTitle>
             <CardDescription>
-              Select a category and point value. Higher points = harder questions = more $CATH!
+              Select a category and point value. Higher points = harder questions = more $SOLT!
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -405,7 +405,7 @@ export default function IPQuiz() {
               <AlertCircle className="w-4 h-4" />
               <AlertDescription>
                 <strong>Scoring:</strong> Answer correctly to earn points. 
-                Build streaks for bonus $CATH rewards! 
+                Build streaks for bonus $SOLT rewards! 
                 All questions cite official USPTO and Copyright.gov sources.
               </AlertDescription>
             </Alert>
@@ -579,27 +579,27 @@ export default function IPQuiz() {
             </div>
             
             <div className="space-y-2">
-              <h3 className="font-semibold">$CATH Rewards</h3>
+              <h3 className="font-semibold">$SOLT Rewards</h3>
               <ul className="space-y-1 text-sm text-muted-foreground">
                 <li className="flex items-center gap-2">
                   <Zap className="w-4 h-4 text-yellow-500" />
-                  3+ streak: Bonus 0.1 $CATH
+                  3+ streak: Bonus 0.1 $SOLT
                 </li>
                 <li className="flex items-center gap-2">
                   <Zap className="w-4 h-4 text-yellow-500" />
-                  5+ streak: Bonus 0.25 $CATH
+                  5+ streak: Bonus 0.25 $SOLT
                 </li>
                 <li className="flex items-center gap-2">
                   <Zap className="w-4 h-4 text-yellow-500" />
-                  10+ streak: Bonus 0.5 $CATH
+                  10+ streak: Bonus 0.5 $SOLT
                 </li>
                 <li className="flex items-center gap-2">
                   <Star className="w-4 h-4 text-yellow-500" />
-                  Perfect week: 5 $CATH bonus
+                  Perfect week: 5 $SOLT bonus
                 </li>
                 <li className="flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-yellow-500" />
-                  Top 10 monthly: 50 $CATH prize pool
+                  Top 10 monthly: 50 $SOLT prize pool
                 </li>
               </ul>
             </div>
