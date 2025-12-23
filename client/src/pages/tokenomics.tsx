@@ -44,7 +44,7 @@ export default function TokenomicsPage() {
     token: {
       name: '$SOLT',
       type: 'SPL Utility Token',
-      totalSupply: '1,000,000,000',
+      totalSupply: '400,000,000',
       decimals: 9,
     },
     distribution: [
