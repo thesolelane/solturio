@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
   Shield, Loader2, ExternalLink, Copy, Check, FileSignature, 
   Clock, CheckCircle2, AlertCircle, XCircle, 
@@ -45,6 +46,7 @@ type LicenseWithDetails = LicenseContract & {
 
 const STATUS_CONFIG = {
   draft: { label: "Draft", icon: Clock, color: "bg-muted text-muted-foreground" },
+  pending_acceptance: { label: "Pending Acceptance", icon: Clock, color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" },
   pending_licensee_signature: { label: "Awaiting Licensee", icon: Clock, color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" },
   pending_payment: { label: "Awaiting Payment", icon: Coins, color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400" },
   pending_deployment: { label: "Deploying", icon: Clock, color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400" },
@@ -99,6 +101,27 @@ export default function Licenses() {
       });
     }
   };
+
+  const acceptMutation = useMutation({
+    mutationFn: async (licenseId: string) => {
+      const res = await apiRequest("POST", `/api/licenses/${licenseId}/accept`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/licenses'] });
+      toast({
+        title: "License Accepted",
+        description: "The license is now active. You have full access to the licensed content.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to accept license",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    },
+  });
 
   const getPlatformPermissions = (bitmap: number): string[] => {
     const enabled: string[] = [];
@@ -476,6 +499,28 @@ export default function Licenses() {
                               <FileSignature className="w-4 h-4 mr-2" />
                               Sign as Licensee
                             </Button>
+                          </div>
+                        )}
+
+                        {(license.status === 'pending_acceptance' && !isLicensor) && (
+                          <div className="border-t pt-4">
+                            <div className="flex items-center gap-3">
+                              <Button 
+                                onClick={() => acceptMutation.mutate(license.id)}
+                                disabled={acceptMutation.isPending}
+                                data-testid={`button-accept-${license.id}`}
+                              >
+                                {acceptMutation.isPending ? (
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                                )}
+                                Accept License
+                              </Button>
+                              <span className="text-sm text-muted-foreground">
+                                Accept to activate this license and gain access to the content.
+                              </span>
+                            </div>
                           </div>
                         )}
                       </div>
