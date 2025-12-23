@@ -527,3 +527,166 @@ licenseRouter.post('/:id/revoke', isAuthenticated, async (req: any, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+/**
+ * POST /api/licenses/:id/accept
+ * Accept a license offer (v1 simplified flow - simulates payment)
+ * Licensee accepts and license becomes active immediately
+ */
+licenseRouter.post('/:id/accept', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    const { id } = req.params;
+
+    const license = await storage.getLicenseContract(id);
+    if (!license) {
+      return res.status(404).json({ error: 'License not found' });
+    }
+
+    // Only pending licenses can be accepted
+    if (license.status !== 'draft' && license.status !== 'pending_acceptance' && license.status !== 'pending_licensee_signature') {
+      return res.status(400).json({ error: `Cannot accept license with status: ${license.status}` });
+    }
+
+    // Check if user is the licensee
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    const userWallet = user.solanaPublicKey || user.walletAddress;
+    if (license.licenseeWallet !== userWallet) {
+      return res.status(403).json({ error: 'Only the designated licensee can accept this offer' });
+    }
+
+    const now = new Date();
+    const startsAt = now;
+    
+    // Calculate expiry based on duration
+    let expiresAt = license.expiresAt;
+    if (!license.isPerpetual && license.durationDays && !expiresAt) {
+      expiresAt = new Date(now.getTime() + license.durationDays * 24 * 60 * 60 * 1000);
+    }
+
+    // v1: Simulate payment - mark as active immediately
+    const updated = await storage.updateLicenseContract(id, {
+      status: 'active',
+      startsAt,
+      expiresAt,
+      licenseeSignedAt: now,
+      currentHolderName: user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : undefined,
+      currentHolderWallet: userWallet,
+      currentHolderEmail: user.email || undefined,
+      // Mark fee as paid (simulated for v1)
+      creationFeePaid: true,
+      creationFeePaidAt: now,
+    });
+
+    res.json({
+      success: true,
+      license: updated,
+      message: 'License accepted and activated successfully.',
+    });
+  } catch (error: any) {
+    console.error('Accept license error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/licenses/asset/:assetId
+ * Get all licenses for a specific asset (track, release, logo, etc.)
+ */
+licenseRouter.get('/asset/:assetId', isAuthenticated, async (req: any, res) => {
+  try {
+    const { assetId } = req.params;
+    const licenses = await storage.getLicenseContractsByAsset(assetId);
+    
+    res.json({ licenses });
+  } catch (error: any) {
+    console.error('Get licenses by asset error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /api/licenses/offer
+ * Create a simple license offer (v1 simplified flow)
+ * Creates license with status 'pending_acceptance'
+ */
+licenseRouter.post('/offer', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    const user = await storage.getUser(userId);
+    
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    const userWallet = user.solanaPublicKey || user.walletAddress;
+    if (!userWallet) {
+      return res.status(400).json({ error: 'User wallet not configured' });
+    }
+
+    const { 
+      assetId, 
+      licenseeWallet, 
+      licenseeEmail,
+      licenseeName,
+      licenseType = 'non_exclusive',
+      isPerpetual = false,
+      durationDays,
+      upfrontPaymentAmount,
+      upfrontPaymentCurrency = 'SOL',
+      canModify = false,
+      canSublicense = false,
+      canTransfer = false,
+      requiresAttribution = true,
+    } = req.body;
+
+    if (!assetId) {
+      return res.status(400).json({ error: 'Asset ID is required' });
+    }
+    if (!licenseeWallet) {
+      return res.status(400).json({ error: 'Licensee wallet is required' });
+    }
+
+    // Calculate expiry
+    let expiresAt = null;
+    if (!isPerpetual && durationDays) {
+      expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + durationDays);
+    }
+
+    const license = await storage.createLicenseContract({
+      licensorUserId: userId,
+      licensorWallet: userWallet,
+      licenseeWallet,
+      licenseeEmail,
+      licenseeName,
+      assetId,
+      licenseType,
+      isPerpetual,
+      durationDays,
+      expiresAt,
+      upfrontPaymentAmount,
+      upfrontPaymentCurrency,
+      canModify,
+      canSublicense,
+      canTransfer,
+      requiresAttribution,
+      arbitrationAgreed: true,
+      indemnificationAgreed: true,
+      status: 'pending_acceptance',
+    } as any);
+
+    res.status(201).json({
+      success: true,
+      license,
+      message: 'License offer created. Share with licensee for acceptance.',
+    });
+  } catch (error: any) {
+    console.error('Create license offer error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});

@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { sha256Hex } from "../lib/hash";
 import { encryptAesGcm } from "../lib/crypto-aes";
 import { hybridContextHash, hybridId } from "../lib/hybrid";
+import { storage } from "../storage";
 import type { MasterAccessResponse } from "@shared/schema";
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -44,7 +45,8 @@ function validateAccessToken(token: string, trackId: string, userId: string): bo
 // Cleanup expired tokens periodically
 setInterval(() => {
   const now = Date.now();
-  for (const [token, entry] of accessTokens.entries()) {
+  const entries = Array.from(accessTokens.entries());
+  for (const [token, entry] of entries) {
     if (now > entry.expiresAt) {
       accessTokens.delete(token);
     }
@@ -108,24 +110,30 @@ musicRouter.post("/upload", upload.single("file"), async (req, res) => {
 /**
  * Check if user has license to access master audio
  * 
- * v1: Stub with isLicensed = false (no music licensing yet)
+ * v1 DB Flow:
+ * 1. Track owner always has access to their own tracks
+ * 2. Check license_contracts for ACTIVE license where:
+ *    - assetId matches the track's asset ID (hybridId format)
+ *    - licensee is the requesting user
+ *    - status = 'active'
  * 
- * Future implementation will query license_contracts table:
- *   SELECT * FROM license_contracts 
- *   WHERE asset_id = :trackAssetId 
- *   AND licensee_id = :userId 
- *   AND status = 'active'
- *   AND expires_at > NOW()
- * 
- * For testing: Set STUB_LICENSED=true env var to simulate licensed state
+ * For testing: Set STUB_LICENSED=true env var to bypass license check
  */
 async function checkMasterLicense(userId: string, trackId: string): Promise<boolean> {
-  // TODO: Replace stub with actual license check when music licensing is implemented
-  // For v1, always return false unless STUB_LICENSED env var is set for testing
+  // Test mode: bypass license check
   if (process.env.STUB_LICENSED === "true") {
     return true;
   }
-  return false;
+  
+  // For music tracks, the assetId in license_contracts uses the hybridId format
+  // which combines audioHash and context. For now, we use trackId as assetId.
+  // TODO: Map trackId to actual assetId when track storage is implemented
+  const assetId = trackId;
+  
+  // Check for active license in database
+  const license = await storage.getActiveLicenseForUserAndAsset(userId, assetId);
+  
+  return !!license;
 }
 
 musicRouter.get("/tracks/:id/master-access", async (req, res) => {

@@ -149,6 +149,8 @@ export interface IStorage {
   getLicenseContractsByLicensor(userId: string): Promise<LicenseContract[]>;
   getLicenseContractsByLicensee(walletAddress: string): Promise<LicenseContract[]>;
   getLicenseContractsByLogo(logoId: string): Promise<LicenseContract[]>;
+  getLicenseContractsByAsset(assetId: string): Promise<LicenseContract[]>;
+  getActiveLicenseForUserAndAsset(userId: string, assetId: string): Promise<LicenseContract | undefined>;
   updateLicenseContract(id: string, data: Partial<LicenseContract>): Promise<LicenseContract>;
   signLicenseContractAsLicensor(id: string, signature: string): Promise<LicenseContract>;
   signLicenseContractAsLicensee(id: string, signature: string): Promise<LicenseContract>;
@@ -882,6 +884,31 @@ export class DatabaseStorage implements IStorage {
       .from(licenseContracts)
       .where(eq(licenseContracts.logoId, logoId))
       .orderBy(desc(licenseContracts.createdAt));
+  }
+
+  async getLicenseContractsByAsset(assetId: string): Promise<LicenseContract[]> {
+    return db
+      .select()
+      .from(licenseContracts)
+      .where(eq(licenseContracts.assetId, assetId))
+      .orderBy(desc(licenseContracts.createdAt));
+  }
+
+  async getActiveLicenseForUserAndAsset(userId: string, assetId: string): Promise<LicenseContract | undefined> {
+    const user = await this.getUser(userId);
+    if (!user?.walletAddress) return undefined;
+    
+    const [license] = await db
+      .select()
+      .from(licenseContracts)
+      .where(
+        and(
+          eq(licenseContracts.assetId, assetId),
+          eq(licenseContracts.licenseeWallet, user.walletAddress),
+          eq(licenseContracts.status, 'active')
+        )
+      );
+    return license;
   }
 
   async updateLicenseContract(id: string, data: Partial<LicenseContract>): Promise<LicenseContract> {
