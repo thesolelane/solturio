@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Shield, Loader2, ExternalLink, Copy, Check, Sparkles, FileCheck, ChevronDown, ChevronRight, Share2, HelpCircle, Eye, EyeOff, Pencil, FileSignature } from "lucide-react";
+import { Shield, Loader2, ExternalLink, Copy, Check, Sparkles, FileCheck, ChevronDown, ChevronRight, Share2, HelpCircle, Eye, EyeOff, Pencil, FileSignature, Link2, Music, Image, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Switch } from "@/components/ui/switch";
@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import type { Collection, Logo } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -25,6 +27,7 @@ export default function Collections() {
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [activeTab, setActiveTab] = useState<"collections" | "share-links">("collections");
 
   const toggleCollection = (collectionId: string) => {
     setExpandedCollections(prev => {
@@ -59,6 +62,11 @@ export default function Collections() {
   const { data: collections = [], isLoading } = useQuery<(Collection & { logos?: Logo[]; ipfsMetadataHash?: string })[]>({
     queryKey: ["/api/collections"],
     enabled: isAuthenticated,
+  });
+
+  const { data: musicTracks = [] } = useQuery<any[]>({
+    queryKey: ["/api/music/tracks"],
+    enabled: isAuthenticated && activeTab === "share-links",
   });
 
   // Mint collection mutation
@@ -206,28 +214,41 @@ export default function Collections() {
           </p>
         </div>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-        ) : collections.length === 0 ? (
-          <Card className="p-12 text-center">
-            <Shield className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <h3 className="font-semibold mb-2">No collections yet</h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              Start by uploading your first logos
-            </p>
-            <Button asChild data-testid="button-upload-first">
-              <Link href="/upload">Upload Logos</Link>
-            </Button>
-          </Card>
-        ) : (
-          <div className="space-y-6">
-            {collections.map((collection) => {
-              const isExpanded = expandedCollections.has(collection.id);
-              return (
-                <Card key={collection.id} className="overflow-hidden" data-testid={`collection-${collection.id}`}>
-                  <Collapsible open={isExpanded} onOpenChange={() => toggleCollection(collection.id)}>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="mb-6">
+          <TabsList>
+            <TabsTrigger value="collections" data-testid="tab-collections">
+              <Image className="w-4 h-4 mr-1" />
+              Collections
+            </TabsTrigger>
+            <TabsTrigger value="share-links" data-testid="tab-share-links">
+              <Link2 className="w-4 h-4 mr-1" />
+              Share Links
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="collections" className="mt-6">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : collections.length === 0 ? (
+              <Card className="p-12 text-center">
+                <Shield className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">No collections yet</h3>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Start by uploading your first logos
+                </p>
+                <Button asChild data-testid="button-upload-first">
+                  <Link href="/upload">Upload Logos</Link>
+                </Button>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                {collections.map((collection) => {
+                  const isExpanded = expandedCollections.has(collection.id);
+                  return (
+                    <Card key={collection.id} className="overflow-hidden" data-testid={`collection-${collection.id}`}>
+                      <Collapsible open={isExpanded} onOpenChange={() => toggleCollection(collection.id)}>
                     <div className="p-6">
                       <div className="flex items-start justify-between gap-4">
                         <CollapsibleTrigger className="flex items-start gap-3 text-left hover-elevate rounded-md p-1 -m-1" data-testid={`toggle-${collection.id}`}>
@@ -637,6 +658,230 @@ export default function Collections() {
             })}
           </div>
         )}
+          </TabsContent>
+
+          <TabsContent value="share-links" className="mt-6">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="w-5 h-5" />
+                    All Shareable Links
+                  </CardTitle>
+                  <CardDescription>
+                    Copy these URLs to share your verified assets on social media, DEX platforms, and websites
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Logos Section */}
+                  {collections.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                        <Image className="w-5 h-5 text-primary" />
+                        Logos
+                        <Badge variant="secondary" className="ml-2">{collections.reduce((acc, c) => acc + (c.logos?.length || 0), 0)}</Badge>
+                      </h3>
+                      <div className="space-y-3">
+                        {collections.map((collection) => (
+                          collection.logos?.map((logo) => {
+                            const ipfsUrl = logo.ipfsHash ? `https://ipfs.io/ipfs/${logo.ipfsHash}` : null;
+                            const verifyUrl = `${window.location.origin}/verify/${logo.id}`;
+                            const verifiedImageUrl = logo.verifiedIpfsHash ? `https://ipfs.io/ipfs/${logo.verifiedIpfsHash}` : null;
+                            
+                            return (
+                              <div key={logo.id} className="p-4 border rounded-lg space-y-3">
+                                <div className="flex items-center gap-3">
+                                  {logo.thumbnailUrl && (
+                                    <img 
+                                      src={logo.thumbnailUrl} 
+                                      alt={logo.fileName}
+                                      className="w-10 h-10 object-contain rounded"
+                                    />
+                                  )}
+                                  <div>
+                                    <p className="font-medium">{logo.fileName}</p>
+                                    <p className="text-xs text-muted-foreground">{collection.name}</p>
+                                  </div>
+                                </div>
+                                
+                                <div className="grid gap-2">
+                                  {ipfsUrl && (
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="default" className="text-xs shrink-0">IPFS</Badge>
+                                      <Input 
+                                        value={ipfsUrl} 
+                                        readOnly 
+                                        className="font-mono text-xs flex-1"
+                                      />
+                                      <Button
+                                        size="icon"
+                                        variant="outline"
+                                        onClick={() => copyToClipboard(ipfsUrl, `ipfs-${logo.id}`)}
+                                        data-testid={`button-copy-ipfs-${logo.id}`}
+                                      >
+                                        {copiedId === `ipfs-${logo.id}` ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                      </Button>
+                                    </div>
+                                  )}
+                                  
+                                  {verifiedImageUrl && (
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="secondary" className="text-xs shrink-0">Verified</Badge>
+                                      <Input 
+                                        value={verifiedImageUrl} 
+                                        readOnly 
+                                        className="font-mono text-xs flex-1"
+                                      />
+                                      <Button
+                                        size="icon"
+                                        variant="outline"
+                                        onClick={() => copyToClipboard(verifiedImageUrl, `verified-${logo.id}`)}
+                                        data-testid={`button-copy-verified-${logo.id}`}
+                                      >
+                                        {copiedId === `verified-${logo.id}` ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                      </Button>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className="text-xs shrink-0">Verify</Badge>
+                                    <Input 
+                                      value={verifyUrl} 
+                                      readOnly 
+                                      className="font-mono text-xs flex-1"
+                                    />
+                                    <Button
+                                      size="icon"
+                                      variant="outline"
+                                      onClick={() => copyToClipboard(verifyUrl, `verify-${logo.id}`)}
+                                      data-testid={`button-copy-verify-${logo.id}`}
+                                    >
+                                      {copiedId === `verify-${logo.id}` ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Music Section */}
+                  {musicTracks.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                        <Music className="w-5 h-5 text-primary" />
+                        Music Tracks
+                        <Badge variant="secondary" className="ml-2">{musicTracks.length}</Badge>
+                      </h3>
+                      <div className="space-y-3">
+                        {musicTracks.map((track: any) => {
+                          const trackUrl = `${window.location.origin}/music/track/${track.id}`;
+                          const ipfsUrl = track.previewIpfsHash ? `https://ipfs.io/ipfs/${track.previewIpfsHash}` : null;
+                          
+                          return (
+                            <div key={track.id} className="p-4 border rounded-lg space-y-3">
+                              <div className="flex items-center gap-3">
+                                {track.coverArtThumbnail && (
+                                  <img 
+                                    src={track.coverArtThumbnail} 
+                                    alt={track.title}
+                                    className="w-10 h-10 object-cover rounded"
+                                  />
+                                )}
+                                <div>
+                                  <p className="font-medium">{track.title}</p>
+                                  <p className="text-xs text-muted-foreground">{track.artistName}</p>
+                                </div>
+                              </div>
+                              
+                              <div className="grid gap-2">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="default" className="text-xs shrink-0">Track</Badge>
+                                  <Input 
+                                    value={trackUrl} 
+                                    readOnly 
+                                    className="font-mono text-xs flex-1"
+                                  />
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    onClick={() => copyToClipboard(trackUrl, `track-${track.id}`)}
+                                    data-testid={`button-copy-track-${track.id}`}
+                                  >
+                                    {copiedId === `track-${track.id}` ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                  </Button>
+                                </div>
+                                
+                                {ipfsUrl && (
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="secondary" className="text-xs shrink-0">Preview</Badge>
+                                    <Input 
+                                      value={ipfsUrl} 
+                                      readOnly 
+                                      className="font-mono text-xs flex-1"
+                                    />
+                                    <Button
+                                      size="icon"
+                                      variant="outline"
+                                      onClick={() => copyToClipboard(ipfsUrl, `preview-${track.id}`)}
+                                      data-testid={`button-copy-preview-${track.id}`}
+                                    >
+                                      {copiedId === `preview-${track.id}` ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Empty state */}
+                  {collections.length === 0 && musicTracks.length === 0 && (
+                    <div className="text-center py-8">
+                      <Link2 className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+                      <h3 className="font-semibold mb-2">No shareable assets yet</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Upload logos or music to get shareable links
+                      </p>
+                      <div className="flex justify-center gap-3">
+                        <Button asChild variant="outline">
+                          <Link href="/upload">Upload Logos</Link>
+                        </Button>
+                        <Button asChild variant="outline">
+                          <Link href="/music">Upload Music</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Tips Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <HelpCircle className="w-4 h-4" />
+                    Sharing Tips
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                  <p><strong>IPFS URLs</strong> - Permanent, decentralized links that work anywhere</p>
+                  <p><strong>Verified URLs</strong> - Include the gold check badge overlay for authenticity</p>
+                  <p><strong>Verify URLs</strong> - Link to your public verification page on Solturio</p>
+                  <Link href="/how-to-share" className="text-primary underline hover:no-underline" data-testid="link-learn-sharing">
+                    Learn more about sharing
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
 
       {/* Edit Collection Dialog */}
