@@ -43,6 +43,10 @@ import HowToShare from "@/pages/how-to-share";
 import Discover from "@/pages/discover";
 import VerifyWallet from "@/pages/verify-wallet";
 import Activate from "@/pages/activate";
+import MusicCollections from "@/pages/music";
+import MusicCollectionDetail from "@/pages/music-collection";
+import MusicReleaseDetail from "@/pages/music-release";
+import MusicTrackDetail from "@/pages/music-track";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -89,6 +93,10 @@ function Router() {
       <Route path="/discover" component={Discover} />
       <Route path="/verify-wallet" component={VerifyWallet} />
       <Route path="/activate" component={Activate} />
+      <Route path="/music" component={MusicCollections} />
+      <Route path="/music/collections/:id" component={MusicCollectionDetail} />
+      <Route path="/music/releases/:id" component={MusicReleaseDetail} />
+      <Route path="/music/tracks/:id" component={MusicTrackDetail} />
       <Route component={NotFound} />
     </Switch>
   );
