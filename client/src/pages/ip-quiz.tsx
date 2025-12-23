@@ -33,6 +33,9 @@ import {
 
 // Quiz categories from international IP authorities
 const CATEGORIES = [
+  { name: "Music Copyright", icon: "🎵", source: "ASCAP/BMI" },
+  { name: "AI Music Copyright", icon: "🤖", source: "Copyright Office" },
+  { name: "Business Name Protection", icon: "🏢", source: "USPTO" },
   { name: "USPTO Trademarks", icon: "™️", source: "USPTO" },
   { name: "WIPO Basics", icon: "🌍", source: "WIPO" },
   { name: "EUIPO Rights", icon: "🇪🇺", source: "EUIPO" },
