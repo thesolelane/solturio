@@ -339,16 +339,25 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Recently Uploaded Logos */}
-        {logos.length > 0 && (
+        {/* Recently Uploaded Logos - Last 24 Hours Only */}
+        {(() => {
+          const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+          const recentLogos = logos.filter(logo => 
+            logo.createdAt && new Date(logo.createdAt) >= twentyFourHoursAgo
+          );
+          
+          if (recentLogos.length === 0) return null;
+          
+          return (
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-semibold">Recently Uploaded Logos</h2>
-              {logos.length > 6 && (
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/collections">View All</Link>
-                </Button>
-              )}
+              <div>
+                <h2 className="text-2xl font-semibold">Recent Uploads</h2>
+                <p className="text-sm text-muted-foreground">Last 24 hours</p>
+              </div>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/collections">View All</Link>
+              </Button>
             </div>
 
             {logosLoading ? (
@@ -357,12 +366,12 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {logos.slice(0, 6).map((logo) => (
+                {recentLogos.slice(0, 6).map((logo) => (
                   <Card key={logo.id} className="overflow-hidden" data-testid={`logo-card-${logo.id}`}>
                     <div className="aspect-square bg-muted flex items-center justify-center p-8">
-                      {logo.filePath ? (
+                      {logo.imageUrl ? (
                         <img
-                          src={logo.filePath}
+                          src={logo.imageUrl}
                           alt={logo.fileName}
                           className="w-full h-full object-contain"
                         />
@@ -478,7 +487,8 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-        )}
+          );
+        })()}
 
         {/* NFT Minting Section */}
         {selectedLogoForMinting && (
