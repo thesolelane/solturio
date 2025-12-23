@@ -126,6 +126,9 @@ export const logos = pgTable("logos", {
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   collectionId: varchar("collection_id").references(() => collections.id, { onDelete: 'set null' }),
   
+  // Link to unified IP assets layer (allows license_contracts to reference any asset type)
+  assetId: varchar("asset_id"), // References ip_assets.id (forward reference, constraint added later)
+  
   // File metadata only (actual files in user's XXXXXXX.solturio.sol wallet or external URL)
   fileName: text("file_name").notNull(),
   imageUrl: text("image_url"), // URL where image is hosted (user's wallet, IPFS, etc.)
@@ -1365,7 +1368,8 @@ export const licenseContracts = pgTable("license_contracts", {
   licenseeName: varchar("licensee_name"), // Licensee display name
   
   // ===== ASSET =====
-  logoId: varchar("logo_id").notNull().references(() => logos.id, { onDelete: 'cascade' }),
+  logoId: varchar("logo_id").references(() => logos.id, { onDelete: 'cascade' }), // Legacy: for logo licenses (nullable for non-logo assets)
+  assetId: varchar("asset_id"), // Unified: references ip_assets.id for any asset type (logo, track, release, code)
   
   // ===== LICENSE TYPE & TEMPLATE =====
   licenseType: varchar("license_type", { length: 30 }).notNull(), // exclusive, non_exclusive, work_for_hire, full_transfer
@@ -1570,3 +1574,346 @@ export const usedTransactions = pgTable("used_transactions", {
 });
 
 export type UsedTransaction = typeof usedTransactions.$inferSelect;
+
+// ============================================
+// IP ASSETS - UNIFIED ABSTRACTION LAYER
+// Allows license_contracts to reference any IP type (logos, music, code)
+// ============================================
+
+export const ipAssets = pgTable("ip_assets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  
+  // Asset type discriminator
+  assetType: varchar("asset_type", { length: 20 }).notNull(), // 'logo', 'track', 'release', 'code'
+  
+  // Core identifiers
+  title: text("title").notNull(),
+  description: text("description"),
+  sha256: varchar("sha256", { length: 64 }).notNull(), // Content hash for verification
+  
+  // Storage URIs
+  primaryUri: text("primary_uri"), // Main file location (IPFS, Arweave, etc.)
+  manifestUri: text("manifest_uri"), // Metadata JSON location
+  thumbnailUri: text("thumbnail_uri"), // Preview image
+  
+  // Ownership
+  ownershipClaimedAt: timestamp("ownership_claimed_at"),
+  ownershipDescription: text("ownership_description"),
+  
+  // Legal status
+  copyrightStatus: varchar("copyright_status", { length: 20 }).default('none'),
+  trademarkStatus: varchar("trademark_status", { length: 20 }).default('none'),
+  
+  // Blockchain
+  nftAddress: varchar("nft_address"),
+  transactionHash: varchar("transaction_hash"),
+  mintedAt: timestamp("minted_at"),
+  
+  // Rights holders (for music splits, co-ownership)
+  rightsHolders: jsonb("rights_holders"), // [{wallet, name, percentage, role}]
+  
+  // Status
+  status: varchar("status", { length: 20 }).notNull().default('active'), // active, archived, disputed
+  
+  // Timestamps
+  registeredAt: timestamp("registered_at").defaultNow(), // Proof-of-first-use timestamp
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertIpAssetSchema = createInsertSchema(ipAssets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  registeredAt: true,
+  nftAddress: true,
+  transactionHash: true,
+  mintedAt: true,
+});
+
+export type InsertIpAsset = z.infer<typeof insertIpAssetSchema>;
+export type IpAsset = typeof ipAssets.$inferSelect;
+
+// ============================================
+// MUSIC COLLECTIONS - Catalogs/Labels
+// ============================================
+
+export const musicCollections = pgTable("music_collections", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  assetId: varchar("asset_id").references(() => ipAssets.id, { onDelete: 'set null' }),
+  
+  // Collection metadata
+  name: text("name").notNull(),
+  description: text("description"),
+  labelName: varchar("label_name"), // Record label or publisher
+  
+  // Artwork
+  coverArtUri: text("cover_art_uri"),
+  coverArtHash: varchar("cover_art_hash", { length: 64 }),
+  
+  // Contact
+  contactEmail: varchar("contact_email"),
+  website: text("website"),
+  
+  // IPFS/Arweave
+  metadataIpfsHash: varchar("metadata_ipfs_hash", { length: 100 }),
+  
+  // Status
+  isPublic: boolean("is_public").default(true),
+  status: varchar("status", { length: 20 }).default('active'),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertMusicCollectionSchema = createInsertSchema(musicCollections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertMusicCollection = z.infer<typeof insertMusicCollectionSchema>;
+export type MusicCollection = typeof musicCollections.$inferSelect;
+
+// ============================================
+// TRACKS - Canonical Audio Files (never duplicated)
+// ============================================
+
+export const tracks = pgTable("tracks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  assetId: varchar("asset_id").references(() => ipAssets.id, { onDelete: 'set null' }),
+  collectionId: varchar("collection_id").references(() => musicCollections.id, { onDelete: 'set null' }),
+  
+  // Track metadata
+  title: text("title").notNull(),
+  artistName: text("artist_name").notNull(),
+  featuredArtists: text("featured_artists").array(), // Collaborators
+  
+  // Audio file metadata
+  fileHash: varchar("file_hash", { length: 64 }).notNull().unique(), // SHA-256, never duplicated
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size").notNull(), // bytes
+  mimeType: varchar("mime_type", { length: 50 }).notNull(), // audio/mpeg, audio/wav, etc.
+  durationMs: integer("duration_ms"), // Length in milliseconds
+  sampleRate: integer("sample_rate"), // 44100, 48000, etc.
+  bitDepth: integer("bit_depth"), // 16, 24, 32
+  channels: integer("channels"), // 1 (mono), 2 (stereo)
+  
+  // Audio analysis
+  bpm: integer("bpm"), // Beats per minute
+  key: varchar("key", { length: 10 }), // C major, A minor, etc.
+  waveformData: jsonb("waveform_data"), // Visualization data
+  
+  // Storage
+  primaryUri: text("primary_uri"), // IPFS/Arweave location
+  metadataIpfsHash: varchar("metadata_ipfs_hash", { length: 100 }),
+  
+  // Rights management
+  isrc: varchar("isrc", { length: 12 }), // International Standard Recording Code
+  iswc: varchar("iswc", { length: 15 }), // International Standard Musical Work Code
+  publisherName: text("publisher_name"),
+  writerCredits: jsonb("writer_credits"), // [{name, role, percentage}]
+  
+  // Rights holders with split ownership
+  rightsHolders: jsonb("rights_holders"), // [{wallet, name, percentage, role}]
+  
+  // Registration
+  registrationType: varchar("registration_type", { length: 20 }), // original, remix, cover, sample
+  originalTrackId: varchar("original_track_id"), // If remix/cover, reference to original
+  
+  // Blockchain
+  nftAddress: varchar("nft_address"),
+  transactionHash: varchar("transaction_hash"),
+  mintedAt: timestamp("minted_at"),
+  
+  // Status
+  status: varchar("status", { length: 20 }).default('active'),
+  
+  registeredAt: timestamp("registered_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertTrackSchema = createInsertSchema(tracks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  registeredAt: true,
+  nftAddress: true,
+  transactionHash: true,
+  mintedAt: true,
+});
+
+export type InsertTrack = z.infer<typeof insertTrackSchema>;
+export type Track = typeof tracks.$inferSelect;
+
+// ============================================
+// RELEASES - Single/EP/Album/Compilation
+// ============================================
+
+export const releases = pgTable("releases", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  assetId: varchar("asset_id").references(() => ipAssets.id, { onDelete: 'set null' }),
+  collectionId: varchar("collection_id").references(() => musicCollections.id, { onDelete: 'set null' }),
+  
+  // Release metadata
+  title: text("title").notNull(),
+  artistName: text("artist_name").notNull(),
+  releaseType: varchar("release_type", { length: 20 }).notNull(), // single, ep, album, compilation
+  
+  // Artwork
+  coverArtUri: text("cover_art_uri"),
+  coverArtHash: varchar("cover_art_hash", { length: 64 }),
+  
+  // Release info
+  releaseDate: timestamp("release_date"),
+  genre: varchar("genre", { length: 50 }),
+  subGenre: varchar("sub_genre", { length: 50 }),
+  language: varchar("language", { length: 10 }),
+  
+  // Industry codes
+  upc: varchar("upc", { length: 14 }), // Universal Product Code
+  catalogNumber: varchar("catalog_number", { length: 50 }),
+  
+  // Rights
+  labelName: varchar("label_name"),
+  copyrightLine: text("copyright_line"), // (C) 2025 Label Name
+  productionLine: text("production_line"), // (P) 2025 Label Name
+  
+  // Storage
+  metadataIpfsHash: varchar("metadata_ipfs_hash", { length: 100 }),
+  
+  // Blockchain
+  nftAddress: varchar("nft_address"),
+  transactionHash: varchar("transaction_hash"),
+  mintedAt: timestamp("minted_at"),
+  
+  // Status
+  status: varchar("status", { length: 20 }).default('draft'), // draft, pending, released, archived
+  
+  registeredAt: timestamp("registered_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertReleaseSchema = createInsertSchema(releases).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  registeredAt: true,
+  nftAddress: true,
+  transactionHash: true,
+  mintedAt: true,
+});
+
+export type InsertRelease = z.infer<typeof insertReleaseSchema>;
+export type Release = typeof releases.$inferSelect;
+
+// ============================================
+// RELEASE_TRACKS - Join table with ordering
+// ============================================
+
+export const releaseTracks = pgTable("release_tracks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  releaseId: varchar("release_id").notNull().references(() => releases.id, { onDelete: 'cascade' }),
+  trackId: varchar("track_id").notNull().references(() => tracks.id, { onDelete: 'cascade' }),
+  
+  // Positioning
+  discNumber: integer("disc_number").default(1),
+  trackNumber: integer("track_number").notNull(),
+  
+  // Context-specific metadata (may differ from canonical track)
+  displayTitle: text("display_title"), // Override title for this release
+  displayArtist: text("display_artist"), // Override artist for this release
+  
+  // ISRC can be release-specific
+  releaseIsrc: varchar("release_isrc", { length: 12 }),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertReleaseTrackSchema = createInsertSchema(releaseTracks).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertReleaseTrack = z.infer<typeof insertReleaseTrackSchema>;
+export type ReleaseTrack = typeof releaseTracks.$inferSelect;
+
+// ============================================
+// CODE REPO SNAPSHOTS - GitHub Integration
+// ============================================
+
+export const codeRepoSnapshots = pgTable("code_repo_snapshots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  assetId: varchar("asset_id").references(() => ipAssets.id, { onDelete: 'set null' }),
+  
+  // Repository info
+  repoUrl: text("repo_url").notNull(), // GitHub URL
+  repoName: text("repo_name").notNull(),
+  repoOwner: text("repo_owner").notNull(),
+  
+  // Commit data
+  commitHash: varchar("commit_hash", { length: 40 }).notNull(), // Full SHA
+  commitMessage: text("commit_message"),
+  commitAuthor: text("commit_author"),
+  committedAt: timestamp("committed_at"),
+  
+  // Branch/tag info
+  branchName: varchar("branch_name", { length: 100 }),
+  tagName: varchar("tag_name", { length: 100 }),
+  
+  // Snapshot content
+  manifestHash: varchar("manifest_hash", { length: 64 }), // Hash of file manifest
+  manifestUri: text("manifest_uri"), // IPFS location of manifest JSON
+  bundleHash: varchar("bundle_hash", { length: 64 }), // Optional: hash of zip bundle
+  bundleUri: text("bundle_uri"), // Optional: IPFS location of zip bundle
+  
+  // File statistics
+  fileCount: integer("file_count"),
+  totalLinesOfCode: integer("total_lines_of_code"),
+  languages: jsonb("languages"), // {typescript: 5000, javascript: 2000, etc.}
+  
+  // Storage
+  metadataIpfsHash: varchar("metadata_ipfs_hash", { length: 100 }),
+  
+  // Blockchain
+  nftAddress: varchar("nft_address"),
+  transactionHash: varchar("transaction_hash"),
+  mintedAt: timestamp("minted_at"),
+  
+  // Status
+  status: varchar("status", { length: 20 }).default('pending'), // pending, verified, minted
+  
+  registeredAt: timestamp("registered_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertCodeRepoSnapshotSchema = createInsertSchema(codeRepoSnapshots).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  registeredAt: true,
+  nftAddress: true,
+  transactionHash: true,
+  mintedAt: true,
+});
+
+export type InsertCodeRepoSnapshot = z.infer<typeof insertCodeRepoSnapshotSchema>;
+export type CodeRepoSnapshot = typeof codeRepoSnapshots.$inferSelect;
+
+// Asset type constants for ipAssets.assetType
+export const IP_ASSET_TYPES = {
+  LOGO: 'logo',
+  TRACK: 'track',
+  RELEASE: 'release',
+  CODE: 'code',
+} as const;
+
+export type IpAssetType = typeof IP_ASSET_TYPES[keyof typeof IP_ASSET_TYPES];
