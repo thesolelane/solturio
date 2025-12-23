@@ -15,6 +15,76 @@ import {
 import type { Track, MasterAccessResponse } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 
+// Master audio player component for licensed playback
+function MasterPlayer({ playbackUrl, expiresAt }: { playbackUrl: string; expiresAt: string }) {
+  const masterRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  const togglePlay = () => {
+    if (!masterRef.current) return;
+    if (isPlaying) {
+      masterRef.current.pause();
+    } else {
+      masterRef.current.play().catch(e => setError(e.message));
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleTimeUpdate = () => {
+    if (!masterRef.current) return;
+    const pct = (masterRef.current.currentTime / masterRef.current.duration) * 100;
+    setProgress(isNaN(pct) ? 0 : pct);
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+    setProgress(0);
+  };
+
+  const handleError = () => {
+    setError("Failed to load master audio. Stream may have expired.");
+    setIsPlaying(false);
+  };
+
+  return (
+    <div className="space-y-3">
+      <Alert>
+        <Headphones className="w-4 h-4" />
+        <AlertDescription>
+          Master access granted. Expires at {new Date(expiresAt).toLocaleTimeString()}.
+        </AlertDescription>
+      </Alert>
+      {error ? (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : (
+        <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+          <audio
+            ref={masterRef}
+            src={playbackUrl}
+            onTimeUpdate={handleTimeUpdate}
+            onEnded={handleEnded}
+            onError={handleError}
+          />
+          <Button 
+            size="icon" 
+            variant="default" 
+            onClick={togglePlay}
+            data-testid="button-play-master-audio"
+          >
+            {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+          </Button>
+          <Progress value={progress} className="flex-1" />
+          <Badge variant="secondary" className="text-xs">Master</Badge>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function MusicTrackDetail() {
   const { id } = useParams<{ id: string }>();
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -193,7 +263,7 @@ export default function MusicTrackDetail() {
               <span className="font-medium">Master Quality</span>
             </div>
             
-            {!masterRequested ? (
+            {!masterRequested || masterAccessMutation.isPending ? (
               <Button 
                 variant="secondary"
                 onClick={requestMasterAccess}
@@ -201,25 +271,36 @@ export default function MusicTrackDetail() {
                 data-testid="button-play-master"
               >
                 <Headphones className="w-4 h-4 mr-2" />
-                {masterAccessMutation.isPending ? "Checking..." : "Play Master"}
+                {masterAccessMutation.isPending ? "Checking license..." : "Play Master"}
               </Button>
-            ) : masterAccess?.authorized ? (
-              <Alert>
-                <Headphones className="w-4 h-4" />
-                <AlertDescription>
-                  Master access granted. Full quality playback expires at {new Date(masterAccess.expiresAt!).toLocaleTimeString()}.
-                </AlertDescription>
-              </Alert>
+            ) : masterAccess?.authorized && masterAccess.playbackUrl ? (
+              <MasterPlayer 
+                playbackUrl={masterAccess.playbackUrl} 
+                expiresAt={masterAccess.expiresAt!}
+              />
             ) : (
               <Alert>
                 <Lock className="w-4 h-4" />
                 <AlertDescription className="flex flex-col gap-2">
                   <span>{masterAccess?.reason}</span>
-                  <Link href={`/create-license?assetId=${track.assetId || track.id}&assetType=track`}>
-                    <Button size="sm" variant="default" data-testid="button-purchase-license">
-                      Purchase License
+                  <div className="flex gap-2 mt-2">
+                    <Link href={`/create-license?assetId=${track.assetId || track.id}&assetType=track`}>
+                      <Button size="sm" variant="default" data-testid="button-purchase-license">
+                        Purchase License
+                      </Button>
+                    </Link>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        setMasterRequested(false);
+                        setMasterAccess(null);
+                      }}
+                      data-testid="button-retry-master"
+                    >
+                      Retry
                     </Button>
-                  </Link>
+                  </div>
                 </AlertDescription>
               </Alert>
             )}

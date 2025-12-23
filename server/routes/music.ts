@@ -10,9 +10,14 @@ const upload = multer({ storage: multer.memoryStorage() });
 export const musicRouter = Router();
 
 // Signed URL tokens for master access (in-memory for v1)
-const accessTokens = new Map<string, { trackId: string; userId: string; expiresAt: number }>();
+// Tokens are valid for TTL and allow multiple requests from same user
+const accessTokens = new Map<string, { 
+  trackId: string; 
+  userId: string; 
+  expiresAt: number;
+}>();
 
-// Generate short-lived signed access token
+// Generate short-lived signed access token (5 minutes default)
 function generateAccessToken(trackId: string, userId: string, ttlSeconds = 300): string {
   const token = crypto.randomBytes(32).toString("hex");
   const expiresAt = Date.now() + ttlSeconds * 1000;
@@ -20,15 +25,19 @@ function generateAccessToken(trackId: string, userId: string, ttlSeconds = 300):
   return token;
 }
 
-// Validate and consume access token
-function validateAccessToken(token: string, trackId: string): boolean {
+// Validate access token (allows multiple uses within TTL for range requests)
+function validateAccessToken(token: string, trackId: string, userId: string): boolean {
   const entry = accessTokens.get(token);
   if (!entry) return false;
   if (entry.trackId !== trackId) return false;
+  if (entry.userId !== userId) return false;
+  
+  // Check if expired
   if (Date.now() > entry.expiresAt) {
     accessTokens.delete(token);
     return false;
   }
+  
   return true;
 }
 
@@ -96,8 +105,29 @@ musicRouter.post("/upload", upload.single("file"), async (req, res) => {
 // MASTER ACCESS - License-gated playback
 // ============================================
 
-// Check if user has license to access master audio
-// v1: Stub with isLicensed = false (no music licensing yet)
+/**
+ * Check if user has license to access master audio
+ * 
+ * v1: Stub with isLicensed = false (no music licensing yet)
+ * 
+ * Future implementation will query license_contracts table:
+ *   SELECT * FROM license_contracts 
+ *   WHERE asset_id = :trackAssetId 
+ *   AND licensee_id = :userId 
+ *   AND status = 'active'
+ *   AND expires_at > NOW()
+ * 
+ * For testing: Set STUB_LICENSED=true env var to simulate licensed state
+ */
+async function checkMasterLicense(userId: string, trackId: string): Promise<boolean> {
+  // TODO: Replace stub with actual license check when music licensing is implemented
+  // For v1, always return false unless STUB_LICENSED env var is set for testing
+  if (process.env.STUB_LICENSED === "true") {
+    return true;
+  }
+  return false;
+}
+
 musicRouter.get("/tracks/:id/master-access", async (req, res) => {
   const userId = (req.user as any)?.id;
   if (!userId) {
@@ -109,9 +139,8 @@ musicRouter.get("/tracks/:id/master-access", async (req, res) => {
 
   const trackId = req.params.id;
   
-  // TODO: Replace with actual license check from license_contracts table
-  // For v1, stub as unlicensed
-  const isLicensed = false;
+  // Check license using stub function (ready for future implementation)
+  const isLicensed = await checkMasterLicense(userId, trackId);
   
   if (!isLicensed) {
     return res.json({
@@ -133,15 +162,62 @@ musicRouter.get("/tracks/:id/master-access", async (req, res) => {
 
 // Stream master audio (requires valid access token)
 musicRouter.get("/tracks/:id/stream", async (req, res) => {
+  const userId = (req.user as any)?.id;
+  if (!userId) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  
   const trackId = req.params.id;
   const token = req.query.token as string;
   
-  if (!token || !validateAccessToken(token, trackId)) {
+  if (!token || !validateAccessToken(token, trackId, userId)) {
     return res.status(403).json({ error: "Invalid or expired access token" });
   }
   
-  // TODO: Fetch encrypted audio from Arweave, decrypt with MUSIC_MASTER_KEK
-  // For now, return placeholder response
+  // Token is validated - grace period allows subsequent range requests
+  
+  // When STUB_LICENSED is set, serve a test audio response
+  // In production, this would fetch encrypted audio from Arweave and decrypt
+  if (process.env.STUB_LICENSED === "true") {
+    // Return a simple sine wave audio as test (generate minimal WAV header)
+    // This is a 1-second 440Hz sine wave at 8000Hz sample rate, 8-bit mono
+    const sampleRate = 8000;
+    const duration = 1;
+    const numSamples = sampleRate * duration;
+    const dataSize = numSamples;
+    const fileSize = 44 + dataSize;
+    
+    const buffer = Buffer.alloc(fileSize);
+    
+    // WAV header
+    buffer.write('RIFF', 0);
+    buffer.writeUInt32LE(fileSize - 8, 4);
+    buffer.write('WAVE', 8);
+    buffer.write('fmt ', 12);
+    buffer.writeUInt32LE(16, 16); // Subchunk1Size
+    buffer.writeUInt16LE(1, 20); // AudioFormat (PCM)
+    buffer.writeUInt16LE(1, 22); // NumChannels (Mono)
+    buffer.writeUInt32LE(sampleRate, 24); // SampleRate
+    buffer.writeUInt32LE(sampleRate, 28); // ByteRate
+    buffer.writeUInt16LE(1, 32); // BlockAlign
+    buffer.writeUInt16LE(8, 34); // BitsPerSample
+    buffer.write('data', 36);
+    buffer.writeUInt32LE(dataSize, 40);
+    
+    // Generate 440Hz sine wave
+    for (let i = 0; i < numSamples; i++) {
+      const t = i / sampleRate;
+      const sample = Math.sin(2 * Math.PI * 440 * t);
+      buffer.writeUInt8(Math.round((sample + 1) * 127.5), 44 + i);
+    }
+    
+    res.setHeader('Content-Type', 'audio/wav');
+    res.setHeader('Content-Length', fileSize);
+    res.setHeader('Cache-Control', 'no-store');
+    return res.send(buffer);
+  }
+  
+  // Production: Fetch encrypted audio from Arweave, decrypt with MUSIC_MASTER_KEK
   return res.status(501).json({ 
     error: "Master streaming not yet implemented - awaiting Arweave integration" 
   });
