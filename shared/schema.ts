@@ -120,6 +120,63 @@ export const upsertUserSchema = createInsertSchema(users).pick({
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
 export type User = typeof users.$inferSelect;
 
+// Visitor accounts (email-only signup for search/quiz access)
+// Rewards accumulate but can only be claimed after upgrading to full user account
+// Rewards expire 30 days from last login
+export const visitorAccounts = pgTable("visitor_accounts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").notNull().unique(),
+  emailVerified: boolean("email_verified").default(false),
+  verificationToken: varchar("verification_token"),
+  verificationTokenExpiresAt: timestamp("verification_token_expires_at"),
+  
+  // Quiz rewards (pending until upgrade to full account)
+  pendingSoltRewards: varchar("pending_solt_rewards").default('0'),
+  pendingGamePoints: integer("pending_game_points").default(0),
+  pendingExperiencePoints: integer("pending_experience_points").default(0),
+  currentStreak: integer("current_streak").default(0),
+  highestStreak: integer("highest_streak").default(0),
+  questionsAnswered: integer("questions_answered").default(0),
+  correctAnswers: integer("correct_answers").default(0),
+  
+  // Reward expiration tracking (30 days from last login)
+  lastLoginAt: timestamp("last_login_at").defaultNow(),
+  rewardsExpireAt: timestamp("rewards_expire_at"), // Calculated as lastLoginAt + 30 days
+  
+  // Newsletter/marketing consent
+  marketingOptIn: boolean("marketing_opt_in").default(false),
+  
+  // Upgrade tracking
+  convertedToUserId: varchar("converted_to_user_id").references(() => users.id),
+  convertedAt: timestamp("converted_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertVisitorAccountSchema = createInsertSchema(visitorAccounts).omit({
+  id: true,
+  emailVerified: true,
+  verificationToken: true,
+  verificationTokenExpiresAt: true,
+  pendingSoltRewards: true,
+  pendingGamePoints: true,
+  pendingExperiencePoints: true,
+  currentStreak: true,
+  highestStreak: true,
+  questionsAnswered: true,
+  correctAnswers: true,
+  lastLoginAt: true,
+  rewardsExpireAt: true,
+  convertedToUserId: true,
+  convertedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertVisitorAccount = z.infer<typeof insertVisitorAccountSchema>;
+export type VisitorAccount = typeof visitorAccounts.$inferSelect;
+
 // Logo metadata storage (NO file storage - images in user's .solturio.sol wallet)
 export const logos = pgTable("logos", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
