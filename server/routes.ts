@@ -2433,6 +2433,228 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== Visitor Account API Routes =====
+  // These allow email-only signup for search/quiz access
+  // Rewards are pending until user upgrades to full account
+
+  // Register a new visitor account
+  app.post("/api/visitor/register", async (req, res) => {
+    try {
+      const { email, marketingOptIn } = req.body;
+      
+      if (!email || !email.includes('@')) {
+        return res.status(400).json({ error: "Valid email is required" });
+      }
+      
+      // Check if email already exists
+      const existing = await storage.getVisitorAccountByEmail(email);
+      if (existing) {
+        if (existing.emailVerified) {
+          return res.status(400).json({ error: "This email is already registered. Please login." });
+        } else {
+          // Resend verification email
+          // TODO: Send verification email with existing.verificationToken
+          return res.json({ 
+            message: "Verification email resent",
+            visitorId: existing.id,
+            requiresVerification: true 
+          });
+        }
+      }
+      
+      // Create new visitor account
+      const visitor = await storage.createVisitorAccount(email, marketingOptIn || false);
+      
+      // TODO: Send verification email with visitor.verificationToken
+      // For now, auto-verify in development
+      if (process.env.NODE_ENV !== 'production') {
+        await storage.verifyVisitorEmail(visitor.verificationToken!);
+      }
+      
+      res.json({
+        message: "Account created successfully",
+        visitorId: visitor.id,
+        requiresVerification: process.env.NODE_ENV === 'production',
+        // Include token for development testing
+        ...(process.env.NODE_ENV !== 'production' && { verificationToken: visitor.verificationToken }),
+      });
+    } catch (error) {
+      console.error("Error registering visitor:", error);
+      res.status(500).json({ error: "Failed to register visitor" });
+    }
+  });
+
+  // Verify visitor email
+  app.get("/api/visitor/verify/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      const visitor = await storage.verifyVisitorEmail(token);
+      if (!visitor) {
+        return res.status(400).json({ error: "Invalid or expired verification token" });
+      }
+      
+      res.json({
+        message: "Email verified successfully",
+        visitorId: visitor.id,
+        email: visitor.email,
+      });
+    } catch (error) {
+      console.error("Error verifying visitor email:", error);
+      res.status(500).json({ error: "Failed to verify email" });
+    }
+  });
+
+  // Login visitor (by email)
+  app.post("/api/visitor/login", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+      
+      const visitor = await storage.getVisitorAccountByEmail(email);
+      if (!visitor) {
+        return res.status(404).json({ error: "Visitor not found. Please register first." });
+      }
+      
+      if (!visitor.emailVerified) {
+        return res.status(403).json({ error: "Please verify your email first" });
+      }
+      
+      if (visitor.convertedToUserId) {
+        return res.status(400).json({ error: "This email has been upgraded to a full account. Please use Replit Auth to login." });
+      }
+      
+      // Update last login and extend reward expiration
+      const updated = await storage.updateVisitorLastLogin(visitor.id);
+      
+      res.json({
+        visitorId: updated.id,
+        email: updated.email,
+        pendingSoltRewards: updated.pendingSoltRewards,
+        rewardsExpireAt: updated.rewardsExpireAt,
+      });
+    } catch (error) {
+      console.error("Error logging in visitor:", error);
+      res.status(500).json({ error: "Failed to login" });
+    }
+  });
+
+  // Get visitor profile and stats
+  app.get("/api/visitor/:visitorId", async (req, res) => {
+    try {
+      const { visitorId } = req.params;
+      
+      const visitor = await storage.getVisitorAccountById(visitorId);
+      if (!visitor) {
+        return res.status(404).json({ error: "Visitor not found" });
+      }
+      
+      const stats = await storage.getVisitorQuizStats(visitorId);
+      
+      res.json({
+        id: visitor.id,
+        email: visitor.email,
+        emailVerified: visitor.emailVerified,
+        createdAt: visitor.createdAt,
+        lastLoginAt: visitor.lastLoginAt,
+        stats,
+      });
+    } catch (error) {
+      console.error("Error fetching visitor profile:", error);
+      res.status(500).json({ error: "Failed to fetch profile" });
+    }
+  });
+
+  // Submit quiz answer as visitor
+  app.post("/api/visitor/:visitorId/quiz/answer", async (req, res) => {
+    try {
+      const { visitorId } = req.params;
+      const { questionId, answer, timeToAnswer, hintUsed } = req.body;
+      
+      const visitor = await storage.getVisitorAccountById(visitorId);
+      if (!visitor) {
+        return res.status(404).json({ error: "Visitor not found" });
+      }
+      
+      if (!visitor.emailVerified) {
+        return res.status(403).json({ error: "Please verify your email first" });
+      }
+      
+      const result = await storage.submitVisitorQuizAnswer(visitorId, {
+        questionId,
+        answer,
+        timeToAnswer,
+        hintUsed,
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error submitting visitor quiz answer:", error);
+      res.status(500).json({ error: "Failed to submit answer" });
+    }
+  });
+
+  // Get visitor quiz stats
+  app.get("/api/visitor/:visitorId/quiz/stats", async (req, res) => {
+    try {
+      const { visitorId } = req.params;
+      
+      const stats = await storage.getVisitorQuizStats(visitorId);
+      if (!stats) {
+        return res.status(404).json({ error: "Visitor not found" });
+      }
+      
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching visitor quiz stats:", error);
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
+  });
+
+  // Convert visitor to full user (called after Replit Auth signup)
+  app.post("/api/visitor/convert", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { visitorId } = req.body;
+      
+      if (!visitorId) {
+        return res.status(400).json({ error: "Visitor ID is required" });
+      }
+      
+      const visitor = await storage.getVisitorAccountById(visitorId);
+      if (!visitor) {
+        return res.status(404).json({ error: "Visitor not found" });
+      }
+      
+      // Transfer rewards from visitor to user
+      const result = await storage.convertVisitorToUser(visitorId, userId);
+      
+      res.json({
+        message: result.transferred 
+          ? `Successfully transferred ${result.soltRewards} $SOLT and ${result.gamePoints} Game Points to your account!`
+          : "Account upgraded, but pending rewards had expired.",
+        ...result,
+      });
+    } catch (error) {
+      console.error("Error converting visitor to user:", error);
+      res.status(500).json({ error: "Failed to convert account" });
+    }
+  });
+
+  // Check for expired visitor rewards (can be called by cron job)
+  app.post("/api/visitor/cleanup-expired", async (req, res) => {
+    try {
+      const count = await storage.checkExpiredVisitorRewards();
+      res.json({ message: `Cleaned up ${count} expired visitor reward records` });
+    } catch (error) {
+      console.error("Error cleaning up expired rewards:", error);
+      res.status(500).json({ error: "Failed to cleanup" });
+    }
+  });
+
   // ============================================
   // RECEIPT GENERATION
   // ============================================

@@ -10,6 +10,7 @@ import {
   complianceTriggerRules,
   complianceCases,
   licenseContracts,
+  visitorAccounts,
   type User,
   type UpsertUser,
   type Logo,
@@ -29,9 +30,11 @@ import {
   type ComplianceCase,
   type LicenseContract,
   type InsertLicenseContract,
+  type VisitorAccount,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, gte, sql } from "drizzle-orm";
+import { eq, desc, and, gte, lt, sql } from "drizzle-orm";
+import crypto from "crypto";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -154,6 +157,17 @@ export interface IStorage {
   updateLicenseContract(id: string, data: Partial<LicenseContract>): Promise<LicenseContract>;
   signLicenseContractAsLicensor(id: string, signature: string): Promise<LicenseContract>;
   signLicenseContractAsLicensee(id: string, signature: string): Promise<LicenseContract>;
+  
+  // Visitor Account operations
+  createVisitorAccount(email: string, marketingOptIn?: boolean): Promise<any>;
+  getVisitorAccountByEmail(email: string): Promise<any | undefined>;
+  getVisitorAccountById(id: string): Promise<any | undefined>;
+  verifyVisitorEmail(token: string): Promise<any | undefined>;
+  updateVisitorLastLogin(id: string): Promise<any>;
+  submitVisitorQuizAnswer(visitorId: string, data: any): Promise<any>;
+  getVisitorQuizStats(visitorId: string): Promise<any>;
+  convertVisitorToUser(visitorId: string, userId: string): Promise<{ transferred: boolean; soltRewards: string; gamePoints: number; experiencePoints: number }>;
+  checkExpiredVisitorRewards(): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1045,6 +1059,327 @@ export class DatabaseStorage implements IStorage {
       .where(eq(licenseContracts.id, id))
       .returning();
     return updated;
+  }
+
+  // Visitor Account operations
+  async createVisitorAccount(email: string, marketingOptIn: boolean = false): Promise<VisitorAccount> {
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const rewardsExpireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    
+    const [visitor] = await db
+      .insert(visitorAccounts)
+      .values({
+        email: email.toLowerCase().trim(),
+        verificationToken,
+        verificationTokenExpiresAt: tokenExpiresAt,
+        marketingOptIn,
+        lastLoginAt: new Date(),
+        rewardsExpireAt,
+      })
+      .returning();
+    return visitor;
+  }
+
+  async getVisitorAccountByEmail(email: string): Promise<VisitorAccount | undefined> {
+    const [visitor] = await db
+      .select()
+      .from(visitorAccounts)
+      .where(eq(visitorAccounts.email, email.toLowerCase().trim()));
+    return visitor;
+  }
+
+  async getVisitorAccountById(id: string): Promise<VisitorAccount | undefined> {
+    const [visitor] = await db
+      .select()
+      .from(visitorAccounts)
+      .where(eq(visitorAccounts.id, id));
+    return visitor;
+  }
+
+  async verifyVisitorEmail(token: string): Promise<VisitorAccount | undefined> {
+    const [visitor] = await db
+      .select()
+      .from(visitorAccounts)
+      .where(
+        and(
+          eq(visitorAccounts.verificationToken, token),
+          gte(visitorAccounts.verificationTokenExpiresAt, new Date())
+        )
+      );
+    
+    if (!visitor) return undefined;
+    
+    const [updated] = await db
+      .update(visitorAccounts)
+      .set({
+        emailVerified: true,
+        verificationToken: null,
+        verificationTokenExpiresAt: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(visitorAccounts.id, visitor.id))
+      .returning();
+    
+    return updated;
+  }
+
+  async updateVisitorLastLogin(id: string): Promise<VisitorAccount> {
+    const now = new Date();
+    const rewardsExpireAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+    
+    const [updated] = await db
+      .update(visitorAccounts)
+      .set({
+        lastLoginAt: now,
+        rewardsExpireAt,
+        updatedAt: now,
+      })
+      .where(eq(visitorAccounts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async submitVisitorQuizAnswer(visitorId: string, data: any): Promise<any> {
+    const visitor = await this.getVisitorAccountById(visitorId);
+    if (!visitor) throw new Error('Visitor not found');
+    
+    // Check if rewards have expired
+    if (visitor.rewardsExpireAt && new Date() > visitor.rewardsExpireAt) {
+      // Reset rewards before processing new answer
+      await db
+        .update(visitorAccounts)
+        .set({
+          pendingSoltRewards: '0',
+          pendingGamePoints: 0,
+          pendingExperiencePoints: 0,
+          currentStreak: 0,
+        })
+        .where(eq(visitorAccounts.id, visitorId));
+    }
+    
+    const { quizQuestions } = await import("@shared/schema");
+    const [question] = await db
+      .select()
+      .from(quizQuestions)
+      .where(eq(quizQuestions.id, data.questionId));
+    
+    if (!question) throw new Error('Question not found');
+    
+    const isCorrect = data.answer === question.answer;
+    let pointsEarned = 0;
+    let soltReward = '0';
+    let newStreak = visitor.currentStreak || 0;
+    
+    if (isCorrect) {
+      // Calculate points (75% reduction if hint used)
+      pointsEarned = data.hintUsed ? Math.floor((question.points || 10) * 0.25) : (question.points || 10);
+      newStreak = newStreak + 1;
+      
+      // Calculate $SOLT reward based on streak
+      let baseReward = 0;
+      if (newStreak >= 10) {
+        baseReward = 0.5;
+      } else if (newStreak >= 5) {
+        baseReward = 0.25;
+      } else if (newStreak >= 3) {
+        baseReward = 0.1;
+      }
+      
+      // Apply time-based multiplier
+      const launchDateStr = process.env.SOLTURIO_LAUNCH_DATE;
+      let multiplier = 1.0;
+      
+      if (launchDateStr) {
+        const LAUNCH_DATE = new Date(launchDateStr);
+        const now = new Date();
+        const daysSinceLaunch = Math.floor((now.getTime() - LAUNCH_DATE.getTime()) / (1000 * 60 * 60 * 1000));
+        
+        if (daysSinceLaunch >= 0 && daysSinceLaunch <= 60) {
+          multiplier = 2.5;
+        } else if (daysSinceLaunch > 60 && daysSinceLaunch <= 100) {
+          multiplier = 1.5;
+        }
+      }
+      
+      const finalReward = baseReward * multiplier;
+      soltReward = finalReward.toFixed(2);
+    } else {
+      newStreak = 0;
+    }
+    
+    // Update visitor stats
+    const currentSolt = parseFloat(visitor.pendingSoltRewards || '0');
+    const newSolt = (currentSolt + parseFloat(soltReward)).toFixed(2);
+    
+    await db
+      .update(visitorAccounts)
+      .set({
+        pendingSoltRewards: newSolt,
+        pendingGamePoints: (visitor.pendingGamePoints || 0) + pointsEarned,
+        pendingExperiencePoints: (visitor.pendingExperiencePoints || 0) + (isCorrect ? 10 : 2),
+        currentStreak: newStreak,
+        highestStreak: Math.max(newStreak, visitor.highestStreak || 0),
+        questionsAnswered: (visitor.questionsAnswered || 0) + 1,
+        correctAnswers: (visitor.correctAnswers || 0) + (isCorrect ? 1 : 0),
+        updatedAt: new Date(),
+      })
+      .where(eq(visitorAccounts.id, visitorId));
+    
+    return {
+      isCorrect,
+      pointsEarned,
+      correctAnswer: question.answer,
+      soltReward,
+      newStreak,
+      pendingRewards: true, // Indicates rewards are pending until account upgrade
+    };
+  }
+
+  async getVisitorQuizStats(visitorId: string): Promise<any> {
+    const visitor = await this.getVisitorAccountById(visitorId);
+    if (!visitor) return null;
+    
+    // Check if rewards expired
+    const rewardsExpired = visitor.rewardsExpireAt && new Date() > visitor.rewardsExpireAt;
+    
+    return {
+      currentStreak: rewardsExpired ? 0 : (visitor.currentStreak || 0),
+      highestStreak: visitor.highestStreak || 0,
+      totalGamePoints: rewardsExpired ? 0 : (visitor.pendingGamePoints || 0),
+      totalExperiencePoints: rewardsExpired ? 0 : (visitor.pendingExperiencePoints || 0),
+      pendingSoltRewards: rewardsExpired ? '0' : (visitor.pendingSoltRewards || '0'),
+      questionsAnswered: visitor.questionsAnswered || 0,
+      correctAnswers: visitor.correctAnswers || 0,
+      rewardsExpireAt: visitor.rewardsExpireAt,
+      rewardsExpired,
+      pendingRewards: true,
+    };
+  }
+
+  async convertVisitorToUser(visitorId: string, userId: string): Promise<{ transferred: boolean; soltRewards: string; gamePoints: number; experiencePoints: number }> {
+    const visitor = await this.getVisitorAccountById(visitorId);
+    if (!visitor) throw new Error('Visitor not found');
+    
+    // Check if rewards expired
+    const rewardsExpired = visitor.rewardsExpireAt && new Date() > visitor.rewardsExpireAt;
+    
+    if (rewardsExpired) {
+      // Mark as converted but don't transfer rewards
+      await db
+        .update(visitorAccounts)
+        .set({
+          convertedToUserId: userId,
+          convertedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(visitorAccounts.id, visitorId));
+      
+      return { transferred: false, soltRewards: '0', gamePoints: 0, experiencePoints: 0 };
+    }
+    
+    // Get quiz stats table
+    const { quizStats } = await import("@shared/schema");
+    
+    // Check if user already has quiz stats
+    const [existingStats] = await db
+      .select()
+      .from(quizStats)
+      .where(eq(quizStats.userId, userId));
+    
+    const soltToTransfer = visitor.pendingSoltRewards || '0';
+    const gamePointsToTransfer = visitor.pendingGamePoints || 0;
+    const xpToTransfer = visitor.pendingExperiencePoints || 0;
+    
+    if (existingStats) {
+      // Add pending rewards to existing stats
+      const currentCath = parseFloat(existingStats.totalCathEarned || '0');
+      const newCath = (currentCath + parseFloat(soltToTransfer)).toFixed(2);
+      
+      await db
+        .update(quizStats)
+        .set({
+          totalGamePoints: (existingStats.totalGamePoints || 0) + gamePointsToTransfer,
+          totalExperiencePoints: (existingStats.totalExperiencePoints || 0) + xpToTransfer,
+          totalCathEarned: newCath,
+          questionsAnswered: (existingStats.questionsAnswered || 0) + (visitor.questionsAnswered || 0),
+          correctAnswers: (existingStats.correctAnswers || 0) + (visitor.correctAnswers || 0),
+          highestStreak: Math.max(existingStats.highestStreak || 0, visitor.highestStreak || 0),
+          currentStreak: visitor.currentStreak || 0,
+        })
+        .where(eq(quizStats.userId, userId));
+    } else {
+      // Create new stats record with visitor's rewards
+      await db
+        .insert(quizStats)
+        .values({
+          userId,
+          totalGamePoints: gamePointsToTransfer,
+          totalExperiencePoints: xpToTransfer,
+          totalCathEarned: soltToTransfer,
+          currentStreak: visitor.currentStreak || 0,
+          highestStreak: visitor.highestStreak || 0,
+          questionsAnswered: visitor.questionsAnswered || 0,
+          correctAnswers: visitor.correctAnswers || 0,
+        });
+    }
+    
+    // Update user's SOLT balance
+    const user = await this.getUser(userId);
+    if (user) {
+      const currentBalance = parseFloat(user.sltrBalance || '0');
+      const newBalance = (currentBalance + parseFloat(soltToTransfer)).toFixed(2);
+      
+      await db
+        .update(users)
+        .set({
+          sltrBalance: newBalance,
+          sltrTotalEarned: (parseFloat(user.sltrTotalEarned || '0') + parseFloat(soltToTransfer)).toFixed(2),
+        })
+        .where(eq(users.id, userId));
+    }
+    
+    // Mark visitor as converted
+    await db
+      .update(visitorAccounts)
+      .set({
+        convertedToUserId: userId,
+        convertedAt: new Date(),
+        pendingSoltRewards: '0',
+        pendingGamePoints: 0,
+        pendingExperiencePoints: 0,
+        currentStreak: 0,
+        updatedAt: new Date(),
+      })
+      .where(eq(visitorAccounts.id, visitorId));
+    
+    return {
+      transferred: true,
+      soltRewards: soltToTransfer,
+      gamePoints: gamePointsToTransfer,
+      experiencePoints: xpToTransfer,
+    };
+  }
+
+  async checkExpiredVisitorRewards(): Promise<number> {
+    // Find visitors with expired rewards and reset them
+    const expired = await db
+      .update(visitorAccounts)
+      .set({
+        pendingSoltRewards: '0',
+        pendingGamePoints: 0,
+        pendingExperiencePoints: 0,
+        currentStreak: 0,
+      })
+      .where(
+        and(
+          lt(visitorAccounts.rewardsExpireAt, new Date()),
+          eq(visitorAccounts.convertedToUserId, null as any)
+        )
+      )
+      .returning();
+    
+    return expired.length;
   }
 }
 
