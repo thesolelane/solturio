@@ -600,23 +600,28 @@ export class DatabaseStorage implements IStorage {
       }
       
       // Apply time-based multiplier for early adopters
-      // Launch date: January 1, 2025 (adjust as needed)
-      const LAUNCH_DATE = new Date('2025-01-01');
-      const now = new Date();
-      const daysSinceLaunch = Math.floor((now.getTime() - LAUNCH_DATE.getTime()) / (1000 * 60 * 60 * 24));
-      
+      // Set SOLTURIO_LAUNCH_DATE env var when ready (format: YYYY-MM-DD)
+      // If not set, multipliers are disabled (1x rewards)
+      const launchDateStr = process.env.SOLTURIO_LAUNCH_DATE;
       let multiplier = 1.0;
-      let multiplierLabel = "1x";
-      if (daysSinceLaunch <= 60) {
-        // Days 0-60: 2.5x multiplier (Launch promotion)
-        multiplier = 2.5;
-        multiplierLabel = "2.5x Launch Bonus";
-      } else if (daysSinceLaunch <= 100) {
-        // Days 61-100: 1.5x multiplier (Early adopter bonus)
-        multiplier = 1.5;
-        multiplierLabel = "1.5x Early Adopter";
+      let multiplierLabel = "Standard";
+      
+      if (launchDateStr) {
+        const LAUNCH_DATE = new Date(launchDateStr);
+        const now = new Date();
+        const daysSinceLaunch = Math.floor((now.getTime() - LAUNCH_DATE.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysSinceLaunch >= 0 && daysSinceLaunch <= 60) {
+          // Days 0-60: 2.5x multiplier (Launch promotion)
+          multiplier = 2.5;
+          multiplierLabel = "2.5x Launch Bonus";
+        } else if (daysSinceLaunch > 60 && daysSinceLaunch <= 100) {
+          // Days 61-100: 1.5x multiplier (Early adopter bonus)
+          multiplier = 1.5;
+          multiplierLabel = "1.5x Early Adopter";
+        }
+        // After day 100: 1x (normal rewards)
       }
-      // After day 100: 1x (normal rewards)
       
       const finalReward = baseReward * multiplier;
       soltReward = finalReward.toFixed(2);
@@ -662,21 +667,26 @@ export class DatabaseStorage implements IStorage {
     });
     
     // Calculate current multiplier info for frontend display
-    const LAUNCH_DATE = new Date('2025-01-01');
-    const now = new Date();
-    const daysSinceLaunch = Math.floor((now.getTime() - LAUNCH_DATE.getTime()) / (1000 * 60 * 60 * 24));
+    // Uses SOLTURIO_LAUNCH_DATE env var (format: YYYY-MM-DD)
+    const launchDateEnv = process.env.SOLTURIO_LAUNCH_DATE;
     let currentMultiplier = 1.0;
-    let multiplierLabel = "Standard";
+    let currentMultiplierLabel = "Standard";
     let daysRemaining = 0;
     
-    if (daysSinceLaunch <= 60) {
-      currentMultiplier = 2.5;
-      multiplierLabel = "2.5x Launch Bonus";
-      daysRemaining = 60 - daysSinceLaunch;
-    } else if (daysSinceLaunch <= 100) {
-      currentMultiplier = 1.5;
-      multiplierLabel = "1.5x Early Adopter";
-      daysRemaining = 100 - daysSinceLaunch;
+    if (launchDateEnv) {
+      const launchDate = new Date(launchDateEnv);
+      const currentTime = new Date();
+      const daysSince = Math.floor((currentTime.getTime() - launchDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysSince >= 0 && daysSince <= 60) {
+        currentMultiplier = 2.5;
+        currentMultiplierLabel = "2.5x Launch Bonus";
+        daysRemaining = 60 - daysSince;
+      } else if (daysSince > 60 && daysSince <= 100) {
+        currentMultiplier = 1.5;
+        currentMultiplierLabel = "1.5x Early Adopter";
+        daysRemaining = 100 - daysSince;
+      }
     }
     
     return { 
@@ -685,7 +695,7 @@ export class DatabaseStorage implements IStorage {
       correctAnswer: question.answer, 
       soltReward,
       multiplier: currentMultiplier,
-      multiplierLabel,
+      multiplierLabel: currentMultiplierLabel,
       daysRemaining
     };
   }
