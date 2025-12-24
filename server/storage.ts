@@ -589,18 +589,41 @@ export class DatabaseStorage implements IStorage {
       const newStreak = (userStats.streak || 0) + 1;
       const newLongestStreak = Math.max(newStreak, userStats.longestStreak || 0);
       
-      // Calculate $SOLT reward based on streak
+      // Calculate base $SOLT reward based on streak
+      let baseReward = 0;
       if (newStreak >= 10) {
-        soltReward = "0.5";
+        baseReward = 0.5;
       } else if (newStreak >= 5) {
-        soltReward = "0.25";
+        baseReward = 0.25;
       } else if (newStreak >= 3) {
-        soltReward = "0.1";
+        baseReward = 0.1;
       }
+      
+      // Apply time-based multiplier for early adopters
+      // Launch date: January 1, 2025 (adjust as needed)
+      const LAUNCH_DATE = new Date('2025-01-01');
+      const now = new Date();
+      const daysSinceLaunch = Math.floor((now.getTime() - LAUNCH_DATE.getTime()) / (1000 * 60 * 60 * 24));
+      
+      let multiplier = 1.0;
+      let multiplierLabel = "1x";
+      if (daysSinceLaunch <= 60) {
+        // Days 0-60: 2.5x multiplier (Launch promotion)
+        multiplier = 2.5;
+        multiplierLabel = "2.5x Launch Bonus";
+      } else if (daysSinceLaunch <= 100) {
+        // Days 61-100: 1.5x multiplier (Early adopter bonus)
+        multiplier = 1.5;
+        multiplierLabel = "1.5x Early Adopter";
+      }
+      // After day 100: 1x (normal rewards)
+      
+      const finalReward = baseReward * multiplier;
+      soltReward = finalReward.toFixed(2);
       
       // Update totals
       const currentSoltEarned = parseFloat(userStats.totalCathEarned || '0');
-      const newSoltTotal = (currentSoltEarned + parseFloat(soltReward)).toFixed(2);
+      const newSoltTotal = (currentSoltEarned + finalReward).toFixed(2);
       
       // Update user stats
       await db
@@ -638,7 +661,33 @@ export class DatabaseStorage implements IStorage {
       hintUsed: data.hintUsed,
     });
     
-    return { isCorrect, pointsEarned, correctAnswer: question.answer, soltReward };
+    // Calculate current multiplier info for frontend display
+    const LAUNCH_DATE = new Date('2025-01-01');
+    const now = new Date();
+    const daysSinceLaunch = Math.floor((now.getTime() - LAUNCH_DATE.getTime()) / (1000 * 60 * 60 * 24));
+    let currentMultiplier = 1.0;
+    let multiplierLabel = "Standard";
+    let daysRemaining = 0;
+    
+    if (daysSinceLaunch <= 60) {
+      currentMultiplier = 2.5;
+      multiplierLabel = "2.5x Launch Bonus";
+      daysRemaining = 60 - daysSinceLaunch;
+    } else if (daysSinceLaunch <= 100) {
+      currentMultiplier = 1.5;
+      multiplierLabel = "1.5x Early Adopter";
+      daysRemaining = 100 - daysSinceLaunch;
+    }
+    
+    return { 
+      isCorrect, 
+      pointsEarned, 
+      correctAnswer: question.answer, 
+      soltReward,
+      multiplier: currentMultiplier,
+      multiplierLabel,
+      daysRemaining
+    };
   }
   
   async createQuizQuestions(questions: any[]): Promise<void> {
