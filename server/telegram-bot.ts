@@ -824,18 +824,35 @@ class SolturioQuizBot {
   }
 
   /**
-   * Launch bot
+   * Launch bot with proper connectivity check before starting long-polling
+   * Uses getMe() to verify Telegram API connectivity first
    */
-  launch() {
+  async launch(): Promise<void> {
     if (!this.bot) {
-      console.error('Cannot launch bot: TELEGRAM_BOT_TOKEN not set');
-      return;
+      throw new Error('TELEGRAM_BOT_TOKEN not configured - bot cannot start');
     }
 
-    this.bot.launch();
+    // First verify connectivity with a quick API call (5 second timeout)
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      
+      await this.bot.telegram.getMe();
+      clearTimeout(timeout);
+      
+      console.log('✅ Telegram API connectivity verified');
+    } catch (err: any) {
+      throw new Error(`Telegram connection failed: ${err.message}`);
+    }
+
+    // API is reachable - start long-polling in background (don't await)
+    this.bot.launch().catch((err) => {
+      console.error('⚠️ Telegram bot polling error:', err.message);
+    });
+    
     console.log('🤖 Solturio Quiz Bot is running!');
 
-    // Graceful shutdown
+    // Graceful shutdown handlers
     process.once('SIGINT', () => {
       if (this.bot) {
         this.bot.stop('SIGINT');
@@ -846,6 +863,19 @@ class SolturioQuizBot {
         this.bot.stop('SIGTERM');
       }
     });
+  }
+
+  /**
+   * Stop the bot (for retry scenarios)
+   */
+  stop(reason: string = 'restart') {
+    if (this.bot) {
+      try {
+        this.bot.stop(reason);
+      } catch (e) {
+        // Ignore stop errors
+      }
+    }
   }
 
   getBotInstance() {

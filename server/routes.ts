@@ -276,6 +276,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply CSRF protection to all routes (automatically skips GET/HEAD/OPTIONS)
   app.use(csrfProtection);
 
+  // Health check endpoint - includes service status
+  app.get('/api/health', (req, res) => {
+    const telegramStatus = (global as any).telegramBotStatus || 'unknown';
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      services: {
+        database: 'online',
+        telegram: telegramStatus, // 'online', 'offline', 'not_configured', 'initializing'
+        arweave: process.env.ARWEAVE_WALLET_KEY ? 'configured' : 'not_configured',
+        pinata: process.env.PINATA_API_KEY ? 'configured' : 'not_configured',
+        sendgrid: process.env.SENDGRID_API_KEY ? 'configured' : 'not_configured',
+      }
+    });
+  });
+
   // Tokenomics on-chain configuration endpoint (public)
   app.get('/api/tokenomics/on-chain-config', async (req, res) => {
     try {
