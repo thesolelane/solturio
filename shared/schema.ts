@@ -129,6 +129,7 @@ export const visitorAccounts = pgTable("visitor_accounts", {
   emailVerified: boolean("email_verified").default(false),
   verificationToken: varchar("verification_token"),
   verificationTokenExpiresAt: timestamp("verification_token_expires_at"),
+  sessionToken: varchar("session_token"), // Short-lived token for authenticated requests
   
   // Quiz rewards (pending until upgrade to full account)
   pendingSoltRewards: varchar("pending_solt_rewards").default('0'),

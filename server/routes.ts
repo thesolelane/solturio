@@ -2505,7 +2505,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Login visitor (by email)
+  // Login visitor (by email) - returns session token for authenticated requests
   app.post("/api/visitor/login", async (req, res) => {
     try {
       const { email } = req.body;
@@ -2527,12 +2527,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "This email has been upgraded to a full account. Please use Replit Auth to login." });
       }
       
-      // Update last login and extend reward expiration
+      // Update last login and generate new session token
       const updated = await storage.updateVisitorLastLogin(visitor.id);
       
       res.json({
         visitorId: updated.id,
         email: updated.email,
+        sessionToken: updated.newSessionToken, // Required for authenticated requests
         pendingSoltRewards: updated.pendingSoltRewards,
         rewardsExpireAt: updated.rewardsExpireAt,
       });
@@ -2568,11 +2569,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Submit quiz answer as visitor
+  // Submit quiz answer as visitor (requires session token)
   app.post("/api/visitor/:visitorId/quiz/answer", async (req, res) => {
     try {
       const { visitorId } = req.params;
-      const { questionId, answer, timeToAnswer, hintUsed } = req.body;
+      const { questionId, answer, timeToAnswer, hintUsed, sessionToken } = req.body;
+      
+      // Verify session token
+      if (!sessionToken) {
+        return res.status(401).json({ error: "Session token required. Please login first." });
+      }
+      
+      const isValidSession = await storage.verifyVisitorSessionToken(visitorId, sessionToken);
+      if (!isValidSession) {
+        return res.status(401).json({ error: "Invalid or expired session. Please login again." });
+      }
       
       const visitor = await storage.getVisitorAccountById(visitorId);
       if (!visitor) {

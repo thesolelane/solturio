@@ -168,6 +168,7 @@ export interface IStorage {
   getVisitorQuizStats(visitorId: string): Promise<any>;
   convertVisitorToUser(visitorId: string, userId: string): Promise<{ transferred: boolean; soltRewards: string; gamePoints: number; experiencePoints: number }>;
   checkExpiredVisitorRewards(): Promise<number>;
+  verifyVisitorSessionToken(visitorId: string, sessionToken: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1124,28 +1125,40 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async updateVisitorLastLogin(id: string): Promise<VisitorAccount> {
+  async updateVisitorLastLogin(id: string): Promise<VisitorAccount & { newSessionToken: string }> {
     const now = new Date();
     const rewardsExpireAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+    const sessionToken = crypto.randomBytes(32).toString('hex'); // Generate new session token on login
     
     const [updated] = await db
       .update(visitorAccounts)
       .set({
         lastLoginAt: now,
         rewardsExpireAt,
+        sessionToken,
         updatedAt: now,
       })
       .where(eq(visitorAccounts.id, id))
       .returning();
-    return updated;
+    return { ...updated, newSessionToken: sessionToken };
+  }
+
+  async verifyVisitorSessionToken(visitorId: string, sessionToken: string): Promise<boolean> {
+    const visitor = await this.getVisitorAccountById(visitorId);
+    if (!visitor || !visitor.sessionToken) return false;
+    return visitor.sessionToken === sessionToken;
   }
 
   async submitVisitorQuizAnswer(visitorId: string, data: any): Promise<any> {
     const visitor = await this.getVisitorAccountById(visitorId);
     if (!visitor) throw new Error('Visitor not found');
     
+    // Extend last login and rewards expiration on activity
+    const now = new Date();
+    const newRewardsExpireAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+    
     // Check if rewards have expired
-    if (visitor.rewardsExpireAt && new Date() > visitor.rewardsExpireAt) {
+    if (visitor.rewardsExpireAt && now > visitor.rewardsExpireAt) {
       // Reset rewards before processing new answer
       await db
         .update(visitorAccounts)
@@ -1154,6 +1167,8 @@ export class DatabaseStorage implements IStorage {
           pendingGamePoints: 0,
           pendingExperiencePoints: 0,
           currentStreak: 0,
+          lastLoginAt: now,
+          rewardsExpireAt: newRewardsExpireAt,
         })
         .where(eq(visitorAccounts.id, visitorId));
     }
@@ -1208,7 +1223,7 @@ export class DatabaseStorage implements IStorage {
       newStreak = 0;
     }
     
-    // Update visitor stats
+    // Update visitor stats and extend rewards expiration on activity
     const currentSolt = parseFloat(visitor.pendingSoltRewards || '0');
     const newSolt = (currentSolt + parseFloat(soltReward)).toFixed(2);
     
@@ -1222,7 +1237,9 @@ export class DatabaseStorage implements IStorage {
         highestStreak: Math.max(newStreak, visitor.highestStreak || 0),
         questionsAnswered: (visitor.questionsAnswered || 0) + 1,
         correctAnswers: (visitor.correctAnswers || 0) + (isCorrect ? 1 : 0),
-        updatedAt: new Date(),
+        lastLoginAt: now,
+        rewardsExpireAt: newRewardsExpireAt,
+        updatedAt: now,
       })
       .where(eq(visitorAccounts.id, visitorId));
     
@@ -1293,19 +1310,19 @@ export class DatabaseStorage implements IStorage {
     
     if (existingStats) {
       // Add pending rewards to existing stats
+      // Note: quizStats uses totalPoints for game points, no separate XP field
       const currentCath = parseFloat(existingStats.totalCathEarned || '0');
       const newCath = (currentCath + parseFloat(soltToTransfer)).toFixed(2);
       
       await db
         .update(quizStats)
         .set({
-          totalGamePoints: (existingStats.totalGamePoints || 0) + gamePointsToTransfer,
-          totalExperiencePoints: (existingStats.totalExperiencePoints || 0) + xpToTransfer,
+          totalPoints: (existingStats.totalPoints || 0) + gamePointsToTransfer,
           totalCathEarned: newCath,
-          questionsAnswered: (existingStats.questionsAnswered || 0) + (visitor.questionsAnswered || 0),
+          totalQuestions: (existingStats.totalQuestions || 0) + (visitor.questionsAnswered || 0),
           correctAnswers: (existingStats.correctAnswers || 0) + (visitor.correctAnswers || 0),
-          highestStreak: Math.max(existingStats.highestStreak || 0, visitor.highestStreak || 0),
-          currentStreak: visitor.currentStreak || 0,
+          longestStreak: Math.max(existingStats.longestStreak || 0, visitor.highestStreak || 0),
+          streak: visitor.currentStreak || 0,
         })
         .where(eq(quizStats.userId, userId));
     } else {
@@ -1314,12 +1331,11 @@ export class DatabaseStorage implements IStorage {
         .insert(quizStats)
         .values({
           userId,
-          totalGamePoints: gamePointsToTransfer,
-          totalExperiencePoints: xpToTransfer,
+          totalPoints: gamePointsToTransfer,
           totalCathEarned: soltToTransfer,
-          currentStreak: visitor.currentStreak || 0,
-          highestStreak: visitor.highestStreak || 0,
-          questionsAnswered: visitor.questionsAnswered || 0,
+          streak: visitor.currentStreak || 0,
+          longestStreak: visitor.highestStreak || 0,
+          totalQuestions: visitor.questionsAnswered || 0,
           correctAnswers: visitor.correctAnswers || 0,
         });
     }
