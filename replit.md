@@ -42,11 +42,18 @@ Preferred communication style: Simple, everyday language.
 - **Onboarding & Wallet System**: Two-tier wallet naming, 6-stage key handover ceremony, IPFS upload control by Solturio.
 - **Registration Templates**: Multi-step wizard flows with conditional fields and robust validation.
 - **DEX Anti-Copycat System**: Real-time verification API for DEX platforms, detecting stolen logos by file hash, automated DMCA takedown.
-- **IP Education Quiz Bot (Telegram)**: Automated quizzes with dual scoring system (Game Points and Experience Points) with separate leaderboards.
+- **IP Education Quiz Bot (Telegram)**: Automated quizzes with dual scoring system (Game Points and Experience Points) with separate leaderboards. Resilient initialization with exponential backoff retries.
 - **NFT Minting**: JSON-only on-chain metadata via Metaplex SDK.
 - **Authorized Usage Tracking**: Users pre-register where logos will be used to strengthen IP protection claims.
 - **Payment Model**: Subscription-based (annual, paid in $CATH) with a tiered token registry for accepted cryptocurrencies.
 - **Rewards System**: $SOLT token rewards for platform engagement and social actions.
+- **Visitor Accounts**: Email-only signup for quiz access. Rewards expire 30 days from last activity but extend on any interaction. Pending rewards transfer to full account on upgrade.
+
+### Health Monitoring
+- **Endpoint**: `GET /api/health` returns status of all services.
+- **Services Monitored**: database, telegram, arweave, pinata, sendgrid.
+- **Telegram Status**: `online`, `offline`, `not_configured`, `initializing`.
+- **Graceful Degradation**: Platform continues running if Telegram is down; only quiz bot feature is temporarily unavailable.
 
 ### Data Storage Architecture
 - **Four-Tier Decentralized Storage**:
