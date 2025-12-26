@@ -1414,7 +1414,46 @@ export const LICENSE_TYPE_DESCRIPTIONS = {
   full_transfer: 'Full Transfer of Rights - Complete assignment of all intellectual property rights from licensor to licensee.',
 } as const;
 
-// License Contracts - Comprehensive IP licensing smart contracts
+// ISCL - Independent Smart Contract License
+// Solturio's branded term for blockchain-verified IP licensing contracts
+export const ISCL_VERSION = '1.0.0';
+export const ISCL_BRAND_NAME = 'ISCL - Independent Smart Contract License';
+
+// Content restriction options for ISCL
+export const CONTENT_RESTRICTIONS = {
+  NO_ADULT: 'no_adult',           // Cannot be used in adult/explicit content
+  NO_POLITICAL: 'no_political',   // Cannot be used in political campaigns/ads
+  NO_GAMBLING: 'no_gambling',     // Cannot be used for gambling/betting
+  NO_ALCOHOL: 'no_alcohol',       // Cannot be used to promote alcohol
+  NO_TOBACCO: 'no_tobacco',       // Cannot be used to promote tobacco/vaping
+  NO_WEAPONS: 'no_weapons',       // Cannot be used to promote weapons
+  NO_HATE: 'no_hate',             // Cannot be used in hate speech/discriminatory content
+  NO_VIOLENCE: 'no_violence',     // Cannot be used in violent content
+  NO_CRYPTO_SCAM: 'no_crypto_scam', // Cannot be used for fraudulent crypto projects
+  NO_COMPETITOR: 'no_competitor', // Cannot be used by direct competitors
+  FAMILY_FRIENDLY: 'family_friendly', // Must be suitable for all ages
+} as const;
+
+export type ContentRestriction = typeof CONTENT_RESTRICTIONS[keyof typeof CONTENT_RESTRICTIONS];
+
+// Edit restriction options for ISCL
+export const EDIT_RESTRICTIONS = {
+  NO_RESIZE: 'no_resize',           // Cannot resize/scale
+  NO_CROP: 'no_crop',               // Cannot crop
+  NO_COLOR_CHANGE: 'no_color_change', // Cannot alter colors
+  NO_FILTER: 'no_filter',           // Cannot apply filters/effects
+  NO_OVERLAY: 'no_overlay',         // Cannot overlay text/graphics
+  NO_ANIMATION: 'no_animation',     // Cannot animate
+  NO_3D_RENDER: 'no_3d_render',     // Cannot render in 3D
+  NO_AI_TRAINING: 'no_ai_training', // Cannot use for AI/ML training
+  MAINTAIN_RATIO: 'maintain_ratio', // Must maintain aspect ratio
+  MIN_SIZE_REQUIRED: 'min_size',    // Minimum display size required
+} as const;
+
+export type EditRestriction = typeof EDIT_RESTRICTIONS[keyof typeof EDIT_RESTRICTIONS];
+
+// ISCL - Independent Smart Contract License (formerly license_contracts)
+// Blockchain-verified IP licensing for selling, leasing, or granting permission of registered works
 export const licenseContracts = pgTable("license_contracts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   
@@ -1451,6 +1490,33 @@ export const licenseContracts = pgTable("license_contracts", {
   geographicDetails: text("geographic_details"), // If specific regions, list them
   usagePurpose: varchar("usage_purpose", { length: 30 }).default('both'), // personal, commercial, both
   
+  // ===== ISCL SCOPE OF USE (Detailed usage description) =====
+  scopeOfUseDescription: text("scope_of_use_description"), // Detailed description of HOW asset will be used (e.g., "background music in trailer scene 3")
+  scopeOfUseCategory: varchar("scope_of_use_category", { length: 50 }), // sync, advertising, merchandise, digital, print, broadcast
+  specificUsageContext: text("specific_usage_context"), // Exact context (e.g., "30-second TV commercial for summer campaign")
+  
+  // ===== ISCL CONTENT RESTRICTIONS =====
+  contentRestrictions: text("content_restrictions").array(), // Array of restriction codes from CONTENT_RESTRICTIONS
+  contentRestrictionsCustom: text("content_restrictions_custom"), // Additional custom content restrictions
+  
+  // ===== ISCL EDIT RESTRICTIONS =====
+  editRestrictions: text("edit_restrictions").array(), // Array of edit restriction codes from EDIT_RESTRICTIONS
+  editRestrictionsCustom: text("edit_restrictions_custom"), // Additional custom edit restrictions
+  minDisplaySize: varchar("min_display_size", { length: 20 }), // Minimum size if MIN_SIZE_REQUIRED (e.g., "100x100px")
+  
+  // ===== ISCL APPROVAL REQUIREMENTS =====
+  approvalRequired: boolean("approval_required").default(false), // Licensor must approve each use
+  approvalProcess: text("approval_process"), // How approval works (e.g., "Email to licensor@email.com, 48hr response")
+  approvalTimeframeDays: integer("approval_timeframe_days"), // Days licensor has to respond
+  
+  // ===== ISCL ATTRIBUTION/CREDIT REQUIREMENTS =====
+  creditRequirements: text("credit_requirements"), // Exact attribution text if requiresAttribution is true
+  creditPlacement: varchar("credit_placement", { length: 50 }), // Where credit must appear (footer, credits, watermark)
+  
+  // ===== ISCL QUALITY STANDARDS =====
+  qualityStandards: text("quality_standards"), // Minimum quality requirements for display
+  brandGuidelinesUrl: text("brand_guidelines_url"), // Link to brand guidelines if applicable
+  
   // ===== DURATION =====
   isPerpetual: boolean("is_perpetual").notNull().default(false),
   durationDays: integer("duration_days"), // If not perpetual
@@ -1468,6 +1534,14 @@ export const licenseContracts = pgTable("license_contracts", {
   upfrontPaymentAmount: varchar("upfront_payment_amount"), // Any upfront P2P payment
   upfrontPaymentCurrency: varchar("upfront_payment_currency", { length: 10 }), // SOL, USDC, etc.
   
+  // ===== ISCL ENHANCED COMPENSATION (Sync License Level) =====
+  mfnClauseEnabled: boolean("mfn_clause_enabled").default(false), // Most Favored Nations - equal pay guarantee
+  paymentSchedule: jsonb("payment_schedule"), // Array of {milestone, amount, currency, dueDate, status}
+  paymentScheduleType: varchar("payment_schedule_type", { length: 30 }), // one_time, milestone, recurring, revenue_share
+  minimumGuarantee: varchar("minimum_guarantee"), // Minimum payment amount regardless of usage
+  minimumGuaranteeCurrency: varchar("minimum_guarantee_currency", { length: 10 }),
+  performanceBonus: text("performance_bonus"), // Bonus conditions (e.g., "Additional $1000 if reaches 1M streams")
+  
   // ===== RENEWAL & REVOCATION =====
   autoRenew: boolean("auto_renew").default(false),
   renewalNoticeDays: integer("renewal_notice_days").default(30),
@@ -1484,6 +1558,21 @@ export const licenseContracts = pgTable("license_contracts", {
   licensorSignature: varchar("licensor_signature"), // Wallet signature
   licenseeSignedAt: timestamp("licensee_signed_at"),
   licenseeSignature: varchar("licensee_signature"), // Wallet signature
+  
+  // ===== ISCL AUDIT TRAIL (ESIGN/UETA Compliance) =====
+  licensorIpAddress: varchar("licensor_ip_address", { length: 50 }), // IP at signing for attribution
+  licensorDeviceInfo: text("licensor_device_info"), // User agent / device fingerprint
+  licenseeIpAddress: varchar("licensee_ip_address", { length: 50 }),
+  licenseeDeviceInfo: text("licensee_device_info"),
+  
+  // ===== ISCL LEGAL INTENT (Contract Validity) =====
+  intentToBeBindingAcknowledged: boolean("intent_to_be_binding_acknowledged").default(false), // Both parties acknowledge intent
+  electronicTransactionConsent: boolean("electronic_transaction_consent").default(false), // ESIGN/UETA consent
+  termsReadAcknowledged: boolean("terms_read_acknowledged").default(false), // Confirmed reading full terms
+  
+  // ===== ISCL VERSION TRACKING =====
+  isclVersion: varchar("iscl_version", { length: 10 }).default('1.0.0'), // ISCL schema version
+  isclTemplateId: varchar("iscl_template_id", { length: 50 }), // Which ISCL template was used
   
   // ===== ON-CHAIN DATA =====
   pdaAddress: varchar("pda_address"), // Program Derived Account on Solana
