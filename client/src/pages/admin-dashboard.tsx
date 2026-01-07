@@ -167,38 +167,71 @@ export default function AdminDashboard() {
 
   const addWalletMutation = useMutation({
     mutationFn: async (wallet: typeof newWallet) => {
-      return apiRequest('/api/admin/treasury/wallets', {
-        method: 'POST',
-        body: JSON.stringify(wallet),
-      });
+      return apiRequest('POST', '/api/admin/treasury/wallets', wallet);
+    },
+    onMutate: async (walletData) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/admin/treasury/wallets'] });
+      const previousWallets = queryClient.getQueryData<TreasuryWallet[]>(['/api/admin/treasury/wallets']);
+      const optimisticWallet: TreasuryWallet = {
+        id: `temp-${Date.now()}`,
+        role: walletData.role,
+        name: walletData.name,
+        address: walletData.address,
+        domainName: walletData.domainName || undefined,
+        purpose: walletData.purpose || undefined,
+        network: walletData.network,
+        status: 'active',
+        sweepEnabled: false,
+        requiredSignatures: 1,
+      };
+      queryClient.setQueryData<TreasuryWallet[]>(['/api/admin/treasury/wallets'], (old) => [...(old || []), optimisticWallet]);
+      setAddWalletOpen(false);
+      setNewWallet({ role: 'funds', name: '', address: '', domainName: '', purpose: '', network: 'devnet' });
+      return { previousWallets };
     },
     onSuccess: () => {
       toast({ title: "Wallet Added", description: "Treasury wallet has been registered successfully" });
-      setAddWalletOpen(false);
-      setNewWallet({ role: 'funds', name: '', address: '', domainName: '', purpose: '', network: 'devnet' });
+    },
+    onError: (error: any, _variables, context) => {
+      if (context?.previousWallets) {
+        queryClient.setQueryData<TreasuryWallet[]>(['/api/admin/treasury/wallets'], context.previousWallets);
+      }
+      toast({ title: "Failed to Add Wallet", description: error.message || "An error occurred", variant: "destructive" });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/treasury/wallets'] });
     },
-    onError: (error: any) => {
-      toast({ title: "Failed to Add Wallet", description: error.message || "An error occurred", variant: "destructive" });
-    }
   });
 
   const deleteWalletMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/admin/treasury/wallets/${id}`, { method: 'DELETE' });
+      return apiRequest('DELETE', `/api/admin/treasury/wallets/${id}`);
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/admin/treasury/wallets'] });
+      const previousWallets = queryClient.getQueryData<TreasuryWallet[]>(['/api/admin/treasury/wallets']);
+      queryClient.setQueryData<TreasuryWallet[]>(['/api/admin/treasury/wallets'], (old) =>
+        old?.filter((wallet) => wallet.id !== id) || []
+      );
+      return { previousWallets };
     },
     onSuccess: () => {
       toast({ title: "Wallet Removed", description: "Treasury wallet has been removed" });
+    },
+    onError: (error: any, _id, context) => {
+      if (context?.previousWallets) {
+        queryClient.setQueryData<TreasuryWallet[]>(['/api/admin/treasury/wallets'], context.previousWallets);
+      }
+      toast({ title: "Failed to Remove Wallet", description: error.message, variant: "destructive" });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/treasury/wallets'] });
     },
-    onError: (error: any) => {
-      toast({ title: "Failed to Remove Wallet", description: error.message, variant: "destructive" });
-    }
   });
 
   const seedTriggersMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/admin/compliance/seed-triggers', { method: 'POST' });
+      return apiRequest('POST', '/api/admin/compliance/seed-triggers');
     },
     onSuccess: (data: any) => {
       toast({ title: "Triggers Seeded", description: data.message || "Default compliance triggers have been created" });

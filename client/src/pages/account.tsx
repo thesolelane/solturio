@@ -130,33 +130,70 @@ export default function AccountPage() {
     },
   });
 
-  // Update notifications mutation
+  // Update notifications mutation with optimistic updates
   const updateNotificationsMutation = useMutation({
     mutationFn: async (data: { notifyPaymentsDue: boolean; notifyRentalReminders: boolean }) => {
       const response = await apiRequest("PATCH", "/api/account/notifications", data);
       return response.json();
     },
+    onMutate: async (newSettings) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/auth/user"] });
+      const previousUser = queryClient.getQueryData<User>(["/api/auth/user"]);
+      if (previousUser) {
+        queryClient.setQueryData<User>(["/api/auth/user"], {
+          ...previousUser,
+          notifyPaymentsDue: newSettings.notifyPaymentsDue,
+          notifyRentalReminders: newSettings.notifyRentalReminders,
+        });
+      }
+      return { previousUser };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Settings Updated",
         description: "Your notification preferences have been saved.",
       });
     },
+    onError: (_error, _variables, context) => {
+      if (context?.previousUser) {
+        queryClient.setQueryData(["/api/auth/user"], context.previousUser);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    },
   });
 
-  // Update social handles mutation
+  // Update social handles mutation with optimistic updates
   const updateSocialHandlesMutation = useMutation({
     mutationFn: async (data: { twitterHandle?: string; telegramHandle?: string; discordHandle?: string; instagramHandle?: string; telegramGroupLink?: string; websiteUrl?: string; bio?: string }) => {
       const response = await apiRequest("PATCH", "/api/account/social-handles", data);
       return response.json();
     },
+    onMutate: async (newHandles) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/auth/user"] });
+      const previousUser = queryClient.getQueryData<User>(["/api/auth/user"]);
+      if (previousUser) {
+        queryClient.setQueryData<User>(["/api/auth/user"], {
+          ...previousUser,
+          ...newHandles,
+        });
+      }
+      return { previousUser };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Social Handles Updated",
         description: "Your social media handles have been saved.",
       });
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousUser) {
+        queryClient.setQueryData(["/api/auth/user"], context.previousUser);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     },
   });
 

@@ -65,12 +65,25 @@ export function SubscriptionAdminPanel() {
       const response = await apiRequest('POST', '/api/admin/subscriptions/grant-free', { userId });
       return response.json();
     },
+    onMutate: async (userId) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/admin/subscriptions/users'] });
+      const previousUsers = queryClient.getQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users']);
+      queryClient.setQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users'], (old) =>
+        old?.map((user) => user.id === userId ? { ...user, accountStatus: 'admin' } : user) || []
+      );
+      return { previousUsers };
+    },
     onSuccess: () => {
       toast({ title: "Free access granted", description: "User now has admin/free access to the platform." });
-      refetchUsers();
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _userId, context) => {
+      if (context?.previousUsers) {
+        queryClient.setQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users'], context.previousUsers);
+      }
       toast({ title: "Failed to grant access", description: error.message, variant: "destructive" });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/subscriptions/users'] });
     },
   });
 
@@ -79,12 +92,32 @@ export function SubscriptionAdminPanel() {
       const response = await apiRequest('POST', '/api/admin/subscriptions/extend', { userId, days });
       return response.json();
     },
+    onMutate: async ({ userId, days }) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/admin/subscriptions/users'] });
+      const previousUsers = queryClient.getQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users']);
+      queryClient.setQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users'], (old) =>
+        old?.map((user) => {
+          if (user.id === userId) {
+            const currentExpiry = user.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt) : new Date();
+            const newExpiry = new Date(currentExpiry.getTime() + days * 24 * 60 * 60 * 1000);
+            return { ...user, subscriptionExpiresAt: newExpiry.toISOString(), accountStatus: 'active' };
+          }
+          return user;
+        }) || []
+      );
+      return { previousUsers };
+    },
     onSuccess: () => {
       toast({ title: "Subscription extended", description: "User's subscription has been extended." });
-      refetchUsers();
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousUsers) {
+        queryClient.setQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users'], context.previousUsers);
+      }
       toast({ title: "Failed to extend subscription", description: error.message, variant: "destructive" });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/subscriptions/users'] });
     },
   });
 
@@ -93,15 +126,36 @@ export function SubscriptionAdminPanel() {
       const response = await apiRequest('POST', '/api/admin/subscriptions/award-rewards', { userId, amount, reason });
       return response.json();
     },
-    onSuccess: () => {
-      toast({ title: "Rewards awarded", description: "SOLT rewards have been credited to the user." });
+    onMutate: async ({ userId, amount }) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/admin/subscriptions/users'] });
+      const previousUsers = queryClient.getQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users']);
+      queryClient.setQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users'], (old) =>
+        old?.map((user) => {
+          if (user.id === userId) {
+            const currentBalance = parseFloat(user.soltBalance || '0');
+            return { ...user, soltBalance: String(currentBalance + amount) };
+          }
+          return user;
+        }) || []
+      );
       setRewardDialogOpen(false);
       setManualRewardAmount("");
-      refetchUsers();
-      refetchStats();
+      return { previousUsers };
     },
-    onError: (error: Error) => {
+    onSuccess: () => {
+      toast({ title: "Rewards awarded", description: "SOLT rewards have been credited to the user." });
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousUsers) {
+        queryClient.setQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users'], context.previousUsers);
+      }
+      setRewardDialogOpen(false);
+      setManualRewardAmount("");
       toast({ title: "Failed to award rewards", description: error.message, variant: "destructive" });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/subscriptions/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/tokens/rewards-pool'] });
     },
   });
 

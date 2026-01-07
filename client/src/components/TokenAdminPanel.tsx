@@ -95,58 +95,98 @@ export function TokenAdminPanel({ isAdmin }: TokenAdminPanelProps) {
 
   const addTokenMutation = useMutation({
     mutationFn: async (token: typeof newToken) => {
-      return apiRequest('/api/admin/tokens', {
-        method: 'POST',
-        body: JSON.stringify(token),
-      });
+      return apiRequest('POST', '/api/admin/tokens', token);
+    },
+    onMutate: async (newTokenData) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/admin/tokens'] });
+      const previousTokens = queryClient.getQueryData<AcceptedToken[]>(['/api/admin/tokens']);
+      const optimisticToken: AcceptedToken = {
+        id: `temp-${Date.now()}`,
+        symbol: newTokenData.symbol,
+        name: newTokenData.name,
+        mintAddress: newTokenData.mintAddress,
+        tier: newTokenData.tier,
+        isActive: true,
+        decimals: newTokenData.decimals,
+        logoUrl: newTokenData.logoUrl || undefined,
+        addedAt: new Date().toISOString(),
+        notes: newTokenData.notes || undefined,
+      };
+      queryClient.setQueryData<AcceptedToken[]>(['/api/admin/tokens'], (old) => [...(old || []), optimisticToken]);
+      setAddTokenOpen(false);
+      setNewToken({ symbol: '', name: '', mintAddress: '', tier: 'whitelisted', decimals: 9, logoUrl: '', notes: '' });
+      return { previousTokens };
     },
     onSuccess: () => {
       toast({ title: "Token Added", description: "Token has been added to the registry" });
-      setAddTokenOpen(false);
-      setNewToken({ symbol: '', name: '', mintAddress: '', tier: 'whitelisted', decimals: 9, logoUrl: '', notes: '' });
-      refetchTokens();
     },
-    onError: (error: any) => {
+    onError: (error: any, _variables, context) => {
+      if (context?.previousTokens) {
+        queryClient.setQueryData<AcceptedToken[]>(['/api/admin/tokens'], context.previousTokens);
+      }
       toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/tokens'] });
     },
   });
 
   const toggleTokenMutation = useMutation({
     mutationFn: async ({ tokenId, isActive }: { tokenId: string; isActive: boolean }) => {
-      return apiRequest(`/api/admin/tokens/${tokenId}/toggle`, {
-        method: 'POST',
-        body: JSON.stringify({ isActive }),
-      });
+      return apiRequest('POST', `/api/admin/tokens/${tokenId}/toggle`, { isActive });
+    },
+    onMutate: async ({ tokenId, isActive }) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/admin/tokens'] });
+      const previousTokens = queryClient.getQueryData<AcceptedToken[]>(['/api/admin/tokens']);
+      queryClient.setQueryData<AcceptedToken[]>(['/api/admin/tokens'], (old) =>
+        old?.map((token) => token.id === tokenId ? { ...token, isActive } : token) || []
+      );
+      return { previousTokens };
     },
     onSuccess: () => {
       toast({ title: "Token Updated", description: "Token status has been updated" });
-      refetchTokens();
     },
-    onError: (error: any) => {
+    onError: (error: any, _variables, context) => {
+      if (context?.previousTokens) {
+        queryClient.setQueryData<AcceptedToken[]>(['/api/admin/tokens'], context.previousTokens);
+      }
       toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/tokens'] });
     },
   });
 
   const reviewApplicationMutation = useMutation({
     mutationFn: async ({ applicationId, decision, notes }: { applicationId: string; decision: 'approved' | 'rejected'; notes?: string }) => {
-      return apiRequest(`/api/admin/tokens/applications/${applicationId}/review`, {
-        method: 'POST',
-        body: JSON.stringify({ decision, notes }),
-      });
+      return apiRequest('POST', `/api/admin/tokens/applications/${applicationId}/review`, { decision, notes });
     },
-    onSuccess: () => {
-      toast({ title: "Application Reviewed", description: "Token application has been processed" });
-      refetchApplications();
-      refetchTokens();
+    onMutate: async ({ applicationId, decision }) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/admin/tokens/applications'] });
+      const previousApplications = queryClient.getQueryData<TokenApplication[]>(['/api/admin/tokens/applications']);
+      queryClient.setQueryData<TokenApplication[]>(['/api/admin/tokens/applications'], (old) =>
+        old?.map((app) => app.id === applicationId ? { ...app, status: decision } : app) || []
+      );
+      return { previousApplications };
     },
-    onError: (error: any) => {
+    onSuccess: (_data, { decision }) => {
+      toast({ title: "Application Reviewed", description: `Token application has been ${decision}` });
+    },
+    onError: (error: any, _variables, context) => {
+      if (context?.previousApplications) {
+        queryClient.setQueryData<TokenApplication[]>(['/api/admin/tokens/applications'], context.previousApplications);
+      }
       toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/tokens/applications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/tokens'] });
     },
   });
 
   const seedTokensMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/admin/tokens/seed', { method: 'POST' });
+      return apiRequest('POST', '/api/admin/tokens/seed');
     },
     onSuccess: () => {
       toast({ title: "Tokens Seeded", description: "Default tokens have been added to the registry" });
