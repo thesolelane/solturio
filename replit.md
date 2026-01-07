@@ -1,7 +1,41 @@
-# Solturio - Decentralized NFT Logo Protection Platform
+# Solturio - Decentralized IP Protection Platform
 
 ## Overview
-Solturio is a fully decentralized web application within the CATH Ecosystem that safeguards intellectual property by minting logos as NFTs on the Solana blockchain. It provides immutable, timestamped proof of ownership for trademarks and brand assets. Users can upload logos, store them on a dedicated image registry, and mint minimal on-chain NFT metadata. The platform aims to offer blockchain-verified proof of logo ownership for IP disputes and takedown requests on crypto platforms, complemented by IP education and gamified learning, viewing IP protection as a continuous journey.
+Solturio is a fully decentralized web application within the CATH Ecosystem that safeguards intellectual property by minting logos, music, and code as NFTs on the Solana blockchain. It provides immutable, timestamped proof of ownership for trademarks, brand assets, creative works, and software. Users can register IP assets, store metadata on decentralized networks, and create ISCL (Independent Smart Contract License) contracts for licensing. The platform offers blockchain-verified proof of ownership for IP disputes and takedown requests, complemented by IP education and gamified learning.
+
+## Three-Layer Architecture
+- **solturio.app**: Identity and execution authority - handles authentication, wallet management, and API endpoints
+- **solturio.sol**: Blockchain rules and ownership - on-chain smart contracts, NFT minting, ISCL deployment
+- **solturio.com**: Public verification interface - third-party verification, badge validation, public API
+
+*No single layer controls the system - decentralization by design.*
+
+## Pricing Structure
+
+### Platform Access (Subscription)
+| Tier | Price | Notes |
+|------|-------|-------|
+| Promo | 0.14 SOL | Early adopter rate |
+| Standard | 0.5 SOL | Regular annual pricing |
+
+### ISCL Creation
+| Item | Price | Notes |
+|------|-------|-------|
+| Per ISCL | 0.025 SOL | On-chain smart contract deployment |
+
+### Tokens
+| Token | Supply | Purpose |
+|-------|--------|---------|
+| $SOLT | 400M | Platform rewards, engagement, referrals |
+| $CATH | - | Primary payment currency |
+
+## ISCL (Independent Smart Contract License)
+Solturio's branded term for blockchain-verified IP licensing contracts. ISCL enables:
+- **Scope of Use**: Territory, duration, exclusivity, purpose definitions
+- **Content Restrictions**: Edit permissions, derivative works, AI training prohibitions
+- **Payment Terms**: Upfront, royalty, milestone-based schedules
+- **Legal Compliance**: ESIGN/UETA audit trails, MFN clauses, approval workflows
+- **Smart Contract**: Immutable on-chain terms with automated enforcement
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
