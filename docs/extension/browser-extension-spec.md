@@ -216,48 +216,434 @@ solturio-extension/
   "manifest_version": 3,
   "name": "Solturio IP Protection",
   "version": "1.0.0",
-  "description": "Protect your intellectual property on the blockchain",
+  "description": "Protect your intellectual property on the blockchain. Right-click any image to register, verify ownership, and detect stolen logos.",
+  "author": "Solturio",
+  "homepage_url": "https://solturio.app",
+  
   "permissions": [
     "activeTab",
     "contextMenus",
     "storage",
     "notifications",
-    "identity"
+    "identity",
+    "sidePanel",
+    "scripting"
   ],
+  
+  "optional_permissions": [
+    "clipboardRead",
+    "clipboardWrite",
+    "downloads"
+  ],
+  
   "host_permissions": [
     "https://solturio.app/*",
     "https://solturio.com/*",
     "https://*.jupiter.ag/*",
     "https://*.raydium.io/*",
-    "https://*.dexscreener.com/*"
+    "https://*.dexscreener.com/*",
+    "https://*.birdeye.so/*",
+    "https://*.pump.fun/*"
   ],
+  
+  "optional_host_permissions": [
+    "<all_urls>"
+  ],
+  
   "background": {
     "service_worker": "background/service-worker.js",
     "type": "module"
   },
+  
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["content/content-script.js"],
-      "css": ["content/content.css"]
+      "css": ["content/content.css"],
+      "run_at": "document_idle"
     }
   ],
+  
   "action": {
     "default_popup": "popup/popup.html",
+    "default_title": "Solturio IP Protection",
     "default_icon": {
       "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
       "48": "assets/icons/icon48.png",
       "128": "assets/icons/icon128.png"
     }
   },
+  
   "side_panel": {
     "default_path": "sidebar/sidebar.html"
   },
+  
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": false
+  },
+  
   "icons": {
     "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
     "48": "assets/icons/icon48.png",
     "128": "assets/icons/icon128.png"
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/badges/*.svg",
+        "assets/badges/*.png",
+        "content/injected.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  
+  "externally_connectable": {
+    "matches": [
+      "https://solturio.app/*",
+      "https://solturio.com/*"
+    ]
+  },
+  
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "Open Solturio popup"
+    },
+    "quick-protect": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+P",
+        "mac": "Command+Shift+P"
+      },
+      "description": "Quick protect current page screenshot"
+    }
   }
+}
+```
+
+---
+
+## Permissions Explained
+
+### Required Permissions
+
+| Permission | Purpose | User Benefit |
+|------------|---------|--------------|
+| `activeTab` | Access current tab when user clicks extension | Enables right-click protection on current page only |
+| `contextMenus` | Add "Protect with Solturio" to right-click menu | Core registration feature |
+| `storage` | Save auth tokens, settings, cached verifications | Persistent login, faster page scans |
+| `notifications` | Alert when your IP is detected elsewhere | Real-time protection alerts |
+| `identity` | OAuth popup for solturio.app login | Secure account linking |
+| `sidePanel` | Registration sidebar panel | Full registration workflow |
+| `scripting` | Inject verification badges on pages | Show ownership badges on images |
+
+### Optional Permissions (Requested When Needed)
+
+| Permission | Purpose | When Requested |
+|------------|---------|----------------|
+| `clipboardRead` | Paste image URLs or hashes | When using "Paste & Verify" feature |
+| `clipboardWrite` | Copy verification links, license IDs | When user clicks "Copy Link" |
+| `downloads` | Save certificates, license PDFs | When exporting documents |
+| `<all_urls>` | Full page scanning on any site | When enabling "Scan All Sites" in settings |
+
+### Host Permissions
+
+| Domain | Purpose |
+|--------|---------|
+| `solturio.app/*` | API calls, authentication |
+| `solturio.com/*` | Public verification lookups |
+| `*.jupiter.ag/*` | DEX logo scanning (Solana) |
+| `*.raydium.io/*` | DEX logo scanning (Solana) |
+| `*.dexscreener.com/*` | Multi-chain DEX scanning |
+| `*.birdeye.so/*` | Token analytics scanning |
+| `*.pump.fun/*` | Memecoin platform scanning |
+
+---
+
+## UI Components
+
+### Required Components (MVP)
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| **Toolbar Icon** | `action.default_icon` | Extension entry point, shows status |
+| **Popup** | `popup/popup.html` | Quick access: login, stats, recent activity |
+| **Background Worker** | `background/service-worker.js` | API calls, auth management, message routing |
+| **Content Script** | `content/content-script.js` | Page scanning, badge injection |
+
+### Optional Components (Can Be Disabled)
+
+| Component | File | Default | User Control |
+|-----------|------|---------|--------------|
+| **Sidebar Panel** | `sidebar/sidebar.html` | Enabled | Settings toggle |
+| **Context Menu** | Created in service-worker | Enabled | Settings toggle |
+| **Notification Alerts** | Uses `notifications` API | Enabled | Settings toggle |
+| **Options Page** | `options/options.html` | Enabled | Always available |
+| **Keyboard Shortcuts** | `commands` in manifest | Enabled | Chrome settings |
+
+### Component Details
+
+#### 1. Toolbar Popup (Required)
+```
+popup/
+├── popup.html          # Entry HTML
+├── popup.tsx           # React component
+├── components/
+│   ├── Header.tsx      # Logo, wallet status
+│   ├── QuickStats.tsx  # Assets count, licenses
+│   ├── RecentActivity.tsx
+│   └── LoginButton.tsx
+└── popup.css           # Tailwind compiled
+```
+**Size**: 400px width, 500px max height
+**State**: Shows login prompt if unauthenticated, dashboard if logged in
+
+#### 2. Sidebar Panel (Optional - Default ON)
+```
+sidebar/
+├── sidebar.html        # Entry HTML
+├── sidebar.tsx         # React component
+├── components/
+│   ├── ImagePreview.tsx
+│   ├── MetadataForm.tsx
+│   ├── CostEstimate.tsx
+│   ├── WalletSign.tsx
+│   └── SuccessScreen.tsx
+└── sidebar.css
+```
+**Size**: 350px width, full viewport height
+**Trigger**: Right-click → "Protect with Solturio" OR drag-drop on icon
+**Can Disable**: Settings → "Open registrations in new tab instead"
+
+#### 3. Context Menu (Optional - Default ON)
+```typescript
+// Created dynamically in service-worker.js
+chrome.contextMenus.create({
+  id: "protect-image",
+  title: "Protect with Solturio",
+  contexts: ["image"],
+});
+
+chrome.contextMenus.create({
+  id: "verify-image",
+  title: "Check Solturio Registration",
+  contexts: ["image"],
+});
+
+chrome.contextMenus.create({
+  id: "protect-selection",
+  title: "Protect Selected Area",
+  contexts: ["selection"],
+});
+```
+**Can Disable**: Settings → "Disable right-click menu items"
+
+#### 4. Verification Badges (Optional - Default ON)
+```typescript
+// Injected by content script
+interface BadgeConfig {
+  enabled: boolean;           // Master toggle
+  showOnDexOnly: boolean;     // Only show on DEX platforms
+  badgePosition: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+  badgeSize: "small" | "medium" | "large"; // 16px, 24px, 32px
+  showUnregisteredWarning: boolean;
+}
+```
+**Can Disable**: Settings → "Hide verification badges"
+
+#### 5. Notifications (Optional - Default ON)
+```typescript
+interface NotificationSettings {
+  enabled: boolean;
+  types: {
+    ipDetection: boolean;     // Your logo found elsewhere
+    licenseRequest: boolean;  // Someone wants to license
+    licenseExpiry: boolean;   // License expiring soon
+    scamAlert: boolean;       // DEX scam detection
+  };
+  quietHours: {
+    enabled: boolean;
+    start: string;  // "22:00"
+    end: string;    // "08:00"
+  };
+}
+```
+**Can Disable**: Settings → "Notification preferences"
+
+#### 6. Options Page (Always Available)
+```
+options/
+├── options.html
+├── options.tsx
+├── sections/
+│   ├── GeneralSettings.tsx
+│   ├── PrivacySettings.tsx
+│   ├── NotificationSettings.tsx
+│   ├── BadgeSettings.tsx
+│   ├── WalletSettings.tsx
+│   └── AdvancedSettings.tsx
+└── options.css
+```
+**Access**: Right-click extension icon → "Options" OR popup gear icon
+
+---
+
+## File Structure (Complete)
+
+```
+solturio-extension/
+├── manifest.json                    # Extension config
+├── package.json                     # NPM dependencies
+├── vite.config.ts                   # Build configuration
+├── tailwind.config.ts               # Tailwind setup
+├── tsconfig.json                    # TypeScript config
+│
+├── src/
+│   ├── background/
+│   │   ├── index.ts                 # Service worker entry
+│   │   ├── api.ts                   # Solturio API client
+│   │   ├── auth.ts                  # Token management
+│   │   ├── wallet.ts                # Wallet adapter
+│   │   ├── context-menu.ts          # Menu creation
+│   │   └── notifications.ts         # Push notifications
+│   │
+│   ├── content/
+│   │   ├── index.ts                 # Content script entry
+│   │   ├── scanner.ts               # Image hash scanner
+│   │   ├── badges.ts                # Badge overlay
+│   │   ├── dex-detector.ts          # DEX platform detection
+│   │   └── content.css              # Injected styles
+│   │
+│   ├── popup/
+│   │   ├── index.html               # Popup HTML
+│   │   ├── index.tsx                # React entry
+│   │   ├── App.tsx                  # Main component
+│   │   └── components/
+│   │       ├── Header.tsx
+│   │       ├── WalletStatus.tsx
+│   │       ├── QuickStats.tsx
+│   │       ├── RecentActivity.tsx
+│   │       └── LoginButton.tsx
+│   │
+│   ├── sidebar/
+│   │   ├── index.html               # Sidebar HTML
+│   │   ├── index.tsx                # React entry
+│   │   ├── App.tsx                  # Main component
+│   │   └── components/
+│   │       ├── ImagePreview.tsx
+│   │       ├── MetadataExtractor.tsx
+│   │       ├── RegistrationForm.tsx
+│   │       ├── CostEstimate.tsx
+│   │       ├── WalletSignature.tsx
+│   │       └── SuccessScreen.tsx
+│   │
+│   ├── options/
+│   │   ├── index.html               # Options HTML
+│   │   ├── index.tsx                # React entry
+│   │   ├── App.tsx                  # Main component
+│   │   └── sections/
+│   │       ├── General.tsx
+│   │       ├── Privacy.tsx
+│   │       ├── Notifications.tsx
+│   │       ├── Badges.tsx
+│   │       ├── Wallet.tsx
+│   │       └── Advanced.tsx
+│   │
+│   └── shared/
+│       ├── types.ts                 # TypeScript interfaces
+│       ├── constants.ts             # API URLs, defaults
+│       ├── crypto.ts                # SHA-256 hashing
+│       ├── storage.ts               # Chrome storage wrapper
+│       ├── messaging.ts             # Extension messaging
+│       └── utils.ts                 # Helper functions
+│
+├── assets/
+│   ├── icons/
+│   │   ├── icon16.png               # Toolbar (small)
+│   │   ├── icon32.png               # Toolbar (retina)
+│   │   ├── icon48.png               # Extensions page
+│   │   └── icon128.png              # Chrome Web Store
+│   ├── badges/
+│   │   ├── verified.svg             # Green checkmark
+│   │   ├── unregistered.svg         # Gray question
+│   │   ├── flagged.svg              # Red warning
+│   │   └── loading.svg              # Spinner
+│   └── images/
+│       ├── logo.svg                 # Solturio logo
+│       └── onboarding/              # Tutorial images
+│
+├── _locales/                        # i18n (optional)
+│   └── en/
+│       └── messages.json
+│
+└── dist/                            # Build output
+    ├── chrome/                      # Chrome package
+    └── firefox/                     # Firefox package
+```
+
+---
+
+## Settings Storage Schema
+
+```typescript
+// Stored in chrome.storage.sync (synced across devices)
+interface SyncedSettings {
+  // Feature Toggles
+  contextMenuEnabled: boolean;       // Default: true
+  sidebarEnabled: boolean;           // Default: true
+  badgesEnabled: boolean;            // Default: true
+  notificationsEnabled: boolean;     // Default: true
+  
+  // Badge Configuration
+  badgePosition: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+  badgeSize: "small" | "medium" | "large";
+  showOnDexOnly: boolean;
+  
+  // Notification Settings
+  notifyIpDetection: boolean;
+  notifyLicenseRequest: boolean;
+  notifyLicenseExpiry: boolean;
+  quietHoursEnabled: boolean;
+  quietHoursStart: string;
+  quietHoursEnd: string;
+  
+  // Privacy
+  sendAnonymousUsage: boolean;       // Default: true
+  cacheVerifications: boolean;       // Default: true
+  cacheDurationHours: number;        // Default: 24
+}
+
+// Stored in chrome.storage.local (device-specific)
+interface LocalStorage {
+  // Auth
+  accessToken: string | null;
+  refreshToken: string | null;
+  tokenExpiry: number | null;
+  user: User | null;
+  
+  // Wallet
+  connectedWallet: string | null;    // Wallet address
+  walletType: "phantom" | "solflare" | "backpack" | null;
+  
+  // Cache
+  verificationCache: Record<string, VerificationResult>;
+  lastCacheClean: number;
+  
+  // Stats
+  totalRegistrations: number;
+  totalVerifications: number;
+  lastActivity: number;
 }
 ```
 
