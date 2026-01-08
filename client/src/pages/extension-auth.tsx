@@ -57,6 +57,7 @@ export default function ExtensionAuth() {
 
         const { token } = await response.json();
 
+        console.log('Sending token to extension:', extId);
         window.chrome!.runtime!.sendMessage(
           extId!,
           { type: "SOLTURIO_AUTH_TOKEN", token },
