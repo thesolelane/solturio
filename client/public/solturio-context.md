@@ -692,6 +692,148 @@ Users who haven't logged in can still:
 
 ---
 
-*Document Version: 1.0*
+## Web App ↔ Extension Integration
+
+### Authentication Flow
+
+```
+1. User clicks "Connect Wallet" in extension popup
+2. Extension opens: https://solturio.app/login?extension=true&ext_id={extensionId}
+3. User completes Replit Auth on solturio.app
+4. Web app sends token to extension via chrome.runtime.sendMessage()
+5. Extension stores token in chrome.storage.local
+6. Extension UI updates to authenticated state
+```
+
+### Web App Token Sender (Add to solturio.app)
+
+```javascript
+// Add this to your login success handler on solturio.app
+
+function sendTokenToExtension(token) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const extensionId = urlParams.get('ext_id');
+  
+  if (extensionId && typeof chrome !== 'undefined' && chrome.runtime) {
+    chrome.runtime.sendMessage(
+      extensionId,
+      { 
+        type: 'SOLTURIO_AUTH_TOKEN', 
+        token: token 
+      },
+      (response) => {
+        if (response?.success) {
+          console.log('Token sent to extension successfully');
+        }
+      }
+    );
+  }
+}
+
+// Call this after successful login
+sendTokenToExtension(userAuthToken);
+```
+
+### Extension Message Types
+
+| Type | Direction | Payload | Purpose |
+|------|-----------|---------|---------|
+| `SOLTURIO_AUTH_TOKEN` | Web → Extension | `{ token: string }` | Store auth token |
+| `SOLTURIO_LOGOUT` | Web → Extension | none | Clear auth token |
+| `SOLTURIO_CHECK_AUTH` | Internal | none | Check if authenticated |
+
+### Manifest externally_connectable
+
+```json
+{
+  "externally_connectable": {
+    "matches": [
+      "https://solturio.app/*",
+      "https://*.solturio.app/*"
+    ]
+  }
+}
+```
+
+---
+
+## Token Scopes (Security)
+
+JWT tokens have scoped permissions to limit damage if compromised.
+
+### Available Scopes
+
+| Scope | Permission |
+|-------|------------|
+| `extension:verify` | Can verify content hashes |
+| `extension:register` | Can register new content |
+| `extension:iscl` | Can create ISCL licenses |
+| `read:portfolio` | Can view user's registered content |
+| `write:portfolio` | Can modify portfolio (future) |
+
+### JWT Token Payload
+
+```json
+{
+  "sub": "user_id_or_wallet_address",
+  "scopes": ["extension:verify", "extension:register", "read:portfolio"],
+  "exp": 1735689600,
+  "iat": 1735603200
+}
+```
+
+### API Endpoints with Required Scopes
+
+| Endpoint | Method | Auth | Scope | Purpose |
+|----------|--------|------|-------|---------|
+| `/api/public/lookup` | GET | No | `extension:verify` | Verify hash |
+| `/api/public/batch-verify` | POST | No | `extension:verify` | Batch verify |
+| `/api/extension/register/image` | POST | Yes | `extension:register` | Register content |
+| `/api/extension/iscl/create` | POST | Yes | `extension:iscl` | Create license |
+| `/api/extension/portfolio` | GET | Yes | `read:portfolio` | View portfolio |
+
+---
+
+## Extension File Structure
+
+```
+extension-dist/           # Built extension (load in Chrome)
+├── manifest.json         # Extension config
+├── background.js         # Service worker for messages
+├── popup/
+│   ├── index.html        # Popup entry
+│   └── index.tsx         # React popup
+├── content/
+│   └── content.js        # Page injection
+└── assets/
+    └── icons/            # Extension icons
+
+solturio-extension.zip    # Packaged for distribution
+```
+
+---
+
+## Testing the Integration
+
+1. Load extension in Chrome:
+   - Go to `chrome://extensions/`
+   - Enable "Developer mode"
+   - Click "Load unpacked" → select `extension-dist`
+
+2. Note the extension ID from the card
+
+3. Update solturio.app to:
+   - Check for `extension=true` query param
+   - After auth, call `sendTokenToExtension(jwt)`
+
+4. Test flow:
+   - Click extension icon
+   - Click "Connect Wallet"
+   - Complete login
+   - Verify extension shows authenticated state
+
+---
+
+*Document Version: 1.1*
 *Last Updated: January 2026*
 *For: Solturio Browser Extension Development*
