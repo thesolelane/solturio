@@ -55,6 +55,7 @@ import { createVerifiedImage, isCompositableImage } from "./services/image-compo
 import { VERIFICATION_ASSETS } from "@shared/verification-assets";
 import { arweaveService } from "./services/arweave";
 import { Connection, PublicKey } from "@solana/web3.js";
+import jwt from "jsonwebtoken";
 
 // Setup file upload
 const upload = multer({ 
@@ -501,6 +502,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Extension token endpoint - generates scoped JWT for browser extension
+  app.post('/api/extension/token', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Use SESSION_SECRET for JWT signing (secure, stored in environment)
+      const jwtSecret = process.env.SESSION_SECRET;
+      if (!jwtSecret) {
+        return res.status(500).json({ message: "Server configuration error" });
+      }
+
+      // Generate proper JWT with scoped permissions
+      const payload = {
+        sub: userId,
+        email: user.email,
+        scopes: ['extension:verify', 'extension:register', 'read:portfolio'],
+      };
+
+      const token = jwt.sign(payload, jwtSecret, {
+        expiresIn: '7d',
+        issuer: 'solturio.app',
+        audience: 'solturio-extension',
+      });
+
+      auditLogger.log({
+        action: 'extension_token_generated',
+        userId,
+        details: { scopes: payload.scopes }
+      });
+
+      res.json({ token });
+    } catch (error) {
+      console.error("Error generating extension token:", error);
+      res.status(500).json({ message: "Failed to generate extension token" });
     }
   });
 

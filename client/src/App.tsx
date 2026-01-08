@@ -47,6 +47,7 @@ import MusicCollections from "@/pages/music";
 import MusicCollectionDetail from "@/pages/music-collection";
 import MusicReleaseDetail from "@/pages/music-release";
 import MusicTrackDetail from "@/pages/music-track";
+import ExtensionAuth from "@/pages/extension-auth";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -97,6 +98,7 @@ function Router() {
       <Route path="/music/collections/:id" component={MusicCollectionDetail} />
       <Route path="/music/releases/:id" component={MusicReleaseDetail} />
       <Route path="/music/tracks/:id" component={MusicTrackDetail} />
+      <Route path="/extension-auth" component={ExtensionAuth} />
       <Route component={NotFound} />
     </Switch>
   );

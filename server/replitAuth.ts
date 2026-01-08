@@ -104,6 +104,15 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
+    // Preserve extension params for callback
+    const isExtension = req.query.extension === 'true';
+    const extId = req.query.ext_id as string;
+    
+    if (isExtension && extId) {
+      // Store in session for retrieval after callback
+      (req.session as any).extensionAuth = { extId };
+    }
+    
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
@@ -111,8 +120,19 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/callback", (req, res, next) => {
+    const extensionAuth = (req.session as any)?.extensionAuth;
+    
+    // Determine redirect URL
+    let successRedirect = "/";
+    if (extensionAuth?.extId) {
+      // Redirect to extension auth page with ext_id
+      successRedirect = `/extension-auth?ext_id=${encodeURIComponent(extensionAuth.extId)}`;
+      // Clear from session
+      delete (req.session as any).extensionAuth;
+    }
+    
     passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/",
+      successReturnToOrRedirect: successRedirect,
       failureRedirect: "/api/login",
     })(req, res, next);
   });
