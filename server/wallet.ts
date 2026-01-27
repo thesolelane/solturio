@@ -105,12 +105,16 @@ export async function decryptData(encryptedData: string, salt: string): Promise<
   const iv = Buffer.from(ivHex, 'hex');
   const authTag = Buffer.from(authTagHex, 'hex');
   
+  if (authTag.length !== AUTH_TAG_LENGTH) {
+    throw new Error('Invalid authentication tag length');
+  }
+  
   const masterKey = getMasterEncryptionKey();
   const combinedSalt = `${masterKey}:${salt}`;
   
   const key = (await scryptAsync(combinedSalt, 'solturio-v1', 32)) as Buffer;
   
-  const decipher = createDecipheriv(ENCRYPTION_ALGORITHM, key, iv);
+  const decipher = createDecipheriv(ENCRYPTION_ALGORITHM, key, iv, { authTagLength: AUTH_TAG_LENGTH });
   decipher.setAuthTag(authTag);
   
   let decrypted = decipher.update(encrypted, 'hex', 'utf8');
