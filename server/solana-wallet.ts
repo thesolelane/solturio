@@ -77,7 +77,7 @@ export function decryptPrivateKey(encryptedData: string): string {
   // Derive key using the same salt that was used for encryption
   const key = crypto.scryptSync(ENCRYPTION_KEY, salt, 32);
   
-  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv, { authTagLength: 16 });
   decipher.setAuthTag(authTag);
   
   let decrypted = decipher.update(encrypted, "hex", "utf8");
