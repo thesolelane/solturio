@@ -67,6 +67,11 @@ export const validateCsrfToken: RequestHandler = (req, res, next) => {
     return next();
   }
 
+  // Skip CSRF validation for extension API endpoints (they use JWT Bearer auth)
+  if (req.path.startsWith('/api/extension/')) {
+    return next();
+  }
+
   const sessionToken = req.session.csrfToken;
   const headerToken = req.headers[CSRF_HEADER_NAME] as string;
 
@@ -97,6 +102,11 @@ export const validateCsrfToken: RequestHandler = (req, res, next) => {
 export const validateOrigin: RequestHandler = (req, res, next) => {
   // Skip origin validation for safe methods
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+    return next();
+  }
+
+  // Skip origin validation for extension API endpoints (they use JWT Bearer auth)
+  if (req.path.startsWith('/api/extension/')) {
     return next();
   }
 

@@ -71,6 +71,17 @@ Preferred communication style: Simple, everyday language.
 - **Wallet Restrictions**: `xxx.solturio.sol` wallets programmatically reject SPL tokens, accepting only platform-generated certificates/contracts.
 - **Security**: Secure HTTP-only session cookies, CSRF protection, environment-based session secrets, unique encryption salts per wallet.
 
+### Browser Extension API
+- **Authentication**: JWT Bearer tokens with scoped permissions (extension:verify, extension:register, read:portfolio)
+- **Token Generation**: POST /api/extension/token (requires Replit Auth session)
+- **Endpoints**:
+  - POST /api/extension/verify - Check content by hash
+  - GET /api/extension/portfolio - Get user's registered IPs
+  - POST /api/extension/register - Register new IP (multipart file upload)
+  - GET /api/extension/me - Get current user info
+- **Security**: Rate limiting (100 req/15min general, 20 registrations/hour), JWT expiry (7 days), scope-based authorization
+- **CSRF**: Extension routes bypass CSRF checks (uses JWT Bearer auth instead of cookies)
+
 ### Key Features
 - **Payment Policy**: Crypto-only payments (SOL, BONK, Arweave, $CATH as primary).
 - **Onboarding & Wallet System**: Two-tier wallet naming, 6-stage key handover ceremony, IPFS upload control by Solturio.

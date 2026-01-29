@@ -56,6 +56,30 @@ import { VERIFICATION_ASSETS } from "@shared/verification-assets";
 import { arweaveService } from "./services/arweave";
 import { Connection, PublicKey } from "@solana/web3.js";
 import jwt from "jsonwebtoken";
+import rateLimit from "express-rate-limit";
+
+// Rate limiter for extension API endpoints (security: prevent brute force/abuse)
+// Uses IP-based keying; applies per-route so no skip function needed
+// Note: In production behind a proxy, ensure app.set('trust proxy', 1) is configured
+const extensionRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { message: "Too many requests, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { xForwardedForHeader: false, trustProxy: false },
+});
+
+// Stricter rate limiter for registration (expensive operation)
+// Note: Per-IP based; could add per-user limiting at application layer if needed
+const extensionRegisterRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20, // Limit to 20 registrations per hour per IP
+  message: { message: "Registration rate limit exceeded, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { xForwardedForHeader: false, trustProxy: false },
+});
 
 // Setup file upload
 const upload = multer({ 
@@ -506,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Extension token endpoint - generates scoped JWT for browser extension
-  app.post('/api/extension/token', isAuthenticated, async (req: any, res) => {
+  app.post('/api/extension/token', extensionRateLimiter, isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
@@ -544,6 +568,267 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error generating extension token:", error);
       res.status(500).json({ message: "Failed to generate extension token" });
+    }
+  });
+
+  // ============================================
+  // EXTENSION API ENDPOINTS (JWT Bearer Auth)
+  // ============================================
+
+  // JWT Bearer authentication middleware for extension requests
+  const isExtensionAuthenticated: any = async (req: any, res: any, next: any) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: "Missing or invalid authorization header" });
+      }
+
+      const token = authHeader.substring(7);
+      const jwtSecret = process.env.SESSION_SECRET;
+      
+      if (!jwtSecret) {
+        return res.status(500).json({ message: "Server configuration error" });
+      }
+
+      const decoded = jwt.verify(token, jwtSecret, {
+        issuer: 'solturio.app',
+        audience: 'solturio-extension',
+      }) as { sub: string; email: string; scopes: string[] };
+
+      // Attach user info to request
+      req.extensionUser = {
+        userId: decoded.sub,
+        email: decoded.email,
+        scopes: decoded.scopes,
+      };
+
+      next();
+    } catch (error: any) {
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: "Token expired" });
+      }
+      if (error.name === 'JsonWebTokenError') {
+        return res.status(401).json({ message: "Invalid token" });
+      }
+      console.error("Extension auth error:", error);
+      res.status(401).json({ message: "Authentication failed" });
+    }
+  };
+
+  // Helper to check if user has required scope
+  const hasScope = (scopes: string[], required: string): boolean => {
+    return scopes.includes(required);
+  };
+
+  // Extension: Verify content by hash
+  app.post('/api/extension/verify', extensionRateLimiter, isExtensionAuthenticated, async (req: any, res) => {
+    try {
+      if (!hasScope(req.extensionUser.scopes, 'extension:verify')) {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const { hash, url } = req.body;
+      
+      if (!hash) {
+        return res.status(400).json({ message: "Hash is required" });
+      }
+
+      const logos = await storage.getLogosByFileHash(hash);
+      
+      if (logos.length === 0) {
+        return res.json({
+          verified: false,
+          registered: false,
+          message: "No registered content found with this hash",
+          checkedAt: new Date().toISOString(),
+          url: url || null,
+        });
+      }
+
+      const original = logos[0];
+      const collection = original.collectionId ? 
+        await storage.getCollection(original.collectionId) : null;
+
+      // Check if current user owns this content
+      const isOwner = original.userId === req.extensionUser.userId;
+
+      res.json({
+        verified: true,
+        registered: true,
+        isOwner,
+        registration: {
+          id: original.id,
+          registrationDate: original.createdAt,
+          fileName: original.fileName,
+          companyName: collection?.companyName || "Unknown",
+          ipfsHash: original.ipfsHash,
+          transactionHash: original.transactionHash,
+          blockNumber: original.blockNumber,
+        },
+        totalRegistrations: logos.length,
+        checkedAt: new Date().toISOString(),
+        url: url || null,
+      });
+    } catch (error) {
+      console.error("Extension verify error:", error);
+      res.status(500).json({ message: "Verification failed" });
+    }
+  });
+
+  // Extension: Get user's portfolio (registered IPs)
+  app.get('/api/extension/portfolio', extensionRateLimiter, isExtensionAuthenticated, async (req: any, res) => {
+    try {
+      if (!hasScope(req.extensionUser.scopes, 'read:portfolio')) {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const userId = req.extensionUser.userId;
+      
+      // Get user's collections with logos
+      const collections = await storage.getCollectionsByUserId(userId);
+      const logos = await storage.getLogosByUserId(userId);
+      
+      // Get stats
+      const stats = await storage.getUserStats(userId);
+
+      res.json({
+        collections: collections.map(c => ({
+          id: c.id,
+          companyName: c.companyName,
+          description: c.description,
+          createdAt: c.createdAt,
+        })),
+        logos: logos.map(l => ({
+          id: l.id,
+          fileName: l.fileName,
+          fileHash: l.fileHash,
+          description: l.description,
+          registrationDate: l.createdAt,
+          ipfsHash: l.ipfsHash,
+          transactionHash: l.transactionHash,
+          collectionId: l.collectionId,
+        })),
+        stats: {
+          totalLogos: stats.totalLogos || 0,
+          totalCollections: stats.totalCollections || 0,
+        },
+        retrievedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Extension portfolio error:", error);
+      res.status(500).json({ message: "Failed to fetch portfolio" });
+    }
+  });
+
+  // Extension: Quick register (for content detected on pages)
+  app.post('/api/extension/register', extensionRateLimiter, extensionRegisterRateLimiter, isExtensionAuthenticated, upload.single('file'), async (req: any, res) => {
+    try {
+      if (!hasScope(req.extensionUser.scopes, 'extension:register')) {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+
+      const userId = req.extensionUser.userId;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check subscription status
+      if (!user.subscriptionStatus || user.subscriptionStatus !== 'active') {
+        return res.status(403).json({ 
+          message: "Active subscription required",
+          code: "SUBSCRIPTION_REQUIRED"
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "File is required" });
+      }
+
+      const { collectionId, description, sourceUrl } = req.body;
+
+      // Generate file hash
+      const fileHash = createHash('sha256').update(req.file.buffer).digest('hex');
+
+      // Check if already registered
+      const existing = await storage.getLogosByFileHash(fileHash);
+      if (existing.length > 0) {
+        const isOwner = existing[0].userId === userId;
+        return res.status(409).json({
+          message: "Content already registered",
+          isOwner,
+          existingRegistration: {
+            id: existing[0].id,
+            registrationDate: existing[0].createdAt,
+          }
+        });
+      }
+
+      // Create the registration
+      const logoId = randomUUID();
+      const logo = await storage.createLogo({
+        id: logoId,
+        userId,
+        collectionId: collectionId || null,
+        fileName: req.file.originalname,
+        fileHash,
+        fileData: req.file.buffer,
+        mimeType: req.file.mimetype,
+        fileSize: req.file.size,
+        description: description || `Registered via extension from ${sourceUrl || 'unknown source'}`,
+        ownershipDescription: "Registered via Solturio browser extension",
+        intendedUse: "Digital content protection",
+      });
+
+      auditLogger.log({
+        action: 'extension_register',
+        userId,
+        details: { 
+          logoId, 
+          fileName: req.file.originalname,
+          sourceUrl 
+        }
+      });
+
+      res.status(201).json({
+        success: true,
+        registration: {
+          id: logo.id,
+          fileName: logo.fileName,
+          fileHash: logo.fileHash,
+          registrationDate: logo.createdAt,
+        },
+        message: "Content registered successfully",
+      });
+    } catch (error) {
+      console.error("Extension register error:", error);
+      res.status(500).json({ message: "Registration failed" });
+    }
+  });
+
+  // Extension: Get user info (for extension UI)
+  app.get('/api/extension/me', extensionRateLimiter, isExtensionAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.extensionUser.userId;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl,
+        subscriptionStatus: user.subscriptionStatus,
+        scopes: req.extensionUser.scopes,
+      });
+    } catch (error) {
+      console.error("Extension me error:", error);
+      res.status(500).json({ message: "Failed to fetch user info" });
     }
   });
 
