@@ -1,0 +1,852 @@
+%PDF-1.3
+%ºß¬à
+3 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 5207
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F2 22 Tf
+25.2999999999999972 TL
+0 g
+42.5196850393700814 785.1970866141732586 Td
+(Solturio) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0 g
+42.5196850393700814 762.5199212598424765 Td
+(Decentralized Logo IP Protection Platform) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.392 g
+42.5196850393700814 745.5120472440944468 Td
+(Plant Your Standard on Chain - A CATH Ecosystem project) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0. g
+42.5196850393700814 702.9923622047243725 Td
+(Overview) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 683.1498425196850803 Td
+(Solturio is a decentralized web application that enables creators, brands, and projects to protect their intellectual) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 668.9766141732283131 Td
+(property by registering logos on the blockchain BEFORE public use. By establishing timestamped proof of) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 654.8033858267716596 Td
+(ownership on Solana, Solturio creates an immutable chain of custody that protects against copycats, especially in) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 640.6301574803148924 Td
+(the DeFi/DEX ecosystem where logo theft is rampant.) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0. g
+42.5196850393700814 612.2837007874015853 Td
+(Prerequisites) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 592.4411811023621794 Td
+(- Node.js 18+) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 578.2679527559055259 Td
+(- PostgreSQL database \(Neon serverless recommended\)) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 564.0947244094487587 Td
+(- Pinata account for IPFS storage) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 549.9214960629921052 Td
+(- Solana RPC endpoint \(devnet for testing, mainnet for production\)) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0. g
+42.5196850393700814 521.5750393700786844 Td
+(Environment Variables) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. g
+42.5196850393700814 493.2285826771653205 Td
+(Required:) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 479.0553543307086102 Td
+(DATABASE_URL, PINATA_API_KEY, PINATA_SECRET_KEY, PINATA_JWT, SESSION_SECRET,) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 464.8821259842518998 Td
+(WALLET_ENCRYPTION_KEY) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. g
+42.5196850393700814 436.5356692913385359 Td
+(Optional:) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 422.3624409448818255 Td
+(TELEGRAM_BOT_TOKEN, SENDGRID_API_KEY, SC_API_URL, SC_API_SECRET) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0. g
+42.5196850393700814 394.0159842519684616 Td
+(Installation) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 374.1734645669290558 Td
+(npm install) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 360.0002362204724022 Td
+(npm run db:push) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 345.8270078740156919 Td
+(npm run dev) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 331.6537795275589815 Td
+(The app will be available at http://localhost:5000) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0. g
+42.5196850393700814 303.3073228346455608 Td
+(How to Use) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 283.4648031496062686 Td
+(1. Sign In - Click "Sign In" to authenticate using Replit Auth.) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 269.2915748031495013 Td
+(2. Create a Wallet - Navigate to Account page and create your .solturio.sol wallet) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 255.1183464566928478 Td
+(   - Standard wallet \(e.g., 042.solturio.sol\) - 0.1 SOL) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 240.9451181102361943 Td
+(   - Premium wallet \(e.g., yourname.solturio.sol\) - 0.15 SOL) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 226.7718897637794271 Td
+(3. Upload Logos - Drag & drop images or add URL links) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 212.5986614173227736 Td
+(4. Create Collections - Group related logos with metadata) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 198.4254330708660063 Td
+(5. Mint Collection - Generate verified images, upload to IPFS, create NFT certificate) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 184.2522047244093528 Td
+(6. View Collections - See NFT addresses, IPFS links, and verified previews) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0. g
+42.5196850393700814 155.9057480314959321 Td
+(Key Features) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. g
+42.5196850393700814 127.559291338582625 Td
+(Pre-Registration Workflow) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 113.3860629921258578 Td
+(- Register First, Use Everywhere - Upload logos before launching tokens) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 99.2128346456692043 Td
+(- IPFS Permanent Storage - Decentralized, immutable storage) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 85.0396062992125508 Td
+(- Blockchain Timestamps - Solana-based proof that predates copycats) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 70.8663779527557836 Td
+(- Gold Verification System - Verified logos display gold check badges) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. g
+42.5196850393700814 48.1892125984251152 Td
+(DEX Anti-Copycat Protection) Tj
+ET
+endstream
+endobj
+5 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 6 0 R
+>>
+endobj
+6 0 obj
+<<
+/Length 5136
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 785.1970866141732586 Td
+(- Real-time Verification API - DEX platforms verify logos in <100ms) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 771.0238582677164914 Td
+(- Automatic Copycat Detection - File hash comparison identifies stolen logos) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 756.8506299212598378 Td
+(- DMCA Automation - One-click takedown notices with blockchain evidence) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. g
+42.5196850393700814 734.1734645669291695 Td
+(Authorized Usage Tracking) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 720.0002362204724022 Td
+(- Pre-register official locations where logos will appear) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 705.8270078740157487 Td
+(- Platform-specific tracking across websites, social media, DEXs) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 691.6537795275589815 Td
+(- Verification records for IP disputes) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. g
+42.5196850393700814 668.9766141732283131 Td
+(Legal Documentation) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 654.8033858267716596 Td
+(- Prior Art Certificates - Blockchain-verified proof of first use) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 640.6301574803148924 Td
+(- DMCA Notices - Auto-generated with QR codes) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 626.4569291338582389 Td
+(- Cease & Desist Letters - Professional legal documents) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0. g
+42.5196850393700814 603.7797637795274568 Td
+(IP Education Quiz) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 589.6065354330708033 Td
+(- Telegram Bot with daily quizzes on IP topics) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 575.4333070866141497 Td
+(- Game Points & Experience competitive scoring) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 561.2600787401574962 Td
+(- Leaderboards to track progress) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0. g
+42.5196850393700814 532.9136220472440755 Td
+(Tech Stack) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 513.0711023622046696 Td
+(Frontend: React 18, TypeScript, Vite, TailwindCSS, shadcn/ui) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 498.8978740157479592 Td
+(Backend: Node.js, Express, TypeScript) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 484.7246456692913057 Td
+(Database: PostgreSQL \(Neon serverless\), Drizzle ORM) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 470.5514173228345953 Td
+(Blockchain: Solana, Metaplex SDK) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 456.378188976377885 Td
+(Storage: IPFS \(via Pinata\), user-controlled .solturio.sol wallets) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 442.2049606299212314 Td
+(Authentication: Replit Auth \(OpenID Connect\)) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 428.0317322834645211 Td
+(Bot: Telegraf for Telegram quiz bot) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0. g
+42.5196850393700814 399.6852755905511003 Td
+(Target Users) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 379.8427559055117513 Td
+(- Token Creators - Protect logos/tickers before token launch) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 365.6695275590550409 Td
+(- NFT Collections - Establish provenance for artwork and branding) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 351.4962992125983874 Td
+(- DEX Platforms - Integrate verification to protect users from scams) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 337.323070866141677 Td
+(- Brand Owners - Document IP ownership with blockchain proof) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 323.1498425196849666 Td
+(- Artists & Designers - Register artwork with timestamped proof) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0. g
+42.5196850393700814 294.8033858267715459 Td
+(Payment) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 274.9608661417322537 Td
+(Solturio runs on $CATH \(CATH Ecosystem\):) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 260.7876377952754865 Td
+(- IP Registration: 100 $CATH tokens) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 246.614409448818833 Td
+(- Standard Wallet: 0.1 SOL) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 232.4411811023621794 Td
+(- Premium Wallet: 0.15 SOL) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 218.2679527559054122 Td
+(No fiat payments - crypto only \(SOL, BONK, Arweave, $CATH\).) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0. g
+42.5196850393700814 189.9214960629919915 Td
+(Security) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 170.0789763779526993 Td
+(- Encrypted Wallets - Private keys secured with AES-256-GCM) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 155.9057480314959321 Td
+(- Session Security - HTTP-only cookies, CSRF protection) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 141.7325196850392786 Td
+(- Wallet Restrictions - .solturio.sol wallets only hold certificates and SOL) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 127.559291338582625 Td
+(- Key Handover Ceremony - Multi-stage secure key delivery process) Tj
+ET
+endstream
+endobj
+7 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 8 0 R
+>>
+endobj
+8 0 obj
+<<
+/Length 445
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0. g
+42.5196850393700814 785.1970866141732586 Td
+(License) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+42.5196850393700814 765.3545669291338527 Td
+(Proprietary - Copyright 2025 Cooperanth Consulting LLC. All rights reserved.) Tj
+ET
+BT
+/F4 11 Tf
+12.6499999999999986 TL
+0. g
+42.5196850393700814 722.8348818897637784 Td
+(Solturio - Because in crypto, being first isn't enough. You need proof.) Tj
+ET
+endstream
+endobj
+1 0 obj
+<</Type /Pages
+/Kids [3 0 R 5 0 R 7 0 R ]
+/Count 3
+>>
+endobj
+9 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+10 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+11 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+12 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+13 0 obj
+<<
+/Type /Font
+/BaseFont /Courier
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+14 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+15 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+16 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+17 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Roman
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+18 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+19 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Italic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+20 0 obj
+<<
+/Type /Font
+/BaseFont /Times-BoldItalic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+21 0 obj
+<<
+/Type /Font
+/BaseFont /ZapfDingbats
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+22 0 obj
+<<
+/Type /Font
+/BaseFont /Symbol
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+2 0 obj
+<<
+/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]
+/Font <<
+/F1 9 0 R
+/F2 10 0 R
+/F3 11 0 R
+/F4 12 0 R
+/F5 13 0 R
+/F6 14 0 R
+/F7 15 0 R
+/F8 16 0 R
+/F9 17 0 R
+/F10 18 0 R
+/F11 19 0 R
+/F12 20 0 R
+/F13 21 0 R
+/F14 22 0 R
+>>
+/XObject <<
+>>
+>>
+endobj
+23 0 obj
+<<
+/Producer (jsPDF 4.0.0)
+/CreationDate (D:20260202151540-00'00')
+>>
+endobj
+24 0 obj
+<<
+/Type /Catalog
+/Pages 1 0 R
+/OpenAction [3 0 R /FitH null]
+/PageLayout /OneColumn
+>>
+endobj
+xref
+0 25
+0000000000 65535 f 
+0000011369 00000 n 
+0000013202 00000 n 
+0000000015 00000 n 
+0000000152 00000 n 
+0000005411 00000 n 
+0000005548 00000 n 
+0000010736 00000 n 
+0000010873 00000 n 
+0000011438 00000 n 
+0000011563 00000 n 
+0000011694 00000 n 
+0000011828 00000 n 
+0000011966 00000 n 
+0000012090 00000 n 
+0000012219 00000 n 
+0000012351 00000 n 
+0000012487 00000 n 
+0000012615 00000 n 
+0000012742 00000 n 
+0000012871 00000 n 
+0000013004 00000 n 
+0000013106 00000 n 
+0000013454 00000 n 
+0000013540 00000 n 
+trailer
+<<
+/Size 25
+/Root 24 0 R
+/Info 23 0 R
+/ID [ <4E9AB961EDE86D8190F748411A650014> <4E9AB961EDE86D8190F748411A650014> ]
+>>
+startxref
+13644
+%%EOF
