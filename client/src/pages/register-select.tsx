@@ -118,7 +118,7 @@ export default function RegisterSelect() {
           <CardContent className="p-6">
             <h3 className="font-semibold mb-2 text-lg">Why We Ask These Questions</h3>
             <p className="text-sm text-muted-foreground">
-              The smart questionnaires we use are designed by legal and blockchain experts to establish "full intent" and create the strongest possible intellectual property protection. The more complete your registration, the better we can defend your rights.
+              Our questionnaires are designed to record intent and create a verifiable timeline of your project (who, what, when, and why). This registration does not grant IP rights or legal protection, but a more complete submission creates stronger evidence and clearer attribution if your work is ever challenged.
             </p>
           </CardContent>
         </Card>
