@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState, useMemo } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocation } from "wouter";
@@ -17,7 +17,121 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Rocket, Upload, AlertTriangle, ArrowLeft, Loader2 } from "lucide-react";
+
+// Token category definitions with descriptions
+const TOKEN_CATEGORIES = {
+  meme: {
+    label: "Meme Token",
+    description: "Community-driven, culture and engagement focused",
+    baseSummary: "A community-first meme token designed for culture and engagement.",
+  },
+  utility: {
+    label: "Utility Token",
+    description: "Powers access and core actions in a product/protocol",
+    baseSummary: "A utility token that powers access and core actions in our product/protocol.",
+  },
+  rewards: {
+    label: "Rewards Token",
+    description: "Incentivizes usage, participation, and engagement",
+    baseSummary: "A rewards token designed to incentivize usage and participation.",
+  },
+  governance: {
+    label: "Governance Token",
+    description: "Used to vote on protocol and treasury decisions",
+    baseSummary: "A governance token used to vote on protocol and treasury decisions.",
+  },
+  payment: {
+    label: "Payment Token",
+    description: "Used to purchase goods/services within ecosystem",
+    baseSummary: "A payment token used to purchase goods/services within our ecosystem.",
+  },
+  nft_membership: {
+    label: "NFT/Membership Token",
+    description: "Token-gated access, perks, and membership benefits",
+    baseSummary: "A membership asset used for token-gated access and perks.",
+  },
+  stablecoin: {
+    label: "Stablecoin",
+    description: "Price-stable token designed to track a defined peg",
+    baseSummary: "A price-stable token designed to track a defined peg.",
+  },
+  lp_vault: {
+    label: "LP/Vault Receipt",
+    description: "Represents a liquidity or vault position",
+    baseSummary: "A receipt token representing a liquidity or vault position.",
+  },
+  experimental: {
+    label: "Experimental/Test",
+    description: "For testing, demos, and early iterations",
+    baseSummary: "An experimental token for testing, demos, and early iterations.",
+  },
+  other: {
+    label: "Other",
+    description: "Custom intent defined by the project team",
+    baseSummary: "A token with a custom intent defined by the project team.",
+  },
+} as const;
+
+// Token uses/tags with their clause mappings
+const TOKEN_USES = {
+  access: {
+    label: "Access / Token-gating",
+    clause: "used to unlock features and gated access",
+  },
+  protocol_fees: {
+    label: "Protocol Fees",
+    clause: "used to pay protocol or usage fees",
+  },
+  rewards_emissions: {
+    label: "Rewards / Emissions",
+    clause: "distributed through rewards, incentives, or airdrops",
+  },
+  staking: {
+    label: "Staking / Bonding",
+    clause: "used for staking, bonding, or security participation",
+  },
+  governance_voting: {
+    label: "Governance / Voting",
+    clause: "used for governance and voting",
+  },
+  payments: {
+    label: "Payments / Subscriptions",
+    clause: "used for payments and subscriptions",
+  },
+  liquidity: {
+    label: "Liquidity / LP Incentives",
+    clause: "used to bootstrap or reward liquidity",
+  },
+  collectibles: {
+    label: "Collectibles / Perks",
+    clause: "used for collectibles, perks, or membership benefits",
+  },
+} as const;
+
+type TokenCategory = keyof typeof TOKEN_CATEGORIES;
+type TokenUse = keyof typeof TOKEN_USES;
+
+// Generate 1-liner summary based on category and uses
+function generateTokenSummary(category: TokenCategory | undefined, uses: TokenUse[]): string {
+  if (!category) return "";
+  
+  const categoryInfo = TOKEN_CATEGORIES[category];
+  let summary = categoryInfo.baseSummary;
+  
+  if (uses.length === 0) return summary;
+  
+  const useClauses = uses.slice(0, 2).map(use => TOKEN_USES[use].clause);
+  
+  if (category === "meme") {
+    summary += ` Utility (if any) includes ${useClauses.join(" and ")}.`;
+  } else {
+    summary += ` It is ${useClauses.join(", and ")}.`;
+  }
+  
+  return summary;
+}
 
 const tokenLaunchSchema = z.object({
   file: z.any().refine((files) => files?.length > 0, "Please upload your token artwork"),
@@ -30,7 +144,9 @@ const tokenLaunchSchema = z.object({
   launchTimeline: z.string().min(1, "Please select when you will launch"),
   launchPlatform: z.string().min(1, "Please select where you will launch"),
   
-  tokenType: z.enum(["meme", "utility"], { required_error: "Please select token type" }),
+  tokenCategory: z.enum(["meme", "utility", "rewards", "governance", "payment", "nft_membership", "stablecoin", "lp_vault", "experimental", "other"], { required_error: "Please select token category" }),
+  tokenUses: z.array(z.enum(["access", "protocol_fees", "rewards_emissions", "staking", "governance_voting", "payments", "liquidity", "collectibles"])).max(2, "Select up to 2 uses").default([]),
+  generatedSummary: z.string().optional(),
   
   totalSupply: z.string().min(1, "Please specify total supply"),
   tokenomicsDetails: z.string().min(30, "Please describe tokenomics (minimum 30 characters)"),
@@ -71,8 +187,17 @@ export default function RegisterTokenLaunch() {
     defaultValues: {
       supplyLocked: "no",
       twitterHandle: user?.twitterHandle || "",
+      tokenUses: [],
     },
   });
+
+  // Watch token category and uses to generate summary
+  const tokenCategory = useWatch({ control: form.control, name: "tokenCategory" });
+  const tokenUses = useWatch({ control: form.control, name: "tokenUses" }) || [];
+  
+  const generatedSummary = useMemo(() => {
+    return generateTokenSummary(tokenCategory as TokenCategory, tokenUses as TokenUse[]);
+  }, [tokenCategory, tokenUses]);
 
   const uploadMutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -110,7 +235,9 @@ export default function RegisterTokenLaunch() {
     
     const registrationData = {
       projectSummary: values.projectSummary,
-      tokenType: values.tokenType,
+      tokenCategory: values.tokenCategory,
+      tokenUses: values.tokenUses || [],
+      generatedSummary: generatedSummary,
       totalSupply: values.totalSupply,
       tokenomicsDetails: values.tokenomicsDetails,
       supplyLocked: values.supplyLocked,
@@ -366,37 +493,88 @@ export default function RegisterTokenLaunch() {
 
               <Separator />
 
-              {/* Token Type */}
+              {/* Token Category */}
               <FormField
                 control={form.control}
-                name="tokenType"
+                name="tokenCategory"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold">3. Is this a meme token or utility token? *</FormLabel>
+                    <FormLabel className="font-semibold">3. What type of token is this? *</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="flex flex-col space-y-3"
+                        className="grid grid-cols-1 md:grid-cols-2 gap-3"
                       >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="meme" id="type-meme" data-testid="radio-token-type-meme" />
-                          <Label htmlFor="type-meme" className="font-normal cursor-pointer">
-                            Meme token (community-driven, entertainment value)
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="utility" id="type-utility" data-testid="radio-token-type-utility" />
-                          <Label htmlFor="type-utility" className="font-normal cursor-pointer">
-                            Utility token (provides specific function, service, or access)
-                          </Label>
-                        </div>
+                        {Object.entries(TOKEN_CATEGORIES).map(([key, { label, description }]) => (
+                          <div key={key} className="flex items-start space-x-2 p-2 rounded-md hover-elevate">
+                            <RadioGroupItem value={key} id={`category-${key}`} data-testid={`radio-token-category-${key}`} className="mt-0.5" />
+                            <Label htmlFor={`category-${key}`} className="font-normal cursor-pointer">
+                              <span className="font-medium">{label}</span>
+                              <span className="block text-sm text-muted-foreground">{description}</span>
+                            </Label>
+                          </div>
+                        ))}
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {/* Token Uses */}
+              <FormField
+                control={form.control}
+                name="tokenUses"
+                render={() => (
+                  <FormItem>
+                    <FormLabel className="font-semibold">3b. What will this token be used for? (select up to 2)</FormLabel>
+                    <FormDescription className="mt-1 mb-3">
+                      Optional - helps generate a more specific token description
+                    </FormDescription>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {Object.entries(TOKEN_USES).map(([key, { label }]) => (
+                        <FormField
+                          key={key}
+                          control={form.control}
+                          name="tokenUses"
+                          render={({ field }) => (
+                            <FormItem className="flex items-center space-x-2 p-2 rounded-md hover-elevate">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(key as TokenUse)}
+                                  onCheckedChange={(checked) => {
+                                    const current = field.value || [];
+                                    if (checked) {
+                                      if (current.length < 2) {
+                                        field.onChange([...current, key]);
+                                      }
+                                    } else {
+                                      field.onChange(current.filter((v: string) => v !== key));
+                                    }
+                                  }}
+                                  disabled={!field.value?.includes(key as TokenUse) && (field.value?.length || 0) >= 2}
+                                  data-testid={`checkbox-token-use-${key}`}
+                                />
+                              </FormControl>
+                              <Label className="font-normal cursor-pointer text-sm">{label}</Label>
+                            </FormItem>
+                          )}
+                        />
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Generated Summary Preview */}
+              {generatedSummary && (
+                <div className="p-4 bg-muted rounded-lg">
+                  <Label className="text-sm font-medium text-muted-foreground">Auto-generated Token Description</Label>
+                  <p className="mt-1 text-sm">{generatedSummary}</p>
+                </div>
+              )}
 
               <Separator />
 
