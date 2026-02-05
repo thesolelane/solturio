@@ -72,6 +72,12 @@ export const validateCsrfToken: RequestHandler = (req, res, next) => {
     return next();
   }
 
+  // Skip CSRF validation for watermark API (public verification endpoints only)
+  const publicWatermarkRoutes = ['/api/watermark/verify', '/api/watermark/extract-hash', '/api/watermark/supported-types'];
+  if (publicWatermarkRoutes.includes(req.path)) {
+    return next();
+  }
+
   const sessionToken = req.session.csrfToken;
   const headerToken = req.headers[CSRF_HEADER_NAME] as string;
 
