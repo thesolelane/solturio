@@ -220,6 +220,15 @@ export const logos = pgTable("logos", {
   launchPlatform: varchar("launch_platform", { length: 50 }), // 'pumpfun', 'raydium', 'jupiter', etc.
   launchTimeline: varchar("launch_timeline", { length: 50 }), // '1_month', '1_2_months', '2plus_months'
   
+  // Contract Address (added post-launch when token is deployed)
+  tokenContractAddress: varchar("token_contract_address", { length: 100 }), // Solana CA
+  tokenContractChain: varchar("token_contract_chain", { length: 20 }), // 'solana', 'ethereum', etc.
+  tokenContractAddedAt: timestamp("token_contract_added_at"), // When CA was bound
+  tokenPoolAddress: varchar("token_pool_address", { length: 100 }), // Optional: DEX pool/pair address
+  
+  // Verified media versions (with embedded CA metadata)
+  verifiedMediaVersions: jsonb("verified_media_versions"), // Array of { type, originalHash, verifiedHash, ipfsHash, timestamp }
+  
   // 24-Hour Ticker Verification System
   tickerVerificationUrls: text("ticker_verification_urls").array(), // Social media URLs proving usage
   tickerVerified: boolean("ticker_verified").default(false),

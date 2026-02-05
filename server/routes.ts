@@ -1531,6 +1531,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         launchPlatform: req.body.launchPlatform,
         launchTimeline: req.body.launchTimeline,
         
+        // Contract address (optional - can be added post-launch)
+        tokenContractAddress: req.body.tokenContractAddress || null,
+        tokenContractChain: req.body.tokenContractChain || null,
+        tokenPoolAddress: req.body.tokenPoolAddress || null,
+        tokenContractAddedAt: req.body.tokenContractAddress ? new Date() : null,
+        
         // 24-hour ticker verification (starts after registration)
         tickerVerified: false,
         tickerVerificationStartedAt: new Date(),
@@ -1561,6 +1567,222 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error registering token:", error);
       res.status(500).json({ message: error.message || "Failed to register token" });
+    }
+  });
+
+  // Update Contract Address (Post-launch)
+  app.post('/api/logos/:id/bind-contract', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const logoId = req.params.id;
+      const { tokenContractAddress, tokenContractChain, tokenPoolAddress } = req.body;
+
+      // Validate contract address
+      if (!tokenContractAddress || typeof tokenContractAddress !== 'string') {
+        return res.status(400).json({ message: "Contract address is required" });
+      }
+      if (tokenContractAddress.length < 20 || tokenContractAddress.length > 100) {
+        return res.status(400).json({ message: "Invalid contract address length" });
+      }
+      
+      // Validate chain
+      const validChains = ['solana', 'ethereum', 'base', 'arbitrum', 'polygon', 'other'];
+      if (tokenContractChain && !validChains.includes(tokenContractChain)) {
+        return res.status(400).json({ message: "Invalid chain specified" });
+      }
+
+      // Get existing logo and verify ownership
+      const logo = await storage.getLogo(logoId);
+      if (!logo) {
+        return res.status(404).json({ message: "Logo not found" });
+      }
+      if (logo.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized to update this registration" });
+      }
+      if (logo.registrationType !== 'token_launch') {
+        return res.status(400).json({ message: "Only token registrations can bind contract addresses" });
+      }
+
+      // Update the logo with contract address
+      const updatedLogo = await storage.updateLogo(logoId, {
+        tokenContractAddress,
+        tokenContractChain: tokenContractChain || 'solana',
+        tokenPoolAddress: tokenPoolAddress || null,
+        tokenContractAddedAt: new Date(),
+      });
+
+      res.json({
+        message: "Contract address bound successfully",
+        logo: updatedLogo,
+        canBindToMedia: true,
+      });
+    } catch (error: any) {
+      console.error("Error binding contract:", error);
+      res.status(500).json({ message: error.message || "Failed to bind contract" });
+    }
+  });
+
+  // Generate Verified Media Copies with Embedded CA Metadata
+  app.post('/api/logos/:id/generate-verified-media', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const logoId = req.params.id;
+      const { assetTypes } = req.body; // ['logo', 'banner', 'pfp', etc.]
+
+      // Get existing logo and verify ownership
+      const logo = await storage.getLogo(logoId);
+      if (!logo) {
+        return res.status(404).json({ message: "Logo not found" });
+      }
+      if (logo.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      if (!logo.tokenContractAddress) {
+        return res.status(400).json({ 
+          message: "Contract address must be bound first. Use /bind-contract endpoint." 
+        });
+      }
+
+      // Build verification metadata to embed
+      const verificationMetadata = {
+        chain: logo.tokenContractChain || 'solana',
+        contractAddress: logo.tokenContractAddress,
+        poolAddress: logo.tokenPoolAddress || null,
+        projectId: logo.id,
+        snapshotId: logo.fileHash,
+        timestamp: new Date().toISOString(),
+        registeredAt: logo.ownershipClaimedAt?.toISOString(),
+        tokenName: logo.tokenName,
+        tokenTicker: logo.tokenTicker,
+        fileHash: logo.fileHash,
+        verificationUrl: `https://solturio.app/verify/${logo.id}`,
+      };
+
+      // Store the verified media version info
+      const existingVersions = (logo.verifiedMediaVersions as any[]) || [];
+      const newVersion = {
+        type: assetTypes?.[0] || 'logo',
+        originalHash: logo.fileHash,
+        verifiedHash: `${logo.fileHash}_ca_${logo.tokenContractAddress?.slice(0, 8)}`,
+        metadata: verificationMetadata,
+        createdAt: new Date().toISOString(),
+      };
+
+      const updatedVersions = [...existingVersions, newVersion];
+
+      await storage.updateLogo(logoId, {
+        verifiedMediaVersions: updatedVersions,
+      });
+
+      res.json({
+        message: "Verification record created",
+        verifiedVersion: newVersion,
+        metadata: verificationMetadata,
+        downloadUrl: `/api/logos/${logoId}/download-verified`,
+        note: "Download the verification manifest to get a JSON file containing chain, contract address, project ID, timestamp, and file hash. Keep this alongside your original files as proof of ownership.",
+      });
+    } catch (error: any) {
+      console.error("Error creating verification record:", error);
+      res.status(500).json({ message: error.message || "Failed to create verification record" });
+    }
+  });
+
+  // Download Verification Manifest
+  app.get('/api/logos/:id/download-verified', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const logoId = req.params.id;
+
+      const logo = await storage.getLogo(logoId);
+      if (!logo) {
+        return res.status(404).json({ message: "Logo not found" });
+      }
+      if (logo.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+
+      // If no CA bound, return error
+      if (!logo.tokenContractAddress) {
+        return res.status(400).json({ 
+          message: "Contract address must be bound first before downloading the verification manifest." 
+        });
+      }
+
+      const verifiedVersions = (logo.verifiedMediaVersions as any[]) || [];
+      if (verifiedVersions.length === 0) {
+        // Generate on-the-fly if CA is bound but no version exists
+        const verificationManifest = {
+          version: "1.0",
+          type: "solturio_verification_manifest",
+          generated: new Date().toISOString(),
+          token: {
+            name: logo.tokenName,
+            ticker: logo.tokenTicker,
+            chain: logo.tokenContractChain || 'solana',
+            contractAddress: logo.tokenContractAddress,
+            poolAddress: logo.tokenPoolAddress || null,
+          },
+          registration: {
+            projectId: logo.id,
+            registeredAt: logo.ownershipClaimedAt?.toISOString(),
+            caBoundAt: logo.tokenContractAddedAt?.toISOString(),
+          },
+          media: {
+            originalFileName: logo.fileName,
+            fileHash: logo.fileHash,
+            dimensions: `${logo.width}x${logo.height}`,
+            format: logo.format,
+          },
+          verification: {
+            url: `https://solturio.app/verify/${logo.id}`,
+            signature: createHash('sha256').update(`${logo.id}:${logo.fileHash}:${logo.tokenContractAddress}`).digest('hex'),
+          },
+        };
+
+        // Set headers for file download
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="${logo.tokenTicker || 'token'}_verification_manifest.json"`);
+        return res.send(JSON.stringify(verificationManifest, null, 2));
+      }
+
+      // If versions exist, return the latest one as a downloadable manifest
+      const latestVersion = verifiedVersions[verifiedVersions.length - 1];
+      const verificationManifest = {
+        version: "1.0",
+        type: "solturio_verification_manifest",
+        generated: new Date().toISOString(),
+        token: {
+          name: logo.tokenName,
+          ticker: logo.tokenTicker,
+          chain: logo.tokenContractChain || 'solana',
+          contractAddress: logo.tokenContractAddress,
+          poolAddress: logo.tokenPoolAddress || null,
+        },
+        registration: {
+          projectId: logo.id,
+          registeredAt: logo.ownershipClaimedAt?.toISOString(),
+          caBoundAt: logo.tokenContractAddedAt?.toISOString(),
+        },
+        media: {
+          originalFileName: logo.fileName,
+          fileHash: logo.fileHash,
+          dimensions: `${logo.width}x${logo.height}`,
+          format: logo.format,
+        },
+        verifiedVersions,
+        verification: {
+          url: `https://solturio.app/verify/${logo.id}`,
+          signature: createHash('sha256').update(`${logo.id}:${logo.fileHash}:${logo.tokenContractAddress}`).digest('hex'),
+        },
+      };
+
+      // Set headers for file download
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="${logo.tokenTicker || 'token'}_verification_manifest.json"`);
+      res.send(JSON.stringify(verificationManifest, null, 2));
+    } catch (error: any) {
+      console.error("Error downloading verification manifest:", error);
+      res.status(500).json({ message: error.message || "Failed to download manifest" });
     }
   });
 

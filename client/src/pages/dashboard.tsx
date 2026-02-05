@@ -446,6 +446,50 @@ export default function Dashboard() {
                         </div>
                       )}
 
+                      {/* Contract Address Status - Token Registrations Only */}
+                      {logo.registrationType === 'token_launch' && (
+                        <div className="pt-2 border-t">
+                          {(logo as any).tokenContractAddress ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <Badge variant="default" className="text-xs">CA Bound</Badge>
+                                <span className="text-xs text-muted-foreground">{(logo as any).tokenContractChain || 'solana'}</span>
+                              </div>
+                              <code className="text-xs font-mono bg-muted px-2 py-1 rounded block truncate" title={(logo as any).tokenContractAddress}>
+                                {(logo as any).tokenContractAddress?.slice(0, 12)}...
+                              </code>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full text-xs"
+                                onClick={() => window.open(`/api/logos/${logo.id}/download-verified`, '_blank')}
+                                data-testid={`button-download-verified-${logo.id}`}
+                              >
+                                Download Verification Manifest
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              <Badge variant="secondary" className="text-xs">Pre-launch: No CA</Badge>
+                              <p className="text-xs text-muted-foreground">
+                                Add contract address after deployment to create a verification record.
+                              </p>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full text-xs"
+                                asChild
+                                data-testid={`button-bind-ca-${logo.id}`}
+                              >
+                                <Link href={`/bind-contract/${logo.id}`}>
+                                  Bind Contract Address
+                                </Link>
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       {/* NFT Status & Mint Button */}
                       <div className="space-y-2">
                         {logo.nftAddress ? (

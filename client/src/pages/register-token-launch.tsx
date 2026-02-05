@@ -265,6 +265,11 @@ const tokenLaunchSchema = z.object({
   lockDuration: z.string().optional(),
   
   twitterHandle: z.string().min(1, "Twitter/X handle is required for verification").regex(/^@?[A-Za-z0-9_]+$/, "Invalid Twitter handle"),
+  
+  // Optional - Contract Address (can be added post-launch)
+  tokenContractAddress: z.string().optional(),
+  tokenContractChain: z.enum(["solana", "ethereum", "base", "arbitrum", "polygon", "other"]).optional(),
+  tokenPoolAddress: z.string().optional(),
 });
 
 type TokenLaunchFormValues = z.infer<typeof tokenLaunchSchema>;
@@ -377,11 +382,25 @@ export default function RegisterTokenLaunch() {
       supplyLocked: values.supplyLocked,
       lockDuration: values.lockDuration || null,
       twitterHandle: values.twitterHandle,
+      tokenContractAddress: values.tokenContractAddress || null,
+      tokenContractChain: values.tokenContractChain || null,
+      tokenPoolAddress: values.tokenPoolAddress || null,
     };
     
     formData.append("registrationData", JSON.stringify(registrationData));
     formData.append("description", values.projectSummary);
     formData.append("intendedUse", `Token launch on ${values.launchPlatform}. ${values.tokenomicsDetails}`);
+    
+    // Add contract address fields directly to formData for backend processing
+    if (values.tokenContractAddress) {
+      formData.append("tokenContractAddress", values.tokenContractAddress);
+    }
+    if (values.tokenContractChain) {
+      formData.append("tokenContractChain", values.tokenContractChain);
+    }
+    if (values.tokenPoolAddress) {
+      formData.append("tokenPoolAddress", values.tokenPoolAddress);
+    }
     
     uploadMutation.mutate(formData);
   };
@@ -714,6 +733,86 @@ export default function RegisterTokenLaunch() {
                   </FormItem>
                 )}
               />
+
+              <Separator />
+
+              {/* Contract Address - Optional Pre-launch */}
+              <div className="space-y-4 p-4 bg-muted/50 rounded-lg border border-dashed">
+                <div className="flex items-center gap-2">
+                  <Label className="font-semibold text-base">Contract Address (Optional)</Label>
+                  <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
+                    Pre-launch: CA not available yet? That's OK
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Most projects don't have a contract address until launch. You can add it later and bind it to your media metadata.
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="tokenContractChain"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Chain</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-contract-chain">
+                              <SelectValue placeholder="Select chain" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="solana">Solana</SelectItem>
+                            <SelectItem value="ethereum">Ethereum</SelectItem>
+                            <SelectItem value="base">Base</SelectItem>
+                            <SelectItem value="arbitrum">Arbitrum</SelectItem>
+                            <SelectItem value="polygon">Polygon</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="tokenContractAddress"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contract Address</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="e.g., 7xKX..." 
+                            {...field} 
+                            data-testid="input-contract-address"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="tokenPoolAddress"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Pool/Pair Address (Optional)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="DEX liquidity pool address (if available)" 
+                          {...field} 
+                          data-testid="input-pool-address"
+                        />
+                      </FormControl>
+                      <FormDescription>Add your DEX pool address for enhanced verification</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <Separator />
 
