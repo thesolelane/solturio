@@ -65,49 +65,53 @@ export default function RegisterSelect() {
           </CardContent>
         </Card>
 
-        {/* Artwork/Logo Template */}
+        {/* Creative Works Template */}
         <Card className="hover-elevate cursor-pointer transition-all" onClick={() => setLocation("/register/artwork")}>
           <CardHeader className="space-y-4">
             <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
               <Palette className="w-8 h-8 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-2xl mb-2">Artwork / Logo</CardTitle>
+              <CardTitle className="text-2xl mb-2">Creative Works</CardTitle>
               <CardDescription className="text-base">
-                Protect individual artwork, logos, or designs with licensing options
+                Register artwork, logos, audio, books, code, drawings, plans, and other creative works
               </CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <p className="font-semibold text-sm">You'll register:</p>
+              <p className="font-semibold text-sm">You can register:</p>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Original artwork or logo files</span>
+                  <span>Artwork, logos, illustrations, designs</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Creator information and rights</span>
+                  <span>Audio files, music, sound effects</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Licensing and usage plans</span>
+                  <span>Books, manuscripts, written works</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>NFT minting preferences</span>
+                  <span>Source code, software, algorithms</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Drawings, blueprints, technical plans</span>
                 </li>
               </ul>
             </div>
             <div className="pt-4 border-t">
               <p className="text-sm font-semibold mb-2 text-foreground">Best for:</p>
               <p className="text-sm text-muted-foreground">
-                Individual artists, designers, brands protecting logos, client work with licensing badges
+                Artists, designers, musicians, authors, developers, architects - anyone with original creative work to protect
               </p>
             </div>
             <Button className="w-full" size="lg" variant="outline" data-testid="button-select-artwork">
-              Register Artwork
+              Register Creative Work
             </Button>
           </CardContent>
         </Card>
