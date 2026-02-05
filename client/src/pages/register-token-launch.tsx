@@ -25,7 +25,7 @@ const tokenLaunchSchema = z.object({
   tokenName: z.string().min(2, "Token name must be at least 2 characters").max(100),
   tokenTicker: z.string().min(1, "Ticker is required").max(10, "Ticker must be 10 characters or less").regex(/^[A-Z0-9]+$/, "Ticker must be uppercase letters and numbers only"),
   
-  projectSummary: z.string().min(10, "Summary must be at least 10 characters").max(300, "Summary must be 300 characters or less"),
+  projectSummary: z.string().min(10, "Summary must be at least 10 characters").max(1500, "Summary must be 1500 characters or less"),
   
   launchTimeline: z.string().min(1, "Please select when you will launch"),
   launchPlatform: z.string().min(1, "Please select where you will launch"),
@@ -279,15 +279,15 @@ export default function RegisterTokenLaunch() {
                     <FormLabel>Brief Project Summary *</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Quick summary of your token project (max 300 characters)..."
-                        rows={3}
-                        maxLength={300}
+                        placeholder="Describe your token project..."
+                        rows={5}
+                        maxLength={1500}
                         {...field}
                         data-testid="textarea-project-summary"
                       />
                     </FormControl>
                     <FormDescription>
-                      Maximum 300 characters - {field.value?.length || 0}/300
+                      {field.value?.length || 0}/1500 characters
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
