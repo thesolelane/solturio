@@ -20,6 +20,53 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Rocket, Upload, AlertTriangle, ArrowLeft, Loader2 } from "lucide-react";
 
+// Generate ticker deviations for protection
+function generateTickerDeviations(ticker: string): string[] {
+  if (!ticker || ticker.length < 2) return [];
+  
+  const clean = ticker.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const deviations = new Set<string>();
+  
+  // Base forms
+  deviations.add(clean);                    // CATH
+  deviations.add(`$${clean}`);              // $CATH
+  
+  // Dotted form: C.A.T.H.
+  const dotted = clean.split('').join('.');
+  deviations.add(dotted);                   // C.A.T.H
+  deviations.add(`${dotted}.`);             // C.A.T.H.
+  deviations.add(`$${dotted}`);             // $C.A.T.H
+  deviations.add(`$${dotted}.`);            // $C.A.T.H.
+  
+  // Common substitutions
+  const substitutions: Record<string, string[]> = {
+    'A': ['4', '@'],
+    'E': ['3'],
+    'I': ['1', '!'],
+    'O': ['0'],
+    'S': ['5', '$'],
+    'T': ['7'],
+    'B': ['8'],
+    'G': ['6', '9'],
+  };
+  
+  // Generate simple substitutions for short tickers
+  if (clean.length <= 5) {
+    for (let i = 0; i < clean.length; i++) {
+      const char = clean[i];
+      if (substitutions[char]) {
+        for (const sub of substitutions[char]) {
+          const variant = clean.substring(0, i) + sub + clean.substring(i + 1);
+          deviations.add(variant);
+          deviations.add(`$${variant}`);
+        }
+      }
+    }
+  }
+  
+  return Array.from(deviations);
+}
+
 // Token category definitions with descriptions
 const TOKEN_CATEGORIES = {
   meme: {
@@ -138,6 +185,7 @@ const tokenLaunchSchema = z.object({
   
   tokenName: z.string().min(2, "Token name must be at least 2 characters").max(100),
   tokenTicker: z.string().min(1, "Ticker is required").max(10, "Ticker must be 10 characters or less").regex(/^[A-Z0-9]+$/, "Ticker must be uppercase letters and numbers only"),
+  includeDollarSign: z.boolean().default(true),
   
   projectSummary: z.string().min(10, "Summary must be at least 10 characters").max(1500, "Summary must be 1500 characters or less"),
   
@@ -188,16 +236,30 @@ export default function RegisterTokenLaunch() {
       supplyLocked: "no",
       twitterHandle: user?.twitterHandle || "",
       tokenUses: [],
+      includeDollarSign: true,
     },
   });
 
   // Watch token category and uses to generate summary
   const tokenCategory = useWatch({ control: form.control, name: "tokenCategory" });
   const tokenUses = useWatch({ control: form.control, name: "tokenUses" }) || [];
+  const tokenTicker = useWatch({ control: form.control, name: "tokenTicker" });
+  const includeDollarSign = useWatch({ control: form.control, name: "includeDollarSign" });
   
   const generatedSummary = useMemo(() => {
     return generateTokenSummary(tokenCategory as TokenCategory, tokenUses as TokenUse[]);
   }, [tokenCategory, tokenUses]);
+
+  // Generate ticker deviations for display
+  const tickerDeviations = useMemo(() => {
+    return generateTickerDeviations(tokenTicker || '');
+  }, [tokenTicker]);
+
+  // Format display ticker with optional $
+  const displayTicker = useMemo(() => {
+    if (!tokenTicker) return '';
+    return includeDollarSign ? `$${tokenTicker.toUpperCase()}` : tokenTicker.toUpperCase();
+  }, [tokenTicker, includeDollarSign]);
 
   const uploadMutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -238,6 +300,9 @@ export default function RegisterTokenLaunch() {
       tokenCategory: values.tokenCategory,
       tokenUses: values.tokenUses || [],
       generatedSummary: generatedSummary,
+      includeDollarSign: values.includeDollarSign,
+      displayTicker: displayTicker,
+      tickerDeviations: tickerDeviations,
       totalSupply: values.totalSupply,
       tokenomicsDetails: values.tokenomicsDetails,
       supplyLocked: values.supplyLocked,
@@ -383,20 +448,82 @@ export default function RegisterTokenLaunch() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Token Ticker/Symbol *</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="e.g., DRGN" 
-                        {...field} 
-                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                        maxLength={10}
-                        data-testid="input-token-ticker"
-                      />
-                    </FormControl>
+                    <div className="flex items-center gap-2">
+                      <FormControl>
+                        <div className="relative flex-1">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                            {includeDollarSign ? '$' : ''}
+                          </span>
+                          <Input 
+                            placeholder="e.g., DRGN" 
+                            {...field} 
+                            onChange={(e) => field.onChange(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                            maxLength={10}
+                            className={includeDollarSign ? "pl-7" : ""}
+                            data-testid="input-token-ticker"
+                          />
+                        </div>
+                      </FormControl>
+                    </div>
                     <FormDescription>Uppercase letters and numbers only (max 10 characters)</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="includeDollarSign"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="checkbox-include-dollar-sign"
+                      />
+                    </FormControl>
+                    <div>
+                      <FormLabel className="font-normal cursor-pointer">
+                        Include $ prefix in ticker
+                      </FormLabel>
+                      {displayTicker && (
+                        <span className="ml-2 text-sm text-muted-foreground">
+                          (Display as: <span className="font-mono font-medium">{displayTicker}</span>)
+                        </span>
+                      )}
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              {/* Protected Deviations Preview */}
+              {tickerDeviations.length > 0 && (
+                <div className="p-4 bg-muted rounded-lg space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-primary" />
+                    Protected Variations (auto-reserved)
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    These variations will be blocked from registration by others:
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {tickerDeviations.slice(0, 12).map((deviation) => (
+                      <span 
+                        key={deviation} 
+                        className="px-2 py-0.5 bg-background rounded text-xs font-mono border"
+                      >
+                        {deviation}
+                      </span>
+                    ))}
+                    {tickerDeviations.length > 12 && (
+                      <span className="px-2 py-0.5 text-xs text-muted-foreground">
+                        +{tickerDeviations.length - 12} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <FormField
                 control={form.control}
