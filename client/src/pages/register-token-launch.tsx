@@ -67,6 +67,68 @@ function generateTickerDeviations(ticker: string): string[] {
   return Array.from(deviations);
 }
 
+// Generate token name deviations for protection
+function generateNameDeviations(name: string): string[] {
+  if (!name || name.length < 2) return [];
+  
+  const clean = name.trim();
+  const deviations = new Set<string>();
+  
+  // Base forms
+  deviations.add(clean);
+  deviations.add(clean.toLowerCase());
+  deviations.add(clean.toUpperCase());
+  
+  // Common suffixes
+  const suffixes = ['Token', 'Coin', 'Protocol', 'Finance', 'Network', 'DAO', 'Labs', 'IO'];
+  for (const suffix of suffixes) {
+    deviations.add(`${clean} ${suffix}`);
+    deviations.add(`${clean}${suffix}`);
+    deviations.add(`$${clean}`);
+  }
+  
+  // With $ prefix
+  deviations.add(`$${clean}`);
+  deviations.add(`$${clean.toUpperCase()}`);
+  
+  // Common prefixes
+  const prefixes = ['The', 'Official', 'Real', 'True', 'Original'];
+  for (const prefix of prefixes) {
+    deviations.add(`${prefix} ${clean}`);
+  }
+  
+  // Typosquatting variations (double letters, missing letters)
+  const lowerName = clean.toLowerCase();
+  for (let i = 0; i < lowerName.length; i++) {
+    // Double letter
+    const doubled = lowerName.slice(0, i) + lowerName[i] + lowerName.slice(i);
+    deviations.add(doubled);
+    deviations.add(doubled.charAt(0).toUpperCase() + doubled.slice(1));
+    
+    // Missing letter (only if name is long enough)
+    if (lowerName.length > 3) {
+      const missing = lowerName.slice(0, i) + lowerName.slice(i + 1);
+      deviations.add(missing);
+      deviations.add(missing.charAt(0).toUpperCase() + missing.slice(1));
+    }
+  }
+  
+  // Common letter swaps
+  const swaps: Record<string, string> = {
+    'i': 'l', 'l': 'i', 'o': '0', '0': 'o', 'e': '3', 's': '5',
+  };
+  for (let i = 0; i < lowerName.length; i++) {
+    const char = lowerName[i];
+    if (swaps[char]) {
+      const swapped = lowerName.slice(0, i) + swaps[char] + lowerName.slice(i + 1);
+      deviations.add(swapped);
+      deviations.add(swapped.charAt(0).toUpperCase() + swapped.slice(1));
+    }
+  }
+  
+  return Array.from(deviations);
+}
+
 // Token category definitions with descriptions
 const TOKEN_CATEGORIES = {
   meme: {
@@ -244,6 +306,7 @@ export default function RegisterTokenLaunch() {
   const tokenCategory = useWatch({ control: form.control, name: "tokenCategory" });
   const tokenUses = useWatch({ control: form.control, name: "tokenUses" }) || [];
   const tokenTicker = useWatch({ control: form.control, name: "tokenTicker" });
+  const tokenName = useWatch({ control: form.control, name: "tokenName" });
   const includeDollarSign = useWatch({ control: form.control, name: "includeDollarSign" });
   
   const generatedSummary = useMemo(() => {
@@ -254,6 +317,11 @@ export default function RegisterTokenLaunch() {
   const tickerDeviations = useMemo(() => {
     return generateTickerDeviations(tokenTicker || '');
   }, [tokenTicker]);
+
+  // Generate name deviations for display
+  const nameDeviations = useMemo(() => {
+    return generateNameDeviations(tokenName || '');
+  }, [tokenName]);
 
   // Format display ticker with optional $
   const displayTicker = useMemo(() => {
@@ -303,6 +371,7 @@ export default function RegisterTokenLaunch() {
       includeDollarSign: values.includeDollarSign,
       displayTicker: displayTicker,
       tickerDeviations: tickerDeviations,
+      nameDeviations: nameDeviations,
       totalSupply: values.totalSupply,
       tokenomicsDetails: values.tokenomicsDetails,
       supplyLocked: values.supplyLocked,
@@ -441,6 +510,34 @@ export default function RegisterTokenLaunch() {
                   </FormItem>
                 )}
               />
+
+              {/* Protected Name Variations Preview */}
+              {nameDeviations.length > 0 && (
+                <div className="p-4 bg-muted rounded-lg space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-primary" />
+                    Protected Name Variations (auto-reserved)
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    These name variations will be blocked from registration by others:
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {nameDeviations.slice(0, 15).map((deviation) => (
+                      <span 
+                        key={deviation} 
+                        className="px-2 py-0.5 bg-background rounded text-xs border"
+                      >
+                        {deviation}
+                      </span>
+                    ))}
+                    {nameDeviations.length > 15 && (
+                      <span className="px-2 py-0.5 text-xs text-muted-foreground">
+                        +{nameDeviations.length - 15} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <FormField
                 control={form.control}
