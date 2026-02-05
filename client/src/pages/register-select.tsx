@@ -13,7 +13,7 @@ export default function RegisterSelect() {
           What Are You Registering Today?
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Choose the registration template that best fits your needs. This helps us provide stronger legal protection and verify your intellectual property rights.
+          Choose the template that fits your registration goals. A more complete template creates a stronger, verifiable provenance record.
         </p>
       </div>
 
