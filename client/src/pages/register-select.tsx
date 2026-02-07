@@ -66,7 +66,7 @@ export default function RegisterSelect() {
         </Card>
 
         {/* Creative Works Template */}
-        <Card className="hover-elevate cursor-pointer transition-all" onClick={() => setLocation("/register/artwork")}>
+        <Card className="hover-elevate cursor-pointer transition-all" onClick={() => setLocation("/register/creative-works")}>
           <CardHeader className="space-y-4">
             <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
               <Palette className="w-8 h-8 text-primary" />

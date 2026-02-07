@@ -30,6 +30,7 @@ import Licenses from "@/pages/licenses";
 import Tokenomics from "@/pages/tokenomics";
 import RegisterSelect from "@/pages/register-select";
 import RegisterTokenLaunch from "@/pages/register-token-launch";
+import RegisterCreativeWorks from "@/pages/register-creative-works";
 import RegisterArtwork from "@/pages/register-artwork";
 import WalletTierSelection from "@/pages/wallet-tier-selection";
 import CeremonyStage1Warning from "@/pages/ceremony-stage-1-warning";
@@ -82,6 +83,7 @@ function Router() {
       <Route path="/tokenomics" component={Tokenomics} />
       <Route path="/register" component={RegisterSelect} />
       <Route path="/register/token-launch" component={RegisterTokenLaunch} />
+      <Route path="/register/creative-works" component={RegisterCreativeWorks} />
       <Route path="/register/artwork" component={RegisterArtwork} />
       <Route path="/bind-contract/:id" component={BindContract} />
       <Route path="/register/wallet-tier" component={WalletTierSelection} />

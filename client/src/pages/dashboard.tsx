@@ -11,6 +11,23 @@ import type { Logo, Collection } from "@shared/schema";
 import { Link } from "wouter";
 import { NFTMintingUI } from "@/components/nft-minting-ui";
 
+function getExplorerUrl(chain: string, address: string): { url: string; name: string } {
+  switch (chain) {
+    case 'solana':
+      return { url: `https://solscan.io/token/${address}`, name: 'Solscan' };
+    case 'ethereum':
+      return { url: `https://etherscan.io/token/${address}`, name: 'Etherscan' };
+    case 'base':
+      return { url: `https://basescan.org/token/${address}`, name: 'BaseScan' };
+    case 'arbitrum':
+      return { url: `https://arbiscan.io/token/${address}`, name: 'Arbiscan' };
+    case 'polygon':
+      return { url: `https://polygonscan.com/token/${address}`, name: 'PolygonScan' };
+    default:
+      return { url: `https://solscan.io/token/${address}`, name: 'Explorer' };
+  }
+}
+
 export default function Dashboard() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -458,6 +475,24 @@ export default function Dashboard() {
                               <code className="text-xs font-mono bg-muted px-2 py-1 rounded block truncate" title={(logo as any).tokenContractAddress}>
                                 {(logo as any).tokenContractAddress?.slice(0, 12)}...
                               </code>
+                              {(() => {
+                                const explorer = getExplorerUrl(
+                                  (logo as any).tokenContractChain || 'solana',
+                                  (logo as any).tokenContractAddress
+                                );
+                                return (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="w-full text-xs gap-1"
+                                    onClick={() => window.open(explorer.url, '_blank')}
+                                    data-testid={`button-explorer-${logo.id}`}
+                                  >
+                                    <ExternalLink className="w-3 h-3" />
+                                    View on {explorer.name}
+                                  </Button>
+                                );
+                              })()}
                               <Button 
                                 variant="outline" 
                                 size="sm" 

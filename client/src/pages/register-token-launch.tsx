@@ -18,7 +18,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Rocket, Upload, AlertTriangle, ArrowLeft, Loader2 } from "lucide-react";
+import { Rocket, Upload, AlertTriangle, ArrowLeft, Loader2, Globe, Eye, EyeOff } from "lucide-react";
+import { SiGithub } from "react-icons/si";
 
 // Generate ticker deviations for protection
 function generateTickerDeviations(ticker: string): string[] {
@@ -266,10 +267,25 @@ const tokenLaunchSchema = z.object({
   
   twitterHandle: z.string().min(1, "Twitter/X handle is required for verification").regex(/^@?[A-Za-z0-9_]+$/, "Invalid Twitter handle"),
   
+  websiteUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  
+  githubRepoOption: z.enum(["none", "create_new", "link_existing"]).default("none"),
+  githubRepoUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  
+  isPublic: z.boolean().default(true),
+  
   // Optional - Contract Address (can be added post-launch)
   tokenContractAddress: z.string().optional(),
   tokenContractChain: z.enum(["solana", "ethereum", "base", "arbitrum", "polygon", "other"]).optional(),
   tokenPoolAddress: z.string().optional(),
+}).refine((data) => {
+  if (data.githubRepoOption === "link_existing") {
+    return data.githubRepoUrl && data.githubRepoUrl.length > 0;
+  }
+  return true;
+}, {
+  message: "GitHub repo URL is required when linking an existing repo",
+  path: ["githubRepoUrl"],
 });
 
 type TokenLaunchFormValues = z.infer<typeof tokenLaunchSchema>;
@@ -304,6 +320,10 @@ export default function RegisterTokenLaunch() {
       twitterHandle: user?.twitterHandle || "",
       tokenUses: [],
       includeDollarSign: true,
+      websiteUrl: "",
+      githubRepoOption: "none",
+      githubRepoUrl: "",
+      isPublic: true,
     },
   });
 
@@ -382,6 +402,10 @@ export default function RegisterTokenLaunch() {
       supplyLocked: values.supplyLocked,
       lockDuration: values.lockDuration || null,
       twitterHandle: values.twitterHandle,
+      websiteUrl: values.websiteUrl || null,
+      githubRepoOption: values.githubRepoOption,
+      githubRepoUrl: values.githubRepoUrl || null,
+      isPublic: values.isPublic,
       tokenContractAddress: values.tokenContractAddress || null,
       tokenContractChain: values.tokenContractChain || null,
       tokenPoolAddress: values.tokenPoolAddress || null,
@@ -390,6 +414,7 @@ export default function RegisterTokenLaunch() {
     formData.append("registrationData", JSON.stringify(registrationData));
     formData.append("description", values.projectSummary);
     formData.append("intendedUse", `Token launch on ${values.launchPlatform}. ${values.tokenomicsDetails}`);
+    formData.append("isPublic", values.isPublic ? "true" : "false");
     
     // Add contract address fields directly to formData for backend processing
     if (values.tokenContractAddress) {
@@ -417,6 +442,8 @@ export default function RegisterTokenLaunch() {
   };
 
   const supplyLocked = form.watch("supplyLocked");
+  const githubRepoOption = form.watch("githubRepoOption");
+  const isPublic = form.watch("isPublic");
 
   if (authLoading || !isAuthenticated) {
     return null;
@@ -1023,6 +1050,142 @@ export default function RegisterTokenLaunch() {
                       <Input placeholder="@yourusername" {...field} data-testid="input-twitter" />
                     </FormControl>
                     <FormDescription>Required for ticker verification process</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Separator />
+
+              <FormField
+                control={form.control}
+                name="websiteUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold flex items-center gap-2">
+                      <Globe className="w-4 h-4" />
+                      8. Project Website URL
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://yourproject.com" {...field} data-testid="input-website-url" />
+                    </FormControl>
+                    <FormDescription>Your project website (if available)</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Separator />
+
+              <FormField
+                control={form.control}
+                name="githubRepoOption"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold flex items-center gap-2">
+                      <SiGithub className="w-4 h-4" />
+                      9. GitHub Repository
+                    </FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-3"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="none" id="github-none" data-testid="radio-github-none" />
+                          <Label htmlFor="github-none" className="font-normal cursor-pointer">
+                            No GitHub repo needed
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="create_new" id="github-create" data-testid="radio-github-create" />
+                          <Label htmlFor="github-create" className="font-normal cursor-pointer">
+                            Create a new GitHub repo for this token
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="link_existing" id="github-link" data-testid="radio-github-link" />
+                          <Label htmlFor="github-link" className="font-normal cursor-pointer">
+                            Link an existing GitHub repo
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormDescription>
+                      Connecting a GitHub repo strengthens your proof of development timeline
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {githubRepoOption === "link_existing" && (
+                <FormField
+                  control={form.control}
+                  name="githubRepoUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>GitHub Repository URL</FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://github.com/username/repo" {...field} data-testid="input-github-url" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {githubRepoOption === "create_new" && (
+                <Alert className="bg-primary/5 border-primary/20">
+                  <SiGithub className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    After registration, you'll be guided to connect your GitHub account and create a repo for this project.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <Separator />
+
+              <FormField
+                control={form.control}
+                name="isPublic"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold flex items-center gap-2">
+                      {field.value ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                      10. Token Folder Visibility
+                    </FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={(val) => field.onChange(val === "public")}
+                        defaultValue={field.value ? "public" : "private"}
+                        className="flex flex-col space-y-3"
+                      >
+                        <div className="flex items-start space-x-2">
+                          <RadioGroupItem value="public" id="visibility-public" data-testid="radio-visibility-public" />
+                          <div>
+                            <Label htmlFor="visibility-public" className="font-normal cursor-pointer">
+                              Public
+                            </Label>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Visible in public search and eligible for platform rewards
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-start space-x-2">
+                          <RadioGroupItem value="private" id="visibility-private" data-testid="radio-visibility-private" />
+                          <div>
+                            <Label htmlFor="visibility-private" className="font-normal cursor-pointer">
+                              Private
+                            </Label>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Hidden from public search; not eligible for rewards
+                            </p>
+                          </div>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

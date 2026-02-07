@@ -13,9 +13,26 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, ArrowLeft, Link2, Download, CheckCircle, AlertTriangle } from "lucide-react";
+import { Loader2, ArrowLeft, Link2, Download, CheckCircle, AlertTriangle, ExternalLink } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Logo } from "@shared/schema";
+
+function getExplorerUrl(chain: string, address: string): { url: string; name: string } {
+  switch (chain) {
+    case 'solana':
+      return { url: `https://solscan.io/token/${address}`, name: 'Solscan' };
+    case 'ethereum':
+      return { url: `https://etherscan.io/token/${address}`, name: 'Etherscan' };
+    case 'base':
+      return { url: `https://basescan.org/token/${address}`, name: 'BaseScan' };
+    case 'arbitrum':
+      return { url: `https://arbiscan.io/token/${address}`, name: 'Arbiscan' };
+    case 'polygon':
+      return { url: `https://polygonscan.com/token/${address}`, name: 'PolygonScan' };
+    default:
+      return { url: `https://solscan.io/token/${address}`, name: 'Explorer' };
+  }
+}
 
 const bindContractSchema = z.object({
   tokenContractAddress: z.string().min(20, "Contract address must be at least 20 characters"),
@@ -215,6 +232,24 @@ export default function BindContract() {
                   </code>
                 </div>
               )}
+              {(() => {
+                const ca = (logo as any).tokenContractAddress || form.getValues().tokenContractAddress;
+                const chain = (logo as any).tokenContractChain || form.getValues().tokenContractChain || 'solana';
+                if (!ca) return null;
+                const explorer = getExplorerUrl(chain, ca);
+                return (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full text-xs gap-1 mt-2"
+                    onClick={() => window.open(explorer.url, '_blank')}
+                    data-testid="button-view-explorer"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    View on {explorer.name}
+                  </Button>
+                );
+              })()}
             </div>
 
             <Alert>

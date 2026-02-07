@@ -1506,10 +1506,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'pending.solturio.sol';
       const storagePath = `${userWalletDomain}/tokens/${randomUUID()}-${file.originalname}`;
 
+      // Auto-create a collection for this token registration
+      const tokenCollection = await storage.createCollection({
+        userId,
+        name: req.body.tokenName || `Token ${req.body.tokenTicker || 'Launch'}`,
+        companyName: req.body.tokenName || 'Token Project',
+        symbol: req.body.tokenTicker || undefined,
+        status: 'draft',
+        isPublic: req.body.isPublic !== 'false',
+      });
+
       // Create logo with token launch template data
       const logo = await storage.createLogo({
         userId,
-        collectionId: null,
+        collectionId: tokenCollection.id,
         fileName: file.originalname,
         userWalletStoragePath: storagePath,
         fileSize: file.size,
@@ -1562,6 +1572,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Token registered successfully! Please complete 24-hour ticker verification.",
         tickerVerificationDeadline: logo.tickerVerificationDeadline,
         logo,
+        collection: tokenCollection,
         emailSent: user?.email ? true : false,
       });
     } catch (error: any) {

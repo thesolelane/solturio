@@ -184,6 +184,15 @@ const STEP_FIELDS = {
   4: ["planToMintNFT", "bondedToContract", "contractAddress", "intendedUse", "portfolioUrl", "twitterHandle", "telegramHandle", "instagramHandle", "discordHandle", "otherSocial"] as const,
 };
 
+const CREATIVE_TYPE_LABELS: Record<string, string> = {
+  artwork: "Artwork / Logo / Design",
+  audio: "Audio / Music",
+  book: "Books / Written Works",
+  code: "Source Code / Software",
+  drawing: "Drawings / Blueprints",
+  plan: "Plans / Documents",
+};
+
 export default function RegisterArtwork() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -192,9 +201,13 @@ export default function RegisterArtwork() {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
 
+  const searchParams = new URLSearchParams(window.location.search);
+  const creativeType = searchParams.get("type") || "artwork";
+  const creativeTypeLabel = CREATIVE_TYPE_LABELS[creativeType] || "Creative Work";
+
   useEffect(() => {
-    document.title = "Artwork Registration - Solturio";
-  }, []);
+    document.title = `${creativeTypeLabel} Registration - Solturio`;
+  }, [creativeTypeLabel]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -256,6 +269,7 @@ export default function RegisterArtwork() {
     }
     
     const registrationData = {
+      creativeWorkType: creativeType,
       artworkSummary: values.artworkSummary,
       createdBy: values.createdBy,
       creatorDetails: values.creatorDetails || null,
@@ -344,11 +358,11 @@ export default function RegisterArtwork() {
       <Button
         variant="ghost"
         className="mb-6"
-        onClick={() => setLocation("/register")}
+        onClick={() => setLocation("/register/creative-works")}
         data-testid="button-back"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Template Selection
+        Back to Creative Work Type
       </Button>
 
       <Card className="mb-6">
@@ -358,7 +372,7 @@ export default function RegisterArtwork() {
               <Palette className="w-6 h-6 text-primary" />
             </div>
             <div className="flex-1">
-              <CardTitle className="text-2xl">Artwork Registration</CardTitle>
+              <CardTitle className="text-2xl">{creativeTypeLabel} Registration</CardTitle>
               <CardDescription>
                 Step {currentStep} of {totalSteps}
               </CardDescription>
