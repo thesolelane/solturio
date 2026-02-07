@@ -792,7 +792,6 @@ export default function RegisterArtwork() {
                             <SelectContent>
                               <SelectItem value="novel">Novel</SelectItem>
                               <SelectItem value="article">Article</SelectItem>
-                              <SelectItem value="whitepaper">Whitepaper</SelectItem>
                               <SelectItem value="research_paper">Research Paper</SelectItem>
                               <SelectItem value="poetry">Poetry</SelectItem>
                               <SelectItem value="script">Script</SelectItem>
