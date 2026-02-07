@@ -18,8 +18,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Rocket, Upload, AlertTriangle, ArrowLeft, Loader2, Globe, Eye, EyeOff } from "lucide-react";
-import { SiGithub } from "react-icons/si";
+import { Rocket, Upload, AlertTriangle, ArrowLeft, Loader2, Globe, Eye, EyeOff, Plus, Link } from "lucide-react";
+import { SiGithub, SiTelegram, SiDiscord, SiYoutube, SiTiktok, SiX } from "react-icons/si";
 
 // Generate ticker deviations for protection
 function generateTickerDeviations(ticker: string): string[] {
@@ -268,6 +268,14 @@ const tokenLaunchSchema = z.object({
   twitterHandle: z.string().min(1, "Twitter/X handle is required for verification").regex(/^@?[A-Za-z0-9_]+$/, "Invalid Twitter handle"),
   
   websiteUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  telegramUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  discordUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  youtubeUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  tiktokUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  extraUrl1Label: z.string().max(50).optional().or(z.literal("")),
+  extraUrl1: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  extraUrl2Label: z.string().max(50).optional().or(z.literal("")),
+  extraUrl2: z.string().url("Must be a valid URL").optional().or(z.literal("")),
   
   githubRepoOption: z.enum(["none", "create_new", "link_existing"]).default("none"),
   githubRepoUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
@@ -321,6 +329,14 @@ export default function RegisterTokenLaunch() {
       tokenUses: [],
       includeDollarSign: true,
       websiteUrl: "",
+      telegramUrl: "",
+      discordUrl: "",
+      youtubeUrl: "",
+      tiktokUrl: "",
+      extraUrl1Label: "",
+      extraUrl1: "",
+      extraUrl2Label: "",
+      extraUrl2: "",
       githubRepoOption: "none",
       githubRepoUrl: "",
       isPublic: true,
@@ -403,6 +419,14 @@ export default function RegisterTokenLaunch() {
       lockDuration: values.lockDuration || null,
       twitterHandle: values.twitterHandle,
       websiteUrl: values.websiteUrl || null,
+      telegramUrl: values.telegramUrl || null,
+      discordUrl: values.discordUrl || null,
+      youtubeUrl: values.youtubeUrl || null,
+      tiktokUrl: values.tiktokUrl || null,
+      extraUrl1Label: values.extraUrl1Label || null,
+      extraUrl1: values.extraUrl1 || null,
+      extraUrl2Label: values.extraUrl2Label || null,
+      extraUrl2: values.extraUrl2 || null,
       githubRepoOption: values.githubRepoOption,
       githubRepoUrl: values.githubRepoUrl || null,
       isPublic: values.isPublic,
@@ -1045,7 +1069,10 @@ export default function RegisterTokenLaunch() {
                 name="twitterHandle"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold">7. Twitter/X Handle (for 24-hour verification) *</FormLabel>
+                    <FormLabel className="font-semibold flex items-center gap-2">
+                      <SiX className="w-4 h-4" />
+                      7. Twitter / X Handle *
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="@yourusername" {...field} data-testid="input-twitter" />
                     </FormControl>
@@ -1057,23 +1084,167 @@ export default function RegisterTokenLaunch() {
 
               <Separator />
 
-              <FormField
-                control={form.control}
-                name="websiteUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold flex items-center gap-2">
-                      <Globe className="w-4 h-4" />
-                      8. Project Website URL
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://yourproject.com" {...field} data-testid="input-website-url" />
-                    </FormControl>
-                    <FormDescription>Your project website (if available)</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <h3 className="font-semibold text-sm text-muted-foreground pt-2">Project Links & Social Media</h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="websiteUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Globe className="w-4 h-4" />
+                        Website
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://yourproject.com" {...field} data-testid="input-website-url" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="telegramUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <SiTelegram className="w-4 h-4" />
+                        Telegram
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://t.me/yourgroup" {...field} data-testid="input-telegram-url" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="discordUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <SiDiscord className="w-4 h-4" />
+                        Discord
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://discord.gg/yourserver" {...field} data-testid="input-discord-url" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="youtubeUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <SiYoutube className="w-4 h-4" />
+                        YouTube
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://youtube.com/@yourchannel" {...field} data-testid="input-youtube-url" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="tiktokUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <SiTiktok className="w-4 h-4" />
+                        TikTok
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://tiktok.com/@yourprofile" {...field} data-testid="input-tiktok-url" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Separator />
+
+              <h3 className="font-semibold text-sm text-muted-foreground pt-2">Additional Links</h3>
+              <FormDescription className="text-xs">
+                Add any other community or platform links (e.g., Lemonade, Fanbase, Medium, Reddit)
+              </FormDescription>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                  <FormField
+                    control={form.control}
+                    name="extraUrl1Label"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Link className="w-4 h-4" />
+                          Platform Name
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Lemonade" {...field} data-testid="input-extra-url1-label" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="extraUrl1"
+                    render={({ field }) => (
+                      <FormItem className="sm:col-span-2">
+                        <FormLabel>URL</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://..." {...field} data-testid="input-extra-url1" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                  <FormField
+                    control={form.control}
+                    name="extraUrl2Label"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Link className="w-4 h-4" />
+                          Platform Name
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Fanbase" {...field} data-testid="input-extra-url2-label" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="extraUrl2"
+                    render={({ field }) => (
+                      <FormItem className="sm:col-span-2">
+                        <FormLabel>URL</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://..." {...field} data-testid="input-extra-url2" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
 
               <Separator />
 
