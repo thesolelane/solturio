@@ -1049,7 +1049,9 @@ export default function AdminDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button size="sm" className="w-full" disabled>Coming Soon</Button>
+                <Button size="sm" className="w-full" asChild>
+                  <Link href="/admin/users">Manage Users</Link>
+                </Button>
               </CardContent>
             </Card>
 

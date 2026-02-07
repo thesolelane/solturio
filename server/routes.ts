@@ -1302,6 +1302,163 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ==========================================
+  // Admin User Management
+  // ==========================================
+
+  app.get('/api/admin/users', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const allUsers = await storage.getAllUsers();
+      const search = (req.query.search as string || '').toLowerCase();
+      const statusFilter = req.query.status as string || 'all';
+
+      let filtered = allUsers;
+
+      if (search) {
+        filtered = filtered.filter(u =>
+          (u.email && u.email.toLowerCase().includes(search)) ||
+          (u.firstName && u.firstName.toLowerCase().includes(search)) ||
+          (u.lastName && u.lastName.toLowerCase().includes(search)) ||
+          (u.walletName && u.walletName.toLowerCase().includes(search)) ||
+          (u.id && u.id.toLowerCase().includes(search))
+        );
+      }
+
+      if (statusFilter !== 'all') {
+        filtered = filtered.filter(u => u.accountStatus === statusFilter);
+      }
+
+      const usersWithStats = await Promise.all(
+        filtered.map(async (u) => {
+          const userLogos = await storage.getLogosByUserId(u.id);
+          const collections = await storage.getCollectionsByUserId(u.id);
+          return {
+            id: u.id,
+            email: u.email,
+            firstName: u.firstName,
+            lastName: u.lastName,
+            profileImageUrl: u.profileImageUrl,
+            accountStatus: u.accountStatus,
+            isAdmin: u.isAdmin,
+            walletName: u.walletName,
+            solanaPublicKey: u.solanaPublicKey,
+            ceremonyCompleted: u.ceremonyCompleted,
+            subscriptionTier: u.subscriptionTier,
+            subscriptionExpiresAt: u.subscriptionExpiresAt,
+            sltrBalance: u.sltrBalance || '0',
+            sltrTotalEarned: u.sltrTotalEarned || '0',
+            referralCode: u.referralCode,
+            referralCount: u.referralCount || 0,
+            twitterHandle: u.twitterHandle,
+            telegramHandle: u.telegramHandle,
+            createdAt: u.createdAt,
+            updatedAt: u.updatedAt,
+            logoCount: userLogos.length,
+            collectionCount: collections.length,
+            mintedCount: collections.filter(c => c.status === 'minted').length,
+          };
+        })
+      );
+
+      res.json({
+        users: usersWithStats,
+        total: allUsers.length,
+        filtered: usersWithStats.length,
+      });
+    } catch (error) {
+      console.error("Error fetching admin users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.get('/api/admin/users/:userId', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.params.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const userLogos = await storage.getLogosByUserId(user.id);
+      const collections = await storage.getCollectionsByUserId(user.id);
+
+      res.json({
+        user: {
+          ...user,
+          solanaEncryptedPrivateKey: undefined,
+          walletSalt: undefined,
+          encryptedRecoveryPhrase: undefined,
+        },
+        logos: userLogos.map(l => ({
+          id: l.id,
+          fileName: l.fileName,
+          ticker: l.ticker,
+          tokenName: l.tokenName,
+          tokenTicker: l.tokenTicker,
+          registrationType: l.registrationType,
+          collectionId: l.collectionId,
+          ipfsHash: l.ipfsHash,
+          nftAddress: l.nftAddress,
+          tickerVerified: l.tickerVerified,
+          botVerificationStatus: l.botVerificationStatus,
+          createdAt: l.createdAt,
+        })),
+        collections: collections.map(c => ({
+          id: c.id,
+          name: c.name,
+          status: c.status,
+          collectionAddress: c.collectionAddress,
+          mintedAt: c.mintedAt,
+          createdAt: c.createdAt,
+        })),
+        stats: {
+          totalLogos: userLogos.length,
+          mintedCollections: collections.filter(c => c.status === 'minted').length,
+          totalCollections: collections.length,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      res.status(500).json({ message: "Failed to fetch user details" });
+    }
+  });
+
+  app.patch('/api/admin/users/:userId', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const allowedUpdates: Record<string, any> = {};
+      const { accountStatus, isAdmin: setAdmin, subscriptionTier, subscriptionExpiresAt } = req.body;
+
+      if (accountStatus && ['pending', 'active', 'expired', 'suspended'].includes(accountStatus)) {
+        allowedUpdates.accountStatus = accountStatus;
+      }
+      if (typeof setAdmin === 'boolean') {
+        allowedUpdates.isAdmin = setAdmin;
+      }
+      if (subscriptionTier && ['standard', 'premium'].includes(subscriptionTier)) {
+        allowedUpdates.subscriptionTier = subscriptionTier;
+      }
+      if (subscriptionExpiresAt) {
+        allowedUpdates.subscriptionExpiresAt = new Date(subscriptionExpiresAt);
+      }
+
+      if (Object.keys(allowedUpdates).length === 0) {
+        return res.status(400).json({ message: "No valid updates provided" });
+      }
+
+      const updated = await storage.updateUser(userId, allowedUpdates);
+      const { solanaEncryptedPrivateKey, walletSalt, encryptedRecoveryPhrase, ...safeUser } = updated as any;
+      res.json({ message: "User updated", user: safeUser });
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
   // Logo metadata registration endpoint (NO file storage - files stored in user's .solturio.sol wallet)
   app.post('/api/logos/upload', isAuthenticated, requireActiveSubscription, upload.array('logos', 50), async (req: any, res) => {
     try {

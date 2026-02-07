@@ -179,6 +179,11 @@ export function AppSidebar() {
       url: "/admin/users",
       icon: Users,
     },
+    {
+      title: "IP Claims",
+      url: "/admin/claims",
+      icon: Shield,
+    },
   ];
 
   return (

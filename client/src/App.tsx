@@ -20,6 +20,7 @@ import ContractVerification from "@/pages/contract-verification";
 import AdminDashboard from "@/pages/admin-dashboard";
 import AdminPartnerships from "@/pages/admin-partnerships";
 import AdminClaims from "@/pages/admin-claims";
+import AdminUsers from "@/pages/admin-users";
 import KnowledgeBase from "@/pages/knowledge-base";
 import IPGuide from "@/pages/ip-guide";
 import IPQuiz from "@/pages/ip-quiz";
@@ -71,6 +72,7 @@ function Router() {
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/partnerships" component={AdminPartnerships} />
       <Route path="/admin/claims" component={AdminClaims} />
+      <Route path="/admin/users" component={AdminUsers} />
       <Route path="/knowledge-base" component={KnowledgeBase} />
       <Route path="/ip-guide" component={IPGuide} />
       <Route path="/ip-quiz" component={IPQuiz} />
