@@ -19,6 +19,9 @@ type RewardAction =
   | 'additional_image'
   | 'key_ceremony_complete'
   | 'socials_linked'
+  | 'token_registered'
+  | 'ticker_verified'
+  | 'strong_registration'
   | 'license_sc_created'
   | 'quiz_win'
   | 'referral_signup'
@@ -45,6 +48,9 @@ const ACTION_REWARDS: Record<RewardAction, number> = {
   additional_image: SOLT_REWARDS.ADDITIONAL_IMAGE,
   key_ceremony_complete: SOLT_REWARDS.KEY_CEREMONY_COMPLETE,
   socials_linked: SOLT_REWARDS.SOCIALS_LINKED,
+  token_registered: SOLT_REWARDS.TOKEN_REGISTERED,
+  ticker_verified: SOLT_REWARDS.TICKER_VERIFIED,
+  strong_registration: SOLT_REWARDS.STRONG_REGISTRATION,
   license_sc_created: SOLT_REWARDS.LICENSE_SC_CREATED,
   quiz_win: SOLT_REWARDS.QUIZ_WIN_NO_BET,
   referral_signup: SOLT_REWARDS.REFERRAL_SIGNUP,

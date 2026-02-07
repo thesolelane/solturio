@@ -91,7 +91,9 @@ Preferred communication style: Simple, everyday language.
 - **NFT Minting**: JSON-only on-chain metadata via Metaplex SDK.
 - **Authorized Usage Tracking**: Users pre-register where logos will be used to strengthen IP protection claims.
 - **Payment Model**: Subscription-based (annual, paid in $CATH) with a tiered token registry for accepted cryptocurrencies.
-- **Rewards System**: $SOLT token rewards for platform engagement and social actions.
+- **Rewards System**: $SOLT token rewards for platform engagement and social actions. Token launch rewards (TOKEN_REGISTERED: 100, TICKER_VERIFIED: 200, STRONG_REGISTRATION: 150) are gated behind ticker verification completion.
+- **Registration Strength Scoring**: Weighted field scoring system (shared/registration-strength.ts) with tiers (weak/basic/strong/verified) across 5 categories (identity, verification, transparency, community, legal). Strong/verified registrations earn bonus rewards.
+- **Ticker Verification System**: 24-hour verification window with deadline enforcement, expired state persistence, restart capability. Rewards blocked until verification confirmed. Endpoints: GET /verification-status, POST /confirm-verification, POST /restart-verification.
 - **Visitor Accounts**: Email-only signup for quiz access. Rewards expire 30 days from last activity but extend on any interaction. Pending rewards transfer to full account on upgrade.
 
 ### Health Monitoring

@@ -1558,6 +1558,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tags: [],
       });
 
+      // Calculate registration strength
+      const { calculateRegistrationStrength } = await import('@shared/registration-strength');
+      const strength = calculateRegistrationStrength({
+        tokenName: req.body.tokenName,
+        tokenTicker: req.body.tokenTicker,
+        file: true,
+        launchPlatform: req.body.launchPlatform,
+        launchTimeline: req.body.launchTimeline,
+        ...registrationData,
+      });
+
+      // Award base registration reward (pending - held until verification)
+      // Rewards are NOT distributed until ticker verification is complete
+      const rewardNote = strength.rewardsEligible
+        ? 'Rewards pending ticker verification'
+        : 'Complete required fields and verify ticker to earn rewards';
+
       // Send registration confirmation email
       if (user?.email) {
         sendRegistrationConfirmation(
@@ -1574,6 +1591,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         logo,
         collection: tokenCollection,
         emailSent: user?.email ? true : false,
+        registrationStrength: strength,
+        rewardNote,
       });
     } catch (error: any) {
       console.error("Error registering token:", error);
@@ -1630,6 +1649,196 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error binding contract:", error);
       res.status(500).json({ message: error.message || "Failed to bind contract" });
+    }
+  });
+
+  // Get verification status for a token registration
+  app.get('/api/logos/:id/verification-status', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const logoId = req.params.id;
+      const logos = await storage.getLogosByUser(userId);
+      const logo = logos.find((l: any) => l.id === logoId);
+
+      if (!logo) {
+        return res.status(404).json({ message: "Registration not found" });
+      }
+      if (logo.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+
+      const now = new Date();
+      const deadline = logo.tickerVerificationDeadline ? new Date(logo.tickerVerificationDeadline) : null;
+      const isExpired = deadline ? now > deadline : false;
+      const isVerified = logo.tickerVerified === true;
+
+      let status: 'verified' | 'pending' | 'expired';
+      if (isVerified) {
+        status = 'verified';
+      } else if (isExpired) {
+        status = 'expired';
+        // Persist expired status if not already set
+        if (logo.botVerificationStatus !== 'expired') {
+          storage.updateLogo(logoId, { botVerificationStatus: 'expired' }).catch(() => {});
+        }
+      } else {
+        status = 'pending';
+      }
+
+      const { calculateRegistrationStrength } = await import('@shared/registration-strength');
+      const registrationData = (logo.registrationData || {}) as Record<string, any>;
+      const strength = calculateRegistrationStrength({
+        tokenName: logo.tokenName,
+        tokenTicker: logo.tokenTicker,
+        file: true,
+        launchPlatform: logo.launchPlatform,
+        launchTimeline: logo.launchTimeline,
+        ...registrationData,
+      });
+
+      const rewardsBlocked = !isVerified;
+
+      res.json({
+        status,
+        tickerVerified: isVerified,
+        tickerVerificationDeadline: deadline,
+        isExpired,
+        timeRemaining: deadline && !isExpired ? Math.max(0, deadline.getTime() - now.getTime()) : 0,
+        botVerificationStatus: logo.botVerificationStatus || 'pending',
+        registrationStrength: strength,
+        rewardsBlocked,
+        rewardsBlockedReason: rewardsBlocked
+          ? 'Complete ticker verification to unlock rewards'
+          : null,
+      });
+    } catch (error: any) {
+      console.error("Error getting verification status:", error);
+      res.status(500).json({ message: error.message || "Failed to get verification status" });
+    }
+  });
+
+  // Confirm ticker verification (when proof posts are validated)
+  app.post('/api/logos/:id/confirm-verification', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const logoId = req.params.id;
+      const logos = await storage.getLogosByUser(userId);
+      const logo = logos.find((l: any) => l.id === logoId);
+
+      if (!logo) {
+        return res.status(404).json({ message: "Registration not found" });
+      }
+      if (logo.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      if (logo.tickerVerified) {
+        return res.status(400).json({ message: "Already verified" });
+      }
+
+      // Enforce the 24-hour verification deadline
+      const now = new Date();
+      const deadline = logo.tickerVerificationDeadline ? new Date(logo.tickerVerificationDeadline) : null;
+      if (deadline && now > deadline) {
+        // Persist expired status
+        await storage.updateLogo(logoId, { botVerificationStatus: 'expired' });
+        return res.status(400).json({
+          message: "Verification window has expired. Please restart the 24-hour verification period.",
+          expired: true,
+        });
+      }
+
+      const registrationData = (logo.registrationData || {}) as Record<string, any>;
+      if (!registrationData.proofPostUrl1) {
+        return res.status(400).json({
+          message: "At least one proof post URL is required for verification",
+        });
+      }
+
+      // Check registration strength - require all required fields for rewards
+      const { calculateRegistrationStrength } = await import('@shared/registration-strength');
+      const strength = calculateRegistrationStrength({
+        tokenName: logo.tokenName,
+        tokenTicker: logo.tokenTicker,
+        file: true,
+        launchPlatform: logo.launchPlatform,
+        launchTimeline: logo.launchTimeline,
+        ...registrationData,
+      });
+
+      if (!strength.rewardsEligible) {
+        return res.status(400).json({
+          message: "Complete all required fields before confirming verification. Missing: " +
+            strength.missingRequiredFields.join(', '),
+          missingFields: strength.missingRequiredFields,
+        });
+      }
+
+      await storage.updateLogo(logoId, {
+        tickerVerified: true,
+        botVerificationStatus: 'verified',
+      });
+
+      // NOW award rewards since verification is complete and fields are filled
+      const { awardReward } = await import('./rewards-service');
+      const tokenReward = await awardReward(userId, 'token_registered', logoId, 'token_launch');
+
+      let strongBonus = null;
+      if (strength.tier === 'strong' || strength.tier === 'verified') {
+        strongBonus = await awardReward(userId, 'strong_registration', logoId, 'token_launch');
+      }
+
+      const verifiedReward = await awardReward(userId, 'ticker_verified', logoId, 'token_launch');
+
+      res.json({
+        message: "Ticker verification confirmed! Rewards unlocked.",
+        tickerVerified: true,
+        rewards: {
+          tokenRegistered: tokenReward,
+          tickerVerified: verifiedReward,
+          strongRegistration: strongBonus,
+        },
+        registrationStrength: strength,
+      });
+    } catch (error: any) {
+      console.error("Error confirming verification:", error);
+      res.status(500).json({ message: error.message || "Failed to confirm verification" });
+    }
+  });
+
+  // Restart verification window (when deadline expired without verification)
+  app.post('/api/logos/:id/restart-verification', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const logoId = req.params.id;
+      const logos = await storage.getLogosByUser(userId);
+      const logo = logos.find((l: any) => l.id === logoId);
+
+      if (!logo) {
+        return res.status(404).json({ message: "Registration not found" });
+      }
+      if (logo.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      if (logo.tickerVerified) {
+        return res.status(400).json({ message: "Already verified - no restart needed" });
+      }
+
+      const newDeadline = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      await storage.updateLogo(logoId, {
+        tickerVerificationStartedAt: new Date(),
+        tickerVerificationDeadline: newDeadline,
+        botVerificationStatus: 'pending',
+      });
+
+      res.json({
+        message: "Verification window restarted. You have 24 hours to complete verification.",
+        tickerVerificationDeadline: newDeadline,
+        botVerificationStatus: 'pending',
+      });
+    } catch (error: any) {
+      console.error("Error restarting verification:", error);
+      res.status(500).json({ message: error.message || "Failed to restart verification" });
     }
   });
 

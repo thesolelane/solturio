@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
-import { Shield, Upload, Image as ImageIcon, Loader2, Gift, Sparkles, AlertCircle, Key, ExternalLink, User, Building2, FileText } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { RegistrationStrength } from "@shared/registration-strength";
+import { Shield, Upload, Image as ImageIcon, Loader2, Gift, Sparkles, AlertCircle, Key, ExternalLink, User, Building2, FileText, CheckCircle2, Clock, XCircle, RefreshCw, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +28,168 @@ function getExplorerUrl(chain: string, address: string): { url: string; name: st
     default:
       return { url: `https://solscan.io/token/${address}`, name: 'Explorer' };
   }
+}
+
+function StrengthBar({ percentage, tier }: { percentage: number; tier: string }) {
+  const color = tier === 'verified' ? 'bg-green-500' : tier === 'strong' ? 'bg-blue-500' : tier === 'basic' ? 'bg-yellow-500' : 'bg-red-500';
+  return (
+    <div className="w-full bg-muted rounded-full h-2">
+      <div className={`h-2 rounded-full transition-all ${color}`} style={{ width: `${percentage}%` }} />
+    </div>
+  );
+}
+
+function TokenVerificationCard({ logoId }: { logoId: string }) {
+  const { toast } = useToast();
+
+  const { data: verificationData, isLoading } = useQuery<{
+    status: 'verified' | 'pending' | 'expired';
+    tickerVerified: boolean;
+    tickerVerificationDeadline: string | null;
+    isExpired: boolean;
+    timeRemaining: number;
+    botVerificationStatus: string;
+    registrationStrength: RegistrationStrength;
+    rewardsBlocked: boolean;
+    rewardsBlockedReason: string | null;
+  }>({
+    queryKey: ['/api/logos', logoId, 'verification-status'],
+    refetchInterval: 60000,
+  });
+
+  const confirmMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', `/api/logos/${logoId}/confirm-verification`);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/logos', logoId, 'verification-status'] });
+      toast({
+        title: "Verification Confirmed",
+        description: `Rewards unlocked! ${data.rewards?.tickerVerified?.success ? 'Ticker verification reward earned.' : ''}`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Verification Failed", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const restartMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', `/api/logos/${logoId}/restart-verification`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/logos', logoId, 'verification-status'] });
+      toast({ title: "Verification Restarted", description: "You have a new 24-hour window to complete verification." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Restart Failed", description: error.message, variant: "destructive" });
+    },
+  });
+
+  if (isLoading || !verificationData) {
+    return (
+      <div className="pt-2 border-t space-y-2">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          Loading verification status...
+        </div>
+      </div>
+    );
+  }
+
+  const { status, registrationStrength: strength, rewardsBlocked, timeRemaining } = verificationData;
+
+  const hoursRemaining = Math.floor(timeRemaining / (1000 * 60 * 60));
+  const minutesRemaining = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+
+  return (
+    <div className="pt-2 border-t space-y-3" data-testid={`verification-card-${logoId}`}>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <span className="text-xs font-medium">Registration Strength</span>
+          <Badge
+            variant={strength.tier === 'verified' ? 'default' : strength.tier === 'strong' ? 'default' : 'secondary'}
+            className={`text-xs ${strength.tier === 'verified' ? 'bg-green-600' : strength.tier === 'strong' ? 'bg-blue-600' : ''}`}
+            data-testid={`badge-strength-${logoId}`}
+          >
+            {strength.tierLabel} ({strength.percentage}%)
+          </Badge>
+        </div>
+        <StrengthBar percentage={strength.percentage} tier={strength.tier} />
+      </div>
+
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <span className="text-xs font-medium">Ticker Verification</span>
+        {status === 'verified' ? (
+          <Badge className="text-xs bg-green-600" data-testid={`badge-verified-${logoId}`}>
+            <CheckCircle2 className="w-3 h-3 mr-1" />
+            Verified
+          </Badge>
+        ) : status === 'expired' ? (
+          <Badge variant="destructive" className="text-xs" data-testid={`badge-expired-${logoId}`}>
+            <XCircle className="w-3 h-3 mr-1" />
+            Expired
+          </Badge>
+        ) : (
+          <Badge variant="secondary" className="text-xs" data-testid={`badge-pending-${logoId}`}>
+            <Clock className="w-3 h-3 mr-1" />
+            {hoursRemaining}h {minutesRemaining}m left
+          </Badge>
+        )}
+      </div>
+
+      {rewardsBlocked && (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 rounded px-2 py-1.5">
+          <Lock className="w-3 h-3 shrink-0" />
+          <span>Rewards locked until verification is complete</span>
+        </div>
+      )}
+
+      {status === 'pending' && (
+        <Button
+          variant="default"
+          size="sm"
+          className="w-full text-xs"
+          onClick={() => confirmMutation.mutate()}
+          disabled={confirmMutation.isPending}
+          data-testid={`button-confirm-verification-${logoId}`}
+        >
+          {confirmMutation.isPending ? (
+            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+          ) : (
+            <CheckCircle2 className="w-3 h-3 mr-1" />
+          )}
+          Confirm Verification
+        </Button>
+      )}
+
+      {status === 'expired' && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full text-xs"
+          onClick={() => restartMutation.mutate()}
+          disabled={restartMutation.isPending}
+          data-testid={`button-restart-verification-${logoId}`}
+        >
+          {restartMutation.isPending ? (
+            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+          ) : (
+            <RefreshCw className="w-3 h-3 mr-1" />
+          )}
+          Restart 24h Verification
+        </Button>
+      )}
+
+      {status === 'verified' && strength.tier !== 'verified' && strength.missingFields.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Tip: Add {strength.missingFields.length} more field{strength.missingFields.length > 1 ? 's' : ''} to strengthen your registration.
+        </p>
+      )}
+    </div>
+  );
 }
 
 export default function Dashboard() {
@@ -523,6 +687,11 @@ export default function Dashboard() {
                             </div>
                           )}
                         </div>
+                      )}
+
+                      {/* Verification Status & Registration Strength - Token Launches */}
+                      {logo.registrationType === 'token_launch' && (
+                        <TokenVerificationCard logoId={logo.id} />
                       )}
 
                       {/* NFT Status & Mint Button */}
