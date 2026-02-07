@@ -18,7 +18,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Rocket, Upload, AlertTriangle, ArrowLeft, Loader2, Globe, Eye, EyeOff, Plus, Link } from "lucide-react";
+import { Rocket, Upload, AlertTriangle, ArrowLeft, Loader2, Globe, Eye, EyeOff, Plus, Link, Wallet, Info } from "lucide-react";
 import { SiGithub, SiTelegram, SiDiscord, SiYoutube, SiTiktok, SiX } from "react-icons/si";
 
 // Generate ticker deviations for protection
@@ -265,7 +265,21 @@ const tokenLaunchSchema = z.object({
   supplyLocked: z.enum(["yes", "no"], { required_error: "Please specify if supply will be locked" }),
   lockDuration: z.string().optional(),
   
+  authorityWallet: z.string().min(1, "Authority/Dev wallet address is required"),
+  additionalWallet1Label: z.string().max(50).optional().or(z.literal("")),
+  additionalWallet1Address: z.string().optional().or(z.literal("")),
+  additionalWallet2Label: z.string().max(50).optional().or(z.literal("")),
+  additionalWallet2Address: z.string().optional().or(z.literal("")),
+  
   twitterHandle: z.string().min(1, "Twitter/X handle is required for verification").regex(/^@?[A-Za-z0-9_]+$/, "Invalid Twitter handle"),
+  proofPostUrl1: z.string().optional().or(z.literal("")).refine(
+    (val) => !val || /^https?:\/\/(x\.com|twitter\.com)\/.+\/status\/\d+/.test(val),
+    "Must be a valid Twitter/X post URL (e.g., https://x.com/username/status/123456)"
+  ),
+  proofPostUrl2: z.string().optional().or(z.literal("")).refine(
+    (val) => !val || /^https?:\/\/(x\.com|twitter\.com)\/.+\/status\/\d+/.test(val),
+    "Must be a valid Twitter/X post URL (e.g., https://x.com/username/status/123456)"
+  ),
   
   websiteUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
   telegramUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
@@ -294,6 +308,22 @@ const tokenLaunchSchema = z.object({
 }, {
   message: "GitHub repo URL is required when linking an existing repo",
   path: ["githubRepoUrl"],
+}).refine((data) => {
+  if (data.additionalWallet1Label && data.additionalWallet1Label.trim().length > 0) {
+    return data.additionalWallet1Address && data.additionalWallet1Address.trim().length > 0;
+  }
+  return true;
+}, {
+  message: "Please provide the wallet address",
+  path: ["additionalWallet1Address"],
+}).refine((data) => {
+  if (data.additionalWallet2Label && data.additionalWallet2Label.trim().length > 0) {
+    return data.additionalWallet2Address && data.additionalWallet2Address.trim().length > 0;
+  }
+  return true;
+}, {
+  message: "Please provide the wallet address",
+  path: ["additionalWallet2Address"],
 });
 
 type TokenLaunchFormValues = z.infer<typeof tokenLaunchSchema>;
@@ -325,7 +355,14 @@ export default function RegisterTokenLaunch() {
     resolver: zodResolver(tokenLaunchSchema),
     defaultValues: {
       supplyLocked: "no",
+      authorityWallet: "",
+      additionalWallet1Label: "",
+      additionalWallet1Address: "",
+      additionalWallet2Label: "",
+      additionalWallet2Address: "",
       twitterHandle: user?.twitterHandle || "",
+      proofPostUrl1: "",
+      proofPostUrl2: "",
       tokenUses: [],
       includeDollarSign: true,
       websiteUrl: "",
@@ -417,7 +454,14 @@ export default function RegisterTokenLaunch() {
       tokenomicsDetails: values.tokenomicsDetails,
       supplyLocked: values.supplyLocked,
       lockDuration: values.lockDuration || null,
+      authorityWallet: values.authorityWallet,
+      additionalWallet1Label: values.additionalWallet1Label || null,
+      additionalWallet1Address: values.additionalWallet1Address || null,
+      additionalWallet2Label: values.additionalWallet2Label || null,
+      additionalWallet2Address: values.additionalWallet2Address || null,
       twitterHandle: values.twitterHandle,
+      proofPostUrl1: values.proofPostUrl1 || null,
+      proofPostUrl2: values.proofPostUrl2 || null,
       websiteUrl: values.websiteUrl || null,
       telegramUrl: values.telegramUrl || null,
       discordUrl: values.discordUrl || null,
@@ -1055,14 +1099,98 @@ export default function RegisterTokenLaunch() {
 
               <Separator />
 
-              {/* Twitter Verification */}
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Social Media Required for Verification</AlertTitle>
-                <AlertDescription className="text-sm">
-                  Twitter/X is required for the 24-hour ticker verification system. You'll need to post your ticker twice within 24 hours.
-                </AlertDescription>
-              </Alert>
+              <FormField
+                control={form.control}
+                name="authorityWallet"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold flex items-center gap-2">
+                      <Wallet className="w-4 h-4" />
+                      7. Authority / Dev Wallet *
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., 7xKQ...9mPz (your Solana wallet address)" {...field} data-testid="input-authority-wallet" />
+                    </FormControl>
+                    <FormDescription>
+                      The wallet that will sign transactions and fund the token launch. This links your on-chain activity to your Solturio registration.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <h3 className="font-semibold text-sm text-muted-foreground pt-2">Additional Wallets (Optional)</h3>
+              <FormDescription className="text-xs">
+                If your project uses separate wallets for treasury, marketing, or liquidity, you can register them here for transparency.
+              </FormDescription>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                  <FormField
+                    control={form.control}
+                    name="additionalWallet1Label"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Wallet className="w-3 h-3" />
+                          Wallet Purpose
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Treasury" {...field} data-testid="input-wallet1-label" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="additionalWallet1Address"
+                    render={({ field }) => (
+                      <FormItem className="sm:col-span-2">
+                        <FormLabel>Wallet Address</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Wallet address..." {...field} data-testid="input-wallet1-address" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                  <FormField
+                    control={form.control}
+                    name="additionalWallet2Label"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Wallet className="w-3 h-3" />
+                          Wallet Purpose
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Marketing" {...field} data-testid="input-wallet2-label" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="additionalWallet2Address"
+                    render={({ field }) => (
+                      <FormItem className="sm:col-span-2">
+                        <FormLabel>Wallet Address</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Wallet address..." {...field} data-testid="input-wallet2-address" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <Separator />
 
               <FormField
                 control={form.control}
@@ -1071,16 +1199,62 @@ export default function RegisterTokenLaunch() {
                   <FormItem>
                     <FormLabel className="font-semibold flex items-center gap-2">
                       <SiX className="w-4 h-4" />
-                      7. Twitter / X Handle *
+                      8. Twitter / X Handle *
                     </FormLabel>
                     <FormControl>
                       <Input placeholder="@yourusername" {...field} data-testid="input-twitter" />
                     </FormControl>
-                    <FormDescription>Required for ticker verification process</FormDescription>
+                    <FormDescription>Your project's Twitter/X account handle</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              <Alert className="bg-muted/50 border-muted-foreground/20">
+                <Info className="h-4 w-4" />
+                <AlertTitle>24-Hour Ticker Verification</AlertTitle>
+                <AlertDescription className="text-sm space-y-2">
+                  <p>To verify ownership of your ticker, you need to post about it on Twitter/X <strong>twice within 24 hours</strong> of registration.</p>
+                  <p className="text-muted-foreground">How it works:</p>
+                  <ol className="list-decimal list-inside text-muted-foreground space-y-1 text-xs">
+                    <li>Post your ticker (e.g., "$CATH") on Twitter/X from your project account</li>
+                    <li>Copy the URL of that tweet and paste it in "Proof Post 1" below</li>
+                    <li>Post again within 24 hours and paste the second URL in "Proof Post 2"</li>
+                  </ol>
+                  <p className="text-xs text-muted-foreground">You can add these URLs now or come back to fill them in later from your dashboard.</p>
+                </AlertDescription>
+              </Alert>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="proofPostUrl1"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Proof Post 1</FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://x.com/yourproject/status/..." {...field} data-testid="input-proof-post-1" />
+                      </FormControl>
+                      <FormDescription className="text-xs">Paste the URL of your first ticker post</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="proofPostUrl2"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Proof Post 2</FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://x.com/yourproject/status/..." {...field} data-testid="input-proof-post-2" />
+                      </FormControl>
+                      <FormDescription className="text-xs">Paste the URL of your second ticker post</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <Separator />
 
