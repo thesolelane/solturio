@@ -160,6 +160,43 @@ licenseRouter.get('/by-logo/:logoId', isAuthenticated, async (req: any, res) => 
 });
 
 /**
+ * GET /api/licenses/search-transaction
+ * Search user's licenses by transaction hash or wallet address
+ */
+licenseRouter.get('/search-transaction', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    const { q } = req.query;
+
+    if (!q || typeof q !== 'string' || q.length < 10) {
+      return res.status(400).json({ error: 'Search query must be at least 10 characters (transaction hash or wallet address)' });
+    }
+
+    const results = await storage.searchLicensesByTransaction(q, userId);
+
+    const enriched = await Promise.all(
+      results.map(async (license) => {
+        const logo = await storage.getLogoById(license.logoId);
+        return {
+          ...license,
+          logo: logo ? {
+            id: logo.id,
+            fileName: logo.fileName,
+            thumbnailUrl: logo.thumbnailUrl,
+            tokenName: logo.tokenName,
+          } : null,
+        };
+      })
+    );
+
+    res.json(enriched);
+  } catch (error: any) {
+    console.error('Search transaction error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * GET /api/licenses/:id
  * Get a specific license by ID
  */
@@ -311,6 +348,67 @@ licenseRouter.post('/', isAuthenticated, requireActiveSubscription, async (req: 
     });
   } catch (error: any) {
     console.error('Create license error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * PATCH /api/licenses/:id/link-transaction
+ * Link a P2P transaction to an existing ISCL (optional - user-recorded)
+ */
+licenseRouter.patch('/:id/link-transaction', isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user?.claims?.sub;
+    const { id } = req.params;
+    const { senderWallet, receiverWallet, transactionHash, amount, currency, note } = req.body;
+
+    if (!transactionHash || typeof transactionHash !== 'string') {
+      return res.status(400).json({ error: 'Transaction hash is required' });
+    }
+
+    if (transactionHash.length < 32 || transactionHash.length > 128) {
+      return res.status(400).json({ error: 'Invalid transaction hash format' });
+    }
+
+    if (!senderWallet || !receiverWallet) {
+      return res.status(400).json({ error: 'Both sender and receiver wallet addresses are required' });
+    }
+
+    if (senderWallet.length < 32 || senderWallet.length > 44 || receiverWallet.length < 32 || receiverWallet.length > 44) {
+      return res.status(400).json({ error: 'Invalid Solana wallet address format' });
+    }
+
+    const license = await storage.getLicenseContract(id);
+    if (!license) {
+      return res.status(404).json({ error: 'License not found' });
+    }
+
+    const user = await storage.getUser(userId);
+    const isLicensor = license.licensorUserId === userId;
+    const isLicensee = user?.walletAddress === license.licenseeWallet || 
+                       user?.solanaPublicKey === license.licenseeWallet;
+    
+    if (!isLicensor && !isLicensee) {
+      return res.status(403).json({ error: 'Only the licensor or licensee can link a transaction' });
+    }
+
+    const updated = await storage.updateLicenseContract(id, {
+      p2pSenderWallet: senderWallet,
+      p2pReceiverWallet: receiverWallet,
+      p2pTransactionHash: transactionHash,
+      p2pTransactionAmount: amount || null,
+      p2pTransactionCurrency: currency || null,
+      p2pTransactionNote: note || null,
+      p2pTransactionLinkedAt: new Date(),
+    } as any);
+
+    res.json({
+      success: true,
+      license: updated,
+      message: 'Transaction linked to license successfully.',
+    });
+  } catch (error: any) {
+    console.error('Link transaction error:', error);
     res.status(500).json({ error: error.message });
   }
 });

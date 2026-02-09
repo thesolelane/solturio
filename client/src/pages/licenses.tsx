@@ -6,7 +6,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
   Shield, Loader2, ExternalLink, Copy, Check, FileSignature, 
   Clock, CheckCircle2, AlertCircle, XCircle, 
-  ChevronDown, ChevronRight, Plus, Building2, User, Calendar, Coins
+  ChevronDown, ChevronRight, Plus, Building2, User, Calendar, Coins,
+  Link2, Search, Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,6 +15,10 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Link } from "wouter";
 import type { LicenseContract } from "@shared/schema";
 import { PLATFORM_BITS, LICENSE_TYPES } from "@shared/schema";
@@ -62,6 +67,19 @@ export default function Licenses() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expandedLicenses, setExpandedLicenses] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<"all" | "licensor" | "licensee">("all");
+  const [linkTxDialogOpen, setLinkTxDialogOpen] = useState(false);
+  const [linkTxLicenseId, setLinkTxLicenseId] = useState<string>("");
+  const [linkTxForm, setLinkTxForm] = useState({
+    senderWallet: '',
+    receiverWallet: '',
+    transactionHash: '',
+    amount: '',
+    currency: 'SOL',
+    note: '',
+  });
+  const [txSearchQuery, setTxSearchQuery] = useState("");
+  const [txSearchInput, setTxSearchInput] = useState("");
+  const [showTxSearch, setShowTxSearch] = useState(false);
 
   const toggleLicense = (licenseId: string) => {
     setExpandedLicenses(prev => {
@@ -122,6 +140,57 @@ export default function Licenses() {
       });
     },
   });
+
+  const linkTransactionMutation = useMutation({
+    mutationFn: async ({ licenseId, data }: { licenseId: string; data: typeof linkTxForm }) => {
+      const res = await apiRequest("PATCH", `/api/licenses/${licenseId}/link-transaction`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/licenses'] });
+      setLinkTxDialogOpen(false);
+      setLinkTxForm({ senderWallet: '', receiverWallet: '', transactionHash: '', amount: '', currency: 'SOL', note: '' });
+      toast({
+        title: "Transaction Linked",
+        description: "The P2P transaction has been linked to this license.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to link transaction",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const openLinkTxDialog = (licenseId: string, license: LicenseWithDetails) => {
+    setLinkTxLicenseId(licenseId);
+    setLinkTxForm({
+      senderWallet: license.p2pSenderWallet || '',
+      receiverWallet: license.p2pReceiverWallet || '',
+      transactionHash: license.p2pTransactionHash || '',
+      amount: license.p2pTransactionAmount || '',
+      currency: license.p2pTransactionCurrency || 'SOL',
+      note: license.p2pTransactionNote || '',
+    });
+    setLinkTxDialogOpen(true);
+  };
+
+  const txSearchResults = useQuery<LicenseWithDetails[]>({
+    queryKey: ['/api/licenses/search-transaction', txSearchQuery],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/licenses/search-transaction?q=${encodeURIComponent(txSearchQuery)}`);
+      return res.json();
+    },
+    enabled: !!txSearchQuery && txSearchQuery.length >= 10,
+  });
+
+  const handleTxSearch = () => {
+    if (txSearchInput.trim().length >= 10) {
+      setTxSearchQuery(txSearchInput.trim());
+    }
+  };
 
   const getPlatformPermissions = (bitmap: number): string[] => {
     const enabled: string[] = [];
@@ -206,11 +275,101 @@ export default function Licenses() {
 
       <main className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold mb-2">My Licenses</h1>
-          <p className="text-muted-foreground">
-            View and manage your license contracts
-          </p>
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <h1 className="text-3xl font-semibold mb-2">My Licenses</h1>
+              <p className="text-muted-foreground">
+                View and manage your license contracts
+              </p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowTxSearch(!showTxSearch)}
+              data-testid="button-toggle-tx-search"
+            >
+              <Search className="w-4 h-4 mr-1" />
+              Search Transactions
+            </Button>
+          </div>
         </div>
+
+        {showTxSearch && (
+          <Card className="p-4 mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Search className="w-4 h-4 text-muted-foreground" />
+              <h3 className="text-sm font-medium">Transaction Search</h3>
+              <p className="text-xs text-muted-foreground ml-auto">
+                Search by transaction hash or wallet address (min 10 characters)
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Enter transaction hash or wallet address..."
+                value={txSearchInput}
+                onChange={(e) => setTxSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleTxSearch()}
+                data-testid="input-tx-search"
+                className="flex-1"
+              />
+              <Button 
+                onClick={handleTxSearch}
+                disabled={txSearchInput.trim().length < 10}
+                data-testid="button-tx-search"
+              >
+                <Search className="w-4 h-4 mr-1" />
+                Search
+              </Button>
+            </div>
+            {txSearchResults.isLoading && (
+              <div className="flex items-center gap-2 mt-3 text-sm text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Searching...
+              </div>
+            )}
+            {txSearchQuery && txSearchResults.data && (
+              <div className="mt-3">
+                {txSearchResults.data.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No licenses found matching that transaction hash or wallet address.</p>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">{txSearchResults.data.length} license(s) found</p>
+                    {txSearchResults.data.map((result) => (
+                      <div key={result.id} className="p-3 bg-muted/30 rounded-lg text-sm" data-testid={`tx-search-result-${result.id}`}>
+                        <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
+                          <span className="font-medium">
+                            {result.collection?.name || result.logo?.fileName || `License #${result.id.slice(0, 8)}`}
+                          </span>
+                          <Badge variant="outline" className="text-xs">
+                            {LICENSE_TYPES[result.licenseType as keyof typeof LICENSE_TYPES] || result.licenseType}
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs text-muted-foreground">
+                          {result.p2pTransactionHash && (
+                            <div>
+                              <span className="block text-muted-foreground/70">Tx Hash</span>
+                              <code className="font-mono">{result.p2pTransactionHash.slice(0, 12)}...{result.p2pTransactionHash.slice(-4)}</code>
+                            </div>
+                          )}
+                          {result.p2pTransactionAmount && (
+                            <div>
+                              <span className="block text-muted-foreground/70">Amount</span>
+                              <span className="font-medium">{result.p2pTransactionAmount} {result.p2pTransactionCurrency || 'SOL'}</span>
+                            </div>
+                          )}
+                          <div>
+                            <span className="block text-muted-foreground/70">Created</span>
+                            <span>{formatDate(result.createdAt)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
+        )}
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="mb-6">
           <TabsList>
@@ -440,6 +599,90 @@ export default function Licenses() {
                           </div>
                         )}
 
+                        <div className="border-t pt-4">
+                          <div className="flex items-center justify-between gap-2 mb-3">
+                            <p className="text-xs text-muted-foreground font-medium flex items-center gap-1">
+                              <Link2 className="w-3 h-3" />
+                              P2P Transaction
+                            </p>
+                            {isLicensor && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => openLinkTxDialog(license.id, license)}
+                                data-testid={`button-link-tx-${license.id}`}
+                              >
+                                <Link2 className="w-3 h-3 mr-1" />
+                                {license.p2pTransactionHash ? 'Update' : 'Link Transaction'}
+                              </Button>
+                            )}
+                          </div>
+                          {license.p2pTransactionHash ? (
+                            <div className="p-3 bg-muted/30 rounded-lg space-y-2">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-0.5">Sender Wallet</p>
+                                  <code className="text-xs font-mono" data-testid={`text-tx-sender-${license.id}`}>
+                                    {license.p2pSenderWallet ? `${license.p2pSenderWallet.slice(0, 8)}...${license.p2pSenderWallet.slice(-4)}` : 'N/A'}
+                                  </code>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-0.5">Receiver Wallet</p>
+                                  <code className="text-xs font-mono" data-testid={`text-tx-receiver-${license.id}`}>
+                                    {license.p2pReceiverWallet ? `${license.p2pReceiverWallet.slice(0, 8)}...${license.p2pReceiverWallet.slice(-4)}` : 'N/A'}
+                                  </code>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-0.5">Transaction Hash</p>
+                                  <div className="flex items-center gap-1">
+                                    <code className="text-xs font-mono truncate" data-testid={`text-tx-hash-${license.id}`}>
+                                      {license.p2pTransactionHash.slice(0, 12)}...{license.p2pTransactionHash.slice(-4)}
+                                    </code>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      onClick={() => copyToClipboard(license.p2pTransactionHash!, `tx-${license.id}`)}
+                                      data-testid={`button-copy-tx-${license.id}`}
+                                    >
+                                      {copiedId === `tx-${license.id}` ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                                    </Button>
+                                    <Button size="icon" variant="ghost" asChild>
+                                      <a
+                                        href={`https://solscan.io/tx/${license.p2pTransactionHash}?cluster=devnet`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        data-testid={`link-tx-explorer-${license.id}`}
+                                      >
+                                        <ExternalLink className="w-3 h-3" />
+                                      </a>
+                                    </Button>
+                                  </div>
+                                </div>
+                                {license.p2pTransactionAmount && (
+                                  <div>
+                                    <p className="text-xs text-muted-foreground mb-0.5">Amount</p>
+                                    <p className="text-sm font-medium" data-testid={`text-tx-amount-${license.id}`}>
+                                      {license.p2pTransactionAmount} {license.p2pTransactionCurrency || 'SOL'}
+                                    </p>
+                                  </div>
+                                )}
+                                {license.p2pTransactionNote && (
+                                  <div>
+                                    <p className="text-xs text-muted-foreground mb-0.5">Note</p>
+                                    <p className="text-sm" data-testid={`text-tx-note-${license.id}`}>{license.p2pTransactionNote}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">
+                              No transaction linked yet. {isLicensor ? 'Use the button above to link an external payment.' : 'The licensor can link a payment transaction to this license.'}
+                            </p>
+                          )}
+                        </div>
+
                         {license.contractAddress && (
                           <div className="border-t pt-4">
                             <p className="text-xs text-muted-foreground mb-2">Contract Address</p>
@@ -532,6 +775,107 @@ export default function Licenses() {
           </div>
         )}
       </main>
+
+      <Dialog open={linkTxDialogOpen} onOpenChange={setLinkTxDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Link2 className="w-5 h-5" />
+              Link P2P Transaction
+            </DialogTitle>
+            <DialogDescription>
+              Record an external peer-to-peer payment linked to this license. Solturio does not process payments — this creates a verifiable record.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="tx-sender">Sender Wallet Address</Label>
+              <Input
+                id="tx-sender"
+                placeholder="Sender's Solana wallet address"
+                value={linkTxForm.senderWallet}
+                onChange={(e) => setLinkTxForm(p => ({ ...p, senderWallet: e.target.value }))}
+                data-testid="input-tx-sender"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tx-receiver">Receiver Wallet Address</Label>
+              <Input
+                id="tx-receiver"
+                placeholder="Receiver's Solana wallet address"
+                value={linkTxForm.receiverWallet}
+                onChange={(e) => setLinkTxForm(p => ({ ...p, receiverWallet: e.target.value }))}
+                data-testid="input-tx-receiver"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tx-hash">Transaction Hash</Label>
+              <Input
+                id="tx-hash"
+                placeholder="Solana transaction signature"
+                value={linkTxForm.transactionHash}
+                onChange={(e) => setLinkTxForm(p => ({ ...p, transactionHash: e.target.value }))}
+                data-testid="input-tx-hash"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="tx-amount">Amount</Label>
+                <Input
+                  id="tx-amount"
+                  type="number"
+                  step="any"
+                  placeholder="0.00"
+                  value={linkTxForm.amount}
+                  onChange={(e) => setLinkTxForm(p => ({ ...p, amount: e.target.value }))}
+                  data-testid="input-tx-amount"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tx-currency">Currency</Label>
+                <Select value={linkTxForm.currency} onValueChange={(v) => setLinkTxForm(p => ({ ...p, currency: v }))}>
+                  <SelectTrigger data-testid="select-tx-currency">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="SOL">SOL</SelectItem>
+                    <SelectItem value="USDC">USDC</SelectItem>
+                    <SelectItem value="BONK">BONK</SelectItem>
+                    <SelectItem value="CATH">$CATH</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tx-note">Note (optional)</Label>
+              <Input
+                id="tx-note"
+                placeholder="e.g. Payment for logo usage Q1 2025"
+                value={linkTxForm.note}
+                onChange={(e) => setLinkTxForm(p => ({ ...p, note: e.target.value }))}
+                data-testid="input-tx-note"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLinkTxDialogOpen(false)} data-testid="button-cancel-link-tx">
+              Cancel
+            </Button>
+            <Button
+              onClick={() => linkTransactionMutation.mutate({ licenseId: linkTxLicenseId, data: linkTxForm })}
+              disabled={linkTransactionMutation.isPending || !linkTxForm.transactionHash}
+              data-testid="button-confirm-link-tx"
+            >
+              {linkTransactionMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Link2 className="w-4 h-4 mr-2" />
+              )}
+              Link Transaction
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

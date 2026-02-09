@@ -1624,6 +1624,15 @@ export const licenseContracts = pgTable("license_contracts", {
   vatStatement: text("vat_statement"), // EU/UK VAT handling
   regionalClauses: jsonb("regional_clauses"), // Additional jurisdiction-specific clauses
   
+  // ===== P2P TRANSACTION LINKING (Optional - user-recorded external transactions) =====
+  p2pSenderWallet: varchar("p2p_sender_wallet"), // Wallet that sent the payment
+  p2pReceiverWallet: varchar("p2p_receiver_wallet"), // Wallet that received the payment
+  p2pTransactionHash: varchar("p2p_transaction_hash"), // On-chain transaction hash/signature
+  p2pTransactionAmount: varchar("p2p_transaction_amount"), // Amount transferred
+  p2pTransactionCurrency: varchar("p2p_transaction_currency", { length: 10 }), // SOL, USDC, etc.
+  p2pTransactionNote: text("p2p_transaction_note"), // Optional note about the transaction
+  p2pTransactionLinkedAt: timestamp("p2p_transaction_linked_at"), // When user linked this transaction
+  
   // ===== SHAREABLE LINK =====
   shareableSlug: varchar("shareable_slug", { length: 50 }).unique(), // solturio.app/license/[slug]
   

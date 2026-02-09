@@ -33,7 +33,7 @@ import {
   type VisitorAccount,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, gte, lt, sql } from "drizzle-orm";
+import { eq, desc, and, or, gte, lt, sql } from "drizzle-orm";
 import crypto from "crypto";
 
 export interface IStorage {
@@ -155,6 +155,7 @@ export interface IStorage {
   getLicenseContractsByAsset(assetId: string): Promise<LicenseContract[]>;
   getActiveLicenseForUserAndAsset(userId: string, assetId: string): Promise<LicenseContract | undefined>;
   updateLicenseContract(id: string, data: Partial<LicenseContract>): Promise<LicenseContract>;
+  searchLicensesByTransaction(query: string, userId: string): Promise<LicenseContract[]>;
   signLicenseContractAsLicensor(id: string, signature: string): Promise<LicenseContract>;
   signLicenseContractAsLicensee(id: string, signature: string): Promise<LicenseContract>;
   
@@ -1032,6 +1033,32 @@ export class DatabaseStorage implements IStorage {
       .where(eq(licenseContracts.id, id))
       .returning();
     return updated;
+  }
+
+  async searchLicensesByTransaction(query: string, userId: string): Promise<LicenseContract[]> {
+    const user = await this.getUser(userId);
+    const userWallets: string[] = [];
+    if (user?.walletAddress) userWallets.push(user.walletAddress);
+    if (user?.solanaPublicKey) userWallets.push(user.solanaPublicKey);
+
+    const results = await db
+      .select()
+      .from(licenseContracts)
+      .where(
+        and(
+          or(
+            eq(licenseContracts.licensorUserId, userId),
+            ...(userWallets.length > 0 ? userWallets.map(w => eq(licenseContracts.licenseeWallet, w)) : [])
+          ),
+          or(
+            eq(licenseContracts.p2pTransactionHash, query),
+            eq(licenseContracts.p2pSenderWallet, query),
+            eq(licenseContracts.p2pReceiverWallet, query)
+          )
+        )
+      )
+      .orderBy(desc(licenseContracts.createdAt));
+    return results;
   }
 
   async signLicenseContractAsLicensor(id: string, signature: string): Promise<LicenseContract> {

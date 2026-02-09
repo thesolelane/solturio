@@ -19,7 +19,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { 
   Shield, ArrowLeft, ArrowRight, Check, FileText, 
   Globe, Calendar, DollarSign, Scale, Sparkles, 
-  Upload, AlertTriangle, Loader2, Copy, ExternalLink
+  Upload, AlertTriangle, Loader2, Copy, ExternalLink, Link2, Info
 } from 'lucide-react';
 import { 
   LICENSE_TYPES, 
@@ -103,6 +103,13 @@ export default function CreateLicense() {
     arbitrationAgreed: false,
     indemnificationAgreed: false,
     customTerms: '',
+    linkP2pTransaction: false,
+    p2pSenderWallet: '',
+    p2pReceiverWallet: '',
+    p2pTransactionHash: '',
+    p2pTransactionAmount: '',
+    p2pTransactionCurrency: 'SOL',
+    p2pTransactionNote: '',
   });
 
   const JURISDICTION_OPTIONS = [
@@ -198,13 +205,24 @@ export default function CreateLicense() {
       return;
     }
 
+    const { linkP2pTransaction, p2pSenderWallet, p2pReceiverWallet, p2pTransactionHash, p2pTransactionAmount, p2pTransactionCurrency, p2pTransactionNote, ...restFormData } = formData;
+    
     createMutation.mutate({
       logoId: selectedLogoId,
       templateUsed: selectedTemplate,
-      ...formData,
+      ...restFormData,
       exclusivityEndsAt: formData.isExclusivityTimeLimited 
         ? new Date(Date.now() + formData.exclusivityDays * 24 * 60 * 60 * 1000).toISOString()
         : undefined,
+      ...(linkP2pTransaction && p2pTransactionHash ? {
+        p2pSenderWallet,
+        p2pReceiverWallet,
+        p2pTransactionHash,
+        p2pTransactionAmount: p2pTransactionAmount || null,
+        p2pTransactionCurrency: p2pTransactionCurrency || null,
+        p2pTransactionNote: p2pTransactionNote || null,
+        p2pTransactionLinkedAt: new Date().toISOString(),
+      } : {}),
     });
   };
 
@@ -821,6 +839,116 @@ export default function CreateLicense() {
                   data-testid="input-revocation"
                 />
               </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Link2 className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <Label className="font-medium">Link External Transaction</Label>
+                    <p className="text-sm text-muted-foreground">Record a peer-to-peer payment tied to this license</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={formData.linkP2pTransaction}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, linkP2pTransaction: checked }))}
+                  data-testid="switch-link-transaction"
+                />
+              </div>
+
+              {formData.linkP2pTransaction && (
+                <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                  <div className="flex items-start gap-2">
+                    <Info className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">
+                      This is optional. If you've already completed a payment between wallets, you can record the 
+                      transaction details here to tie it to this license. Solturio does not process this payment — 
+                      it only creates a verifiable link between the transaction and your IP.
+                    </p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="p2p-sender">Sender Wallet Address</Label>
+                      <Input
+                        id="p2p-sender"
+                        value={formData.p2pSenderWallet}
+                        onChange={(e) => setFormData(prev => ({ ...prev, p2pSenderWallet: e.target.value }))}
+                        placeholder="Wallet that sent the payment..."
+                        className="mt-2"
+                        data-testid="input-p2p-sender"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="p2p-receiver">Receiver Wallet Address</Label>
+                      <Input
+                        id="p2p-receiver"
+                        value={formData.p2pReceiverWallet}
+                        onChange={(e) => setFormData(prev => ({ ...prev, p2pReceiverWallet: e.target.value }))}
+                        placeholder="Wallet that received the payment..."
+                        className="mt-2"
+                        data-testid="input-p2p-receiver"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="p2p-tx-hash">Transaction Hash / Signature</Label>
+                    <Input
+                      id="p2p-tx-hash"
+                      value={formData.p2pTransactionHash}
+                      onChange={(e) => setFormData(prev => ({ ...prev, p2pTransactionHash: e.target.value }))}
+                      placeholder="On-chain transaction hash..."
+                      className="mt-2 font-mono text-sm"
+                      data-testid="input-p2p-tx-hash"
+                    />
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="p2p-amount">Amount (Optional)</Label>
+                      <Input
+                        id="p2p-amount"
+                        value={formData.p2pTransactionAmount}
+                        onChange={(e) => setFormData(prev => ({ ...prev, p2pTransactionAmount: e.target.value }))}
+                        placeholder="e.g., 50"
+                        className="mt-2"
+                        data-testid="input-p2p-amount"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="p2p-currency">Currency</Label>
+                      <Select
+                        value={formData.p2pTransactionCurrency}
+                        onValueChange={(v) => setFormData(prev => ({ ...prev, p2pTransactionCurrency: v }))}
+                      >
+                        <SelectTrigger id="p2p-currency" className="mt-2" data-testid="select-p2p-currency">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="SOL">SOL</SelectItem>
+                          <SelectItem value="USDC">USDC</SelectItem>
+                          <SelectItem value="CATH">$CATH</SelectItem>
+                          <SelectItem value="BONK">BONK</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="p2p-note">Note (Optional)</Label>
+                    <Input
+                      id="p2p-note"
+                      value={formData.p2pTransactionNote}
+                      onChange={(e) => setFormData(prev => ({ ...prev, p2pTransactionNote: e.target.value }))}
+                      placeholder="e.g., License payment for logo usage"
+                      className="mt-2"
+                      data-testid="input-p2p-note"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1088,6 +1216,41 @@ export default function CreateLicense() {
                   )}
                 </div>
               </div>
+
+              {formData.linkP2pTransaction && formData.p2pTransactionHash && (
+                <div className="bg-muted/50 rounded-lg p-4 space-y-3" data-testid="review-p2p-transaction">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <Link2 className="w-4 h-4" />
+                    Linked Transaction
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Sender:</span>
+                      <p className="font-mono text-xs break-all">{formData.p2pSenderWallet}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Receiver:</span>
+                      <p className="font-mono text-xs break-all">{formData.p2pReceiverWallet}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <span className="text-muted-foreground">Transaction Hash:</span>
+                      <p className="font-mono text-xs break-all">{formData.p2pTransactionHash}</p>
+                    </div>
+                    {formData.p2pTransactionAmount && (
+                      <div>
+                        <span className="text-muted-foreground">Amount:</span>
+                        <p className="font-medium">{formData.p2pTransactionAmount} {formData.p2pTransactionCurrency}</p>
+                      </div>
+                    )}
+                    {formData.p2pTransactionNote && (
+                      <div>
+                        <span className="text-muted-foreground">Note:</span>
+                        <p>{formData.p2pTransactionNote}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <Alert>
                 <DollarSign className="h-4 w-4" />
