@@ -1098,7 +1098,9 @@ export default function AdminDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button size="sm" className="w-full" disabled>Coming Soon</Button>
+                <Link href="/admin/payments">
+                  <Button size="sm" className="w-full" data-testid="button-manage-payments">Manage Payments</Button>
+                </Link>
               </CardContent>
             </Card>
           </div>

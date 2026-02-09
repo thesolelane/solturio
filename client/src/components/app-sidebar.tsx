@@ -15,7 +15,8 @@ import {
   Brain,
   Award,
   KeyRound,
-  Coins
+  Coins,
+  DollarSign
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -183,6 +184,11 @@ export function AppSidebar() {
       title: "IP Claims",
       url: "/admin/claims",
       icon: Shield,
+    },
+    {
+      title: "Payments",
+      url: "/admin/payments",
+      icon: DollarSign,
     },
   ];
 

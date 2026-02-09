@@ -21,6 +21,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import AdminPartnerships from "@/pages/admin-partnerships";
 import AdminClaims from "@/pages/admin-claims";
 import AdminUsers from "@/pages/admin-users";
+import AdminPayments from "@/pages/admin-payments";
 import KnowledgeBase from "@/pages/knowledge-base";
 import IPGuide from "@/pages/ip-guide";
 import IPQuiz from "@/pages/ip-quiz";
@@ -73,6 +74,7 @@ function Router() {
       <Route path="/admin/partnerships" component={AdminPartnerships} />
       <Route path="/admin/claims" component={AdminClaims} />
       <Route path="/admin/users" component={AdminUsers} />
+      <Route path="/admin/payments" component={AdminPayments} />
       <Route path="/knowledge-base" component={KnowledgeBase} />
       <Route path="/ip-guide" component={IPGuide} />
       <Route path="/ip-quiz" component={IPQuiz} />

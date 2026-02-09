@@ -95,6 +95,7 @@ Preferred communication style: Simple, everyday language.
 - **Registration Strength Scoring**: Weighted field scoring system (shared/registration-strength.ts) with tiers (weak/basic/strong/verified) across 5 categories (identity, verification, transparency, community, legal). Strong/verified registrations earn bonus rewards.
 - **Ticker Verification System**: 24-hour verification window with deadline enforcement, expired state persistence, restart capability. Rewards blocked until verification confirmed. Endpoints: GET /verification-status, POST /confirm-verification, POST /restart-verification.
 - **Visitor Accounts**: Email-only signup for quiz access. Rewards expire 30 days from last activity but extend on any interaction. Pending rewards transfer to full account on upgrade.
+- **Admin Payment Management**: Full payment tracking dashboard at /admin/payments. Stats overview (total/confirmed/pending/failed), token revenue breakdown pulling from accepted_tokens registry (auto-includes new tokens), payment type breakdown, searchable/filterable payment history with pagination, payment detail dialog. Endpoints: GET /api/admin/payments, GET /api/admin/payments/stats, GET /api/admin/payments/:paymentId.
 
 ### Health Monitoring
 - **Endpoint**: `GET /api/health` returns status of all services.

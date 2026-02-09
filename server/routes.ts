@@ -1459,6 +1459,277 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================
+  // ADMIN PAYMENT MANAGEMENT ENDPOINTS
+  // ============================================
+
+  app.get('/api/admin/payments', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const db = (storage as any).$client;
+      if (!db) {
+        return res.status(500).json({ message: 'Database not available' });
+      }
+
+      const { status, tokenType, paymentType, search, page: pageStr, limit: limitStr } = req.query;
+      const page = Math.max(1, parseInt(pageStr as string) || 1);
+      const limit = Math.min(100, Math.max(1, parseInt(limitStr as string) || 20));
+      const offset = (page - 1) * limit;
+
+      const conditions: string[] = [];
+      const params: any[] = [];
+      let paramIndex = 1;
+
+      if (status && ['pending', 'confirmed', 'failed'].includes(status as string)) {
+        conditions.push(`p.status = $${paramIndex++}`);
+        params.push(status);
+      }
+      if (tokenType) {
+        conditions.push(`p.token_type = $${paramIndex++}`);
+        params.push(tokenType);
+      }
+      if (paymentType && ['minting', 'rental', 'subscription', 'iscl'].includes(paymentType as string)) {
+        conditions.push(`p.payment_type = $${paramIndex++}`);
+        params.push(paymentType);
+      }
+      if (search) {
+        conditions.push(`(p.transaction_signature ILIKE $${paramIndex} OR p.from_wallet ILIKE $${paramIndex} OR p.to_wallet ILIKE $${paramIndex})`);
+        params.push(`%${search}%`);
+        paramIndex++;
+      }
+
+      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+      const countResult = await db.query(
+        `SELECT COUNT(*) as total FROM payments p ${whereClause}`,
+        params
+      );
+      const total = parseInt(countResult.rows[0].total);
+
+      const statsResult = await db.query(
+        `SELECT 
+           COUNT(*) as total_payments,
+           COUNT(*) FILTER (WHERE p.status = 'confirmed') as total_confirmed,
+           COUNT(*) FILTER (WHERE p.status = 'pending') as total_pending,
+           COUNT(*) FILTER (WHERE p.status = 'failed') as total_failed
+         FROM payments p ${whereClause}`,
+        params
+      );
+
+      const paymentsResult = await db.query(
+        `SELECT p.*, u.email as user_email, u.first_name as user_first_name, u.last_name as user_last_name
+         FROM payments p
+         LEFT JOIN users u ON p.user_id = u.id
+         ${whereClause}
+         ORDER BY p.created_at DESC
+         LIMIT $${paramIndex++} OFFSET $${paramIndex++}`,
+        [...params, limit, offset]
+      );
+
+      const stats = statsResult.rows[0];
+      res.json({
+        payments: paymentsResult.rows.map((p: any) => ({
+          id: p.id,
+          userId: p.user_id,
+          collectionId: p.collection_id,
+          logoId: p.logo_id,
+          transactionSignature: p.transaction_signature,
+          fromWallet: p.from_wallet,
+          toWallet: p.to_wallet,
+          amount: p.amount,
+          tokenType: p.token_type,
+          status: p.status,
+          paymentType: p.payment_type,
+          logoCount: p.logo_count,
+          pricingTier: p.pricing_tier,
+          rentalMonths: p.rental_months,
+          blockNumber: p.block_number,
+          confirmedAt: p.confirmed_at,
+          createdAt: p.created_at,
+          updatedAt: p.updated_at,
+          userEmail: p.user_email,
+          userFirstName: p.user_first_name,
+          userLastName: p.user_last_name,
+        })),
+        total,
+        page,
+        limit,
+        stats: {
+          totalPayments: parseInt(stats.total_payments),
+          totalConfirmed: parseInt(stats.total_confirmed),
+          totalPending: parseInt(stats.total_pending),
+          totalFailed: parseInt(stats.total_failed),
+        },
+      });
+    } catch (error) {
+      console.error('Admin payments list error:', error);
+      res.status(500).json({ message: 'Failed to fetch payments' });
+    }
+  });
+
+  app.get('/api/admin/payments/stats', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const db = (storage as any).$client;
+      if (!db) {
+        return res.status(500).json({ message: 'Database not available' });
+      }
+
+      const overviewResult = await db.query(
+        `SELECT 
+           COUNT(*) as total_payments,
+           COUNT(*) FILTER (WHERE status = 'confirmed') as confirmed_payments,
+           COUNT(*) FILTER (WHERE status = 'pending') as pending_payments,
+           COUNT(*) FILTER (WHERE status = 'failed') as failed_payments
+         FROM payments`
+      );
+
+      const tokensResult = await db.query(
+        `SELECT symbol FROM accepted_tokens WHERE is_active = true ORDER BY symbol`
+      );
+      const allTokenSymbols: string[] = tokensResult.rows.map((t: any) => t.symbol);
+
+      const volumeResult = await db.query(
+        `SELECT token_type, COALESCE(SUM(CAST(amount AS NUMERIC)), 0) as total_amount
+         FROM payments
+         WHERE status = 'confirmed'
+         GROUP BY token_type`
+      );
+      const byToken: Record<string, string> = {};
+      for (const symbol of allTokenSymbols) {
+        byToken[symbol] = '0';
+      }
+      for (const row of volumeResult.rows) {
+        byToken[row.token_type] = row.total_amount.toString();
+      }
+
+      const byPaymentTypeResult = await db.query(
+        `SELECT payment_type, COUNT(*) as count
+         FROM payments
+         GROUP BY payment_type`
+      );
+      const byPaymentType: Record<string, number> = {};
+      for (const row of byPaymentTypeResult.rows) {
+        byPaymentType[row.payment_type || 'unknown'] = parseInt(row.count);
+      }
+
+      const byTokenTypeResult = await db.query(
+        `SELECT token_type as symbol, COUNT(*) as count, COALESCE(SUM(CAST(amount AS NUMERIC)), 0) as total_amount
+         FROM payments
+         GROUP BY token_type
+         ORDER BY count DESC`
+      );
+
+      const recentResult = await db.query(
+        `SELECT p.*, u.email as user_email, u.first_name as user_first_name, u.last_name as user_last_name
+         FROM payments p
+         LEFT JOIN users u ON p.user_id = u.id
+         ORDER BY p.created_at DESC
+         LIMIT 10`
+      );
+
+      const overview = overviewResult.rows[0];
+      res.json({
+        overview: {
+          totalPayments: parseInt(overview.total_payments),
+          confirmedPayments: parseInt(overview.confirmed_payments),
+          pendingPayments: parseInt(overview.pending_payments),
+          failedPayments: parseInt(overview.failed_payments),
+          totalVolume: { byToken },
+        },
+        byPaymentType,
+        byTokenType: byTokenTypeResult.rows.map((r: any) => ({
+          symbol: r.symbol,
+          count: parseInt(r.count),
+          totalAmount: r.total_amount.toString(),
+        })),
+        recentPayments: recentResult.rows.map((p: any) => ({
+          id: p.id,
+          userId: p.user_id,
+          collectionId: p.collection_id,
+          logoId: p.logo_id,
+          transactionSignature: p.transaction_signature,
+          fromWallet: p.from_wallet,
+          toWallet: p.to_wallet,
+          amount: p.amount,
+          tokenType: p.token_type,
+          status: p.status,
+          paymentType: p.payment_type,
+          logoCount: p.logo_count,
+          pricingTier: p.pricing_tier,
+          rentalMonths: p.rental_months,
+          blockNumber: p.block_number,
+          confirmedAt: p.confirmed_at,
+          createdAt: p.created_at,
+          updatedAt: p.updated_at,
+          userEmail: p.user_email,
+          userFirstName: p.user_first_name,
+          userLastName: p.user_last_name,
+        })),
+      });
+    } catch (error) {
+      console.error('Admin payments stats error:', error);
+      res.status(500).json({ message: 'Failed to fetch payment stats' });
+    }
+  });
+
+  app.get('/api/admin/payments/:paymentId', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const db = (storage as any).$client;
+      if (!db) {
+        return res.status(500).json({ message: 'Database not available' });
+      }
+
+      const { paymentId } = req.params;
+
+      const result = await db.query(
+        `SELECT p.*, u.email as user_email, u.first_name as user_first_name, u.last_name as user_last_name
+         FROM payments p
+         LEFT JOIN users u ON p.user_id = u.id
+         WHERE p.id = $1`,
+        [paymentId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Payment not found' });
+      }
+
+      const p = result.rows[0];
+      res.json({
+        payment: {
+          id: p.id,
+          userId: p.user_id,
+          collectionId: p.collection_id,
+          logoId: p.logo_id,
+          transactionSignature: p.transaction_signature,
+          fromWallet: p.from_wallet,
+          toWallet: p.to_wallet,
+          amount: p.amount,
+          tokenType: p.token_type,
+          status: p.status,
+          paymentType: p.payment_type,
+          logoCount: p.logo_count,
+          pricingTier: p.pricing_tier,
+          rentalMonths: p.rental_months,
+          blockNumber: p.block_number,
+          confirmedAt: p.confirmed_at,
+          createdAt: p.created_at,
+          updatedAt: p.updated_at,
+          userEmail: p.user_email,
+          userFirstName: p.user_first_name,
+          userLastName: p.user_last_name,
+        },
+        user: p.user_id ? {
+          id: p.user_id,
+          email: p.user_email,
+          firstName: p.user_first_name,
+          lastName: p.user_last_name,
+        } : null,
+      });
+    } catch (error) {
+      console.error('Admin payment detail error:', error);
+      res.status(500).json({ message: 'Failed to fetch payment details' });
+    }
+  });
+
   // Logo metadata registration endpoint (NO file storage - files stored in user's .solturio.sol wallet)
   app.post('/api/logos/upload', isAuthenticated, requireActiveSubscription, upload.array('logos', 50), async (req: any, res) => {
     try {
