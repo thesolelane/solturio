@@ -51,6 +51,7 @@ import MusicReleaseDetail from "@/pages/music-release";
 import MusicTrackDetail from "@/pages/music-track";
 import ExtensionAuth from "@/pages/extension-auth";
 import BindContract from "@/pages/bind-contract";
+import LogoRegistry from "@/pages/logo-registry";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -88,6 +89,7 @@ function Router() {
       <Route path="/register/token-launch" component={RegisterTokenLaunch} />
       <Route path="/register/artwork" component={RegisterArtwork} />
       <Route path="/bind-contract/:id" component={BindContract} />
+      <Route path="/logo-registry" component={LogoRegistry} />
       <Route path="/register/wallet-tier" component={WalletTierSelection} />
       <Route path="/ceremony/stage-1-warning" component={CeremonyStage1Warning} />
       <Route path="/ceremony/stage-2-payment" component={CeremonyStage2Payment} />

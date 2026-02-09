@@ -16,7 +16,8 @@ import {
   Award,
   KeyRound,
   Coins,
-  DollarSign
+  DollarSign,
+  ClipboardList
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -80,6 +81,13 @@ export function AppSidebar() {
       icon: Package,
       requireAuth: true,
       show: true, // Always show
+    },
+    {
+      title: "Logo Registry",
+      url: "/logo-registry",
+      icon: ClipboardList,
+      requireAuth: true,
+      show: hasCollections, // Only show if user has registrations
     },
     {
       title: "Artwork Licensing",
