@@ -32,7 +32,12 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
-  Trash2
+  Trash2,
+  Copy,
+  Check,
+  ShoppingCart,
+  HardDrive,
+  ArrowUpRight
 } from "lucide-react";
 import { Link } from "wouter";
 import { TokenAdminPanel } from "@/components/TokenAdminPanel";
@@ -102,6 +107,20 @@ interface ComplianceTriggerRule {
   isActive: boolean;
 }
 
+interface ArweavePurchaseInfo {
+  configured: boolean;
+  balance: string | null;
+  address: string | null;
+  unit: string;
+  estimatedBadgeCost: string | null;
+  estimatedMetadataCost: string | null;
+  estimatedUploadsRemaining: number | null;
+  isLowBalance: boolean;
+  lowBalanceThreshold: number;
+  exchangeLinks: { name: string; url: string; description: string }[];
+  topUpInstructions: string[];
+}
+
 interface ComplianceCase {
   id: string;
   caseNumber: string;
@@ -154,6 +173,22 @@ export default function AdminDashboard() {
     queryKey: ['/api/admin/treasury/wallets'],
     enabled: isAdmin,
   });
+
+  const { data: arweavePurchaseInfo, isLoading: arweaveLoading, refetch: refetchArweave } = useQuery<ArweavePurchaseInfo>({
+    queryKey: ['/api/admin/arweave/purchase-info'],
+    enabled: isAdmin,
+  });
+
+  const [addressCopied, setAddressCopied] = useState(false);
+
+  const copyArweaveAddress = () => {
+    if (arweavePurchaseInfo?.address) {
+      navigator.clipboard.writeText(arweavePurchaseInfo.address);
+      setAddressCopied(true);
+      toast({ title: "Address Copied", description: "Arweave wallet address copied to clipboard" });
+      setTimeout(() => setAddressCopied(false), 3000);
+    }
+  };
 
   const { data: triggerRules, refetch: refetchTriggers } = useQuery<ComplianceTriggerRule[]>({
     queryKey: ['/api/admin/compliance/triggers'],
@@ -273,6 +308,7 @@ export default function AdminDashboard() {
     refetchStats();
     refetchWallets();
     refetchTreasury();
+    refetchArweave();
     refetchTriggers();
     refetchCases();
     toast({
@@ -703,55 +739,205 @@ export default function AdminDashboard() {
             </Card>
           )}
 
-          {/* Legacy Wallet Info Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            <Card className="hover-elevate">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Wallet className="w-5 h-5 text-primary" />
-                  Arweave Storage Wallet
-                </CardTitle>
-                <CardDescription>
-                  Permanent badge image storage
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  AR is used for permanent badge image storage. Each image costs approximately 0.0001 AR.
-                </p>
-                {walletBalances?.arweave?.address && (
-                  <Button size="sm" variant="outline" asChild>
-                    <a 
-                      href={`https://arweave.app/wallet?address=${walletBalances.arweave.address}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Fund via Arweave.app
-                    </a>
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+          {/* Buy Arweave Section */}
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <ShoppingCart className="w-5 h-5" />
+                  Purchase Arweave (AR)
+                </h3>
+                <p className="text-sm text-muted-foreground">Top up your AR balance for permanent badge storage</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refetchArweave()}
+                data-testid="button-refresh-arweave"
+              >
+                <RefreshCw className="w-4 h-4 mr-1" />
+                Refresh
+              </Button>
+            </div>
 
-            <Card className="hover-elevate">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-primary" />
-                  Transaction History
-                </CardTitle>
-                <CardDescription>
-                  View all platform transaction history
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Complete history of wallet creations, mints, and storage uploads.
-                </p>
-                <Button size="sm" variant="outline" disabled>
-                  Coming Soon
-                </Button>
-              </CardContent>
-            </Card>
+            {arweaveLoading ? (
+              <div className="animate-pulse space-y-4">
+                <div className="h-32 bg-muted rounded" />
+                <div className="h-48 bg-muted rounded" />
+              </div>
+            ) : !arweavePurchaseInfo?.configured ? (
+              <Card className="border-dashed">
+                <CardContent className="py-8 text-center">
+                  <HardDrive className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <h4 className="font-medium mb-2">Arweave Not Configured</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Add the ARWEAVE_WALLET_KEY secret to enable permanent storage and AR purchasing.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {/* Balance & Status Row */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card data-testid="card-ar-current-balance">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Current Balance</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-bold" data-testid="text-ar-purchase-balance">
+                          {arweavePurchaseInfo.balance ?? "0"}
+                        </span>
+                        <span className="text-muted-foreground">AR</span>
+                      </div>
+                      {arweavePurchaseInfo.isLowBalance && (
+                        <div className="flex items-center gap-1 mt-2 text-amber-600 dark:text-amber-400">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span className="text-xs font-medium">Low balance</span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card data-testid="card-ar-uploads-remaining">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Uploads Remaining</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-bold" data-testid="text-ar-uploads-remaining">
+                          {arweavePurchaseInfo.estimatedUploadsRemaining !== null
+                            ? arweavePurchaseInfo.estimatedUploadsRemaining.toLocaleString()
+                            : "--"}
+                        </span>
+                        <span className="text-muted-foreground text-sm">badge images</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">Based on ~50KB per badge</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card data-testid="card-ar-cost-per-upload">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Cost Per Upload</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Badge image</span>
+                          <span className="font-mono text-sm font-medium" data-testid="text-ar-badge-cost">
+                            {arweavePurchaseInfo.estimatedBadgeCost ?? "--"} AR
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Metadata JSON</span>
+                          <span className="font-mono text-sm font-medium" data-testid="text-ar-metadata-cost">
+                            {arweavePurchaseInfo.estimatedMetadataCost ?? "--"} AR
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Wallet Address & Copy */}
+                {arweavePurchaseInfo.address && (
+                  <Card data-testid="card-ar-wallet-address">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <Wallet className="w-4 h-4" />
+                        Your Arweave Wallet Address
+                      </CardTitle>
+                      <CardDescription>Send AR tokens to this address to top up your balance</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-muted rounded-md px-3 py-2 font-mono text-sm break-all" data-testid="text-ar-wallet-address">
+                          {arweavePurchaseInfo.address}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={copyArweaveAddress}
+                          data-testid="button-copy-ar-address"
+                        >
+                          {addressCopied ? (
+                            <Check className="w-4 h-4" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-2 mt-3 flex-wrap">
+                        <Button variant="outline" size="sm" asChild>
+                          <a
+                            href={`https://viewblock.io/arweave/address/${arweavePurchaseInfo.address}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-testid="link-ar-viewblock"
+                          >
+                            <ExternalLink className="w-3 h-3 mr-1" />
+                            View on ViewBlock
+                          </a>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Buy AR - Exchange Links */}
+                <Card data-testid="card-ar-buy-options">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ShoppingCart className="w-5 h-5" />
+                      Buy AR Tokens
+                    </CardTitle>
+                    <CardDescription>Purchase Arweave tokens on a supported exchange, then send them to your wallet address above</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {arweavePurchaseInfo.exchangeLinks.map((exchange) => (
+                        <Button
+                          key={exchange.name}
+                          variant="outline"
+                          className="justify-between h-auto py-3"
+                          asChild
+                          data-testid={`button-buy-ar-${exchange.name.toLowerCase().replace(/\./g, '')}`}
+                        >
+                          <a
+                            href={exchange.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <div className="text-left">
+                              <div className="font-medium">{exchange.name}</div>
+                              <div className="text-xs text-muted-foreground">{exchange.description}</div>
+                            </div>
+                            <ArrowUpRight className="w-4 h-4 ml-2 shrink-0" />
+                          </a>
+                        </Button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Top Up Instructions */}
+                <Card data-testid="card-ar-instructions">
+                  <CardHeader>
+                    <CardTitle className="text-sm font-medium">How to Top Up</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ol className="space-y-2">
+                      {arweavePurchaseInfo.topUpInstructions.map((step, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                          <span className="font-mono font-medium text-foreground shrink-0">{i + 1}.</span>
+                          <span>{step.replace(/^\d+\.\s*/, '')}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </TabsContent>
 

@@ -935,6 +935,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Arweave purchase info - balance, cost estimates, exchange links
+  app.get('/api/admin/arweave/purchase-info', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const balance = await arweaveService.getWalletBalance();
+      const address = await arweaveService.getWalletAddress();
+      const configured = arweaveService.isConfigured();
+
+      const avgBadgeSize = 50000;
+      const avgMetadataSize = 2000;
+      let estimatedBadgeCost: string | null = null;
+      let estimatedMetadataCost: string | null = null;
+      let estimatedUploadsRemaining: number | null = null;
+
+      if (configured) {
+        try {
+          estimatedBadgeCost = await arweaveService.estimateCost(avgBadgeSize);
+          estimatedMetadataCost = await arweaveService.estimateCost(avgMetadataSize);
+
+          if (balance && estimatedBadgeCost) {
+            const balNum = parseFloat(balance);
+            const costNum = parseFloat(estimatedBadgeCost);
+            if (costNum > 0) {
+              estimatedUploadsRemaining = Math.floor(balNum / costNum);
+            }
+          }
+        } catch (err) {
+          console.error("Error estimating Arweave costs:", err);
+        }
+      }
+
+      const lowBalanceThreshold = 0.05;
+      const isLowBalance = balance ? parseFloat(balance) < lowBalanceThreshold : true;
+
+      res.json({
+        configured,
+        balance,
+        address,
+        unit: "AR",
+        estimatedBadgeCost,
+        estimatedMetadataCost,
+        estimatedUploadsRemaining,
+        isLowBalance,
+        lowBalanceThreshold,
+        exchangeLinks: [
+          {
+            name: "Coinbase",
+            url: "https://www.coinbase.com/price/arweave",
+            description: "Buy AR with card or bank transfer",
+          },
+          {
+            name: "Binance",
+            url: "https://www.binance.com/en/trade/AR_USDT",
+            description: "Trade AR/USDT pair",
+          },
+          {
+            name: "Gate.io",
+            url: "https://www.gate.io/trade/AR_USDT",
+            description: "Buy AR with USDT",
+          },
+          {
+            name: "OKX",
+            url: "https://www.okx.com/trade-spot/ar-usdt",
+            description: "Trade AR on OKX",
+          },
+        ],
+        topUpInstructions: address ? [
+          `1. Purchase AR tokens on any supported exchange`,
+          `2. Withdraw AR to this address: ${address}`,
+          `3. Wait for network confirmation (typically 5-10 minutes)`,
+          `4. Refresh this page to verify updated balance`,
+        ] : [
+          "Configure ARWEAVE_WALLET_KEY secret to enable Arweave storage",
+        ],
+      });
+    } catch (error) {
+      console.error("Error fetching Arweave purchase info:", error);
+      res.status(500).json({ message: "Failed to fetch Arweave purchase info" });
+    }
+  });
+
   // ============================================
   // TREASURY WALLET MANAGEMENT ENDPOINTS
   // ============================================
