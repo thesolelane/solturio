@@ -503,7 +503,7 @@ export default function AdminDashboard() {
 
       {/* Admin Tools Tabs */}
       <Tabs defaultValue="treasury" className="space-y-4">
-        <TabsList className="grid grid-cols-7 w-full">
+        <TabsList className="grid grid-cols-4 md:grid-cols-8 w-full">
           <TabsTrigger value="subscriptions" data-testid="tab-subscriptions">Subscriptions</TabsTrigger>
           <TabsTrigger value="treasury" data-testid="tab-treasury">Treasury</TabsTrigger>
           <TabsTrigger value="tokens" data-testid="tab-tokens">Tokens</TabsTrigger>

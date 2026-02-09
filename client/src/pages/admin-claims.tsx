@@ -100,10 +100,7 @@ export default function AdminClaims() {
   // Update report status
   const updateStatusMutation = useMutation({
     mutationFn: async ({ reportId, status }: { reportId: string; status: string }) => {
-      return apiRequest(`/api/admin/reports/${reportId}/status`, {
-        method: "PATCH",
-        body: { status },
-      });
+      return apiRequest("PATCH", `/api/admin/reports/${reportId}/status`, { status });
     },
     onSuccess: () => {
       toast({ 
@@ -259,7 +256,7 @@ export default function AdminClaims() {
                         </Badge>
                         {getStatusBadge(report.status)}
                         <span className="text-xs text-muted-foreground">
-                          {format(new Date(report.createdAt), 'MMM d, yyyy HH:mm')}
+                          {report.createdAt ? format(new Date(report.createdAt), 'MMM d, yyyy HH:mm') : '-'}
                         </span>
                       </div>
                       
@@ -328,7 +325,7 @@ export default function AdminClaims() {
                   Report ID: {selectedReport.id}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Created: {format(new Date(selectedReport.createdAt), 'PPpp')}
+                  Created: {selectedReport.createdAt ? format(new Date(selectedReport.createdAt), 'PPpp') : '-'}
                 </p>
               </div>
 
@@ -336,10 +333,10 @@ export default function AdminClaims() {
               <div className="border rounded-lg p-4 space-y-2">
                 <h3 className="font-semibold">Protected Asset</h3>
                 <p>{selectedReport.logo?.fileName}</p>
-                <p className="text-sm text-muted-foreground">{selectedReport.logo?.ticker}</p>
-                {selectedReport.logo?.ipfsUrl && (
+                <p className="text-sm text-muted-foreground">{selectedReport.logo?.tokenTicker}</p>
+                {selectedReport.logo?.ipfsHash && (
                   <a 
-                    href={selectedReport.logo.ipfsUrl}
+                    href={`https://gateway.pinata.cloud/ipfs/${selectedReport.logo.ipfsHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1"

@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { csrfProtection } from "./csrf";
 import { storage } from "./storage";
+import { pool } from "./db";
 import { type User } from "@shared/schema";
 import multer from "multer";
 import sharp from "sharp";
@@ -1465,7 +1466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/admin/payments', isAuthenticated, isAdmin, async (req: any, res) => {
     try {
-      const db = (storage as any).$client;
+      const db = pool;
       if (!db) {
         return res.status(500).json({ message: 'Database not available' });
       }
@@ -1568,7 +1569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/admin/payments/stats', isAuthenticated, isAdmin, async (req: any, res) => {
     try {
-      const db = (storage as any).$client;
+      const db = pool;
       if (!db) {
         return res.status(500).json({ message: 'Database not available' });
       }
@@ -1673,7 +1674,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/admin/payments/:paymentId', isAuthenticated, isAdmin, async (req: any, res) => {
     try {
-      const db = (storage as any).$client;
+      const db = pool;
       if (!db) {
         return res.status(500).json({ message: 'Database not available' });
       }
@@ -1727,6 +1728,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Admin payment detail error:', error);
       res.status(500).json({ message: 'Failed to fetch payment details' });
+    }
+  });
+
+  // Admin: Get all copycat reports with related logo and user details
+  app.get('/api/admin/reports', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const db = pool;
+      if (!db) {
+        return res.status(500).json({ message: 'Database not available' });
+      }
+
+      const result = await db.query(
+        `SELECT r.*,
+                l.file_name as logo_file_name, l.file_hash as logo_file_hash, 
+                l.token_ticker as logo_token_ticker, l.ipfs_hash as logo_ipfs_hash,
+                l.ipfs_metadata_hash as logo_ipfs_metadata_hash,
+                u.email as user_email, u.first_name as user_first_name, u.last_name as user_last_name
+         FROM copycat_reports r
+         LEFT JOIN logos l ON r.logo_id = l.id
+         LEFT JOIN users u ON r.user_id = u.id
+         ORDER BY r.created_at DESC`
+      );
+
+      const reports = result.rows.map((r: any) => ({
+        id: r.id,
+        userId: r.user_id,
+        logoId: r.logo_id,
+        reportType: r.report_type,
+        copycatContractAddress: r.copycat_contract_address,
+        copycatTicker: r.copycat_ticker,
+        copycatName: r.copycat_name,
+        copycatTwitter: r.copycat_twitter,
+        copycatTelegram: r.copycat_telegram,
+        copycatWebsite: r.copycat_website,
+        copycatDiscord: r.copycat_discord,
+        foundOnPlatform: r.found_on_platform,
+        foundOnUrl: r.found_on_url,
+        screenshotUrl: r.screenshot_url,
+        evidenceDescription: r.evidence_description,
+        evidenceUrl: r.evidence_url,
+        similarityScore: r.similarity_score,
+        status: r.status,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+        logo: r.logo_id ? {
+          id: r.logo_id,
+          fileName: r.logo_file_name,
+          fileHash: r.logo_file_hash,
+          tokenTicker: r.logo_token_ticker,
+          ipfsHash: r.logo_ipfs_hash,
+          ipfsMetadataHash: r.logo_ipfs_metadata_hash,
+        } : null,
+        user: r.user_id ? {
+          id: r.user_id,
+          email: r.user_email,
+          firstName: r.user_first_name,
+          lastName: r.user_last_name,
+        } : null,
+      }));
+
+      res.json(reports);
+    } catch (error) {
+      console.error('Admin reports error:', error);
+      res.status(500).json({ message: 'Failed to fetch reports' });
+    }
+  });
+
+  // Admin: Update report status
+  app.patch('/api/admin/reports/:reportId/status', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const db = pool;
+      if (!db) {
+        return res.status(500).json({ message: 'Database not available' });
+      }
+
+      const { reportId } = req.params;
+      const { status } = req.body;
+
+      if (!status || !['pending', 'submitted', 'resolved', 'rejected'].includes(status)) {
+        return res.status(400).json({ message: 'Invalid status. Must be: pending, submitted, resolved, or rejected' });
+      }
+
+      const result = await db.query(
+        `UPDATE copycat_reports SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
+        [status, reportId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Report not found' });
+      }
+
+      res.json({ message: 'Status updated', report: result.rows[0] });
+    } catch (error) {
+      console.error('Admin report status update error:', error);
+      res.status(500).json({ message: 'Failed to update report status' });
     }
   });
 
