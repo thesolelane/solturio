@@ -150,7 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const publicCollections = allCollections.filter((c) => c.isPublic !== false);
       const results = publicCollections.filter((collection) => {
         if (searchType === "ticker") {
-          return collection.ticker?.toLowerCase().includes(searchQuery);
+          return collection.symbol?.toLowerCase().includes(searchQuery);
         } else if (searchType === "social") {
           const user = collection.user;
           return (
@@ -163,7 +163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const user = collection.user;
           return (
             collection.name?.toLowerCase().includes(searchQuery) ||
-            collection.ticker?.toLowerCase().includes(searchQuery) ||
+            collection.symbol?.toLowerCase().includes(searchQuery) ||
             user?.twitterHandle?.toLowerCase().includes(searchQuery) ||
             user?.telegramHandle?.toLowerCase().includes(searchQuery) ||
             user?.instagramHandle?.toLowerCase().includes(searchQuery) ||
@@ -176,8 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const publicResults = results.map((c) => ({
         id: c.id,
         name: c.name,
-        ticker: c.ticker,
-        registrationType: c.registrationType,
+        symbol: c.symbol,
         status: c.status,
         logoCount: c.logoCount || 0,
         mintedAt: c.mintedAt,

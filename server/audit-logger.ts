@@ -10,10 +10,10 @@ export interface AuditLogEntry {
   timestamp: string;
   userId?: string;
   action: string;
-  endpoint: string;
-  method: string;
-  statusCode: number;
-  requestId: string;
+  endpoint?: string;
+  method?: string;
+  statusCode?: number;
+  requestId?: string;
   details?: Record<string, any>;
   ipAddress?: string;
   userAgent?: string;
