@@ -18,6 +18,7 @@ import {
   Coins,
   DollarSign,
   ClipboardList,
+  Scale,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -65,6 +66,7 @@ export function AppSidebar() {
     { title: "My Collections", url: "/collections", icon: Package, show: true },
     { title: "Logo Registry", url: "/logo-registry", icon: ClipboardList, show: hasCollections },
     { title: "Artwork Licensing", url: "/artwork-licensing", icon: Award, show: hasCollections },
+    { title: "Trademark Assistant", url: "/trademark-assistant", icon: Scale, show: hasCollections },
     { title: "Authorized Usage", url: "/authorized-usage", icon: CheckCircle, show: true },
     { title: "Contract Verification", url: "/contract-verification", icon: Shield, show: true },
   ].filter((item) => item.show !== false);
@@ -271,8 +273,8 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4 border-t">
         {isAuthenticated ? (
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
+          <div className="flex items-center justify-between gap-1">
+            <div className="text-sm min-w-0">
               <p className="font-medium truncate">{user?.firstName || user?.email || "User"}</p>
               <p className="text-xs text-muted-foreground truncate">{user?.email || "No email"}</p>
             </div>

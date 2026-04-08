@@ -32,6 +32,7 @@ import { ceremonyRouter } from "./ceremony-routes";
 import { quizRouter } from "./quiz-routes";
 import { visitorRouter } from "./visitor-routes";
 import { receiptRouter } from "./receipt-routes";
+import { trademarkRouter } from "./trademark-routes";
 
 const extensionRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -593,6 +594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Domain routers
   app.use("/api", adminRouter);
   app.use("/api", logoRouter);
+  app.use("/api", trademarkRouter);
   app.use("/api", accountRouter);
   app.use("/api", ceremonyRouter);
   app.use("/api", quizRouter);
