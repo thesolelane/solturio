@@ -58,116 +58,36 @@ export function AppSidebar() {
 
   const hasCollections = logos && logos.length > 0;
 
-  // User menu items (dynamically filtered)
-  const userItems = [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: Home,
-      requireAuth: true,
-      show: true, // Always show
-    },
-    {
-      title: "Register IP",
-      url: "/register",
-      icon: Upload,
-      requireAuth: true,
-      show: true, // Always show
-    },
-    {
-      title: "My Collections",
-      url: "/collections",
-      icon: Package,
-      requireAuth: true,
-      show: true, // Always show
-    },
-    {
-      title: "Logo Registry",
-      url: "/logo-registry",
-      icon: ClipboardList,
-      requireAuth: true,
-      show: hasCollections, // Only show if user has registrations
-    },
-    {
-      title: "Artwork Licensing",
-      url: "/artwork-licensing",
-      icon: Award,
-      requireAuth: true,
-      show: hasCollections, // Only show if user has collections
-    },
-    {
-      title: "Authorized Usage",
-      url: "/authorized-usage",
-      icon: CheckCircle,
-      requireAuth: true,
-      show: true, // Always show
-    },
-    {
-      title: "Contract Verification",
-      url: "/contract-verification",
-      icon: Shield,
-      requireAuth: true,
-      show: true, // Always show
-    },
-    {
-      title: "Account Settings",
-      url: "/account",
-      icon: Settings,
-      requireAuth: true,
-      show: true, // Always show
-    },
-  ].filter((item) => item.show !== false); // Filter out items that shouldn't be shown
+  // My IP section — core account actions
+  const myIpItems = [
+    { title: "Dashboard", url: "/dashboard", icon: Home, show: true },
+    { title: "Register IP", url: "/register", icon: Upload, show: true },
+    { title: "My Collections", url: "/collections", icon: Package, show: true },
+    { title: "Logo Registry", url: "/logo-registry", icon: ClipboardList, show: hasCollections },
+    { title: "Artwork Licensing", url: "/artwork-licensing", icon: Award, show: hasCollections },
+    { title: "Authorized Usage", url: "/authorized-usage", icon: CheckCircle, show: true },
+    { title: "Contract Verification", url: "/contract-verification", icon: Shield, show: true },
+  ].filter((item) => item.show !== false);
 
-  // Public menu items
-  const publicItems = [
-    {
-      title: "Home",
-      url: "/",
-      icon: Home,
-      requireAuth: false,
-    },
-    {
-      title: "DEX Protection",
-      url: "/dex-protection",
-      icon: Shield,
-      requireAuth: false,
-    },
-    {
-      title: "Learn About Solturio",
-      url: "/dex-intro",
-      icon: Globe,
-      requireAuth: false,
-    },
-    {
-      title: "IP Knowledge Base",
-      url: "/knowledge-base",
-      icon: BookOpen,
-      requireAuth: false,
-    },
-    {
-      title: "IP Protection Guide",
-      url: "/ip-guide",
-      icon: FileText,
-      requireAuth: false,
-    },
-    {
-      title: "IP Quiz Game",
-      url: "/ip-quiz",
-      icon: Brain,
-      requireAuth: false,
-    },
-    {
-      title: "Wallet Recovery",
-      url: "/wallet-recovery",
-      icon: KeyRound,
-      requireAuth: false,
-    },
-    {
-      title: "$SOLT Tokenomics",
-      url: "/tokenomics",
-      icon: Coins,
-      requireAuth: false,
-    },
+  // Settings section — account management and utilities
+  const settingsItems = [
+    { title: "Account Settings", url: "/account", icon: Settings },
+    { title: "Wallet Recovery", url: "/wallet-recovery", icon: KeyRound },
+  ];
+
+  // Discover section — public product/platform pages
+  const discoverItems = [
+    { title: "Home", url: "/", icon: Home },
+    { title: "DEX Protection", url: "/dex-protection", icon: Shield },
+    { title: "Learn About Solturio", url: "/dex-intro", icon: Globe },
+    { title: "$SOLT Tokenomics", url: "/tokenomics", icon: Coins },
+  ];
+
+  // Learn section — educational resources
+  const learnItems = [
+    { title: "IP Knowledge Base", url: "/knowledge-base", icon: BookOpen },
+    { title: "IP Protection Guide", url: "/ip-guide", icon: FileText },
+    { title: "IP Quiz Game", url: "/ip-quiz", icon: Brain },
   ];
 
   // Admin menu items
@@ -221,40 +141,59 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {/* Public Section */}
+        {/* Discover — public product/platform pages */}
         <SidebarGroup>
-          <SidebarGroupLabel>Platform</SidebarGroupLabel>
+          <SidebarGroupLabel>Discover</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {publicItems.map((item) => {
-                if (item.requireAuth && !isAuthenticated) return null;
-
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <a
-                        href={item.url}
-                        className={location === item.url ? "bg-sidebar-accent" : ""}
-                        data-testid={`link-sidebar-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
-                      >
-                        <item.icon className="w-4 h-4" />
-                        <span>{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
+              {discoverItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <a
+                      href={item.url}
+                      className={location === item.url ? "bg-sidebar-accent" : ""}
+                      data-testid={`link-sidebar-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* User Section - Only show when authenticated */}
+        {/* Learn — educational resources */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Learn</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {learnItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <a
+                      href={item.url}
+                      className={location === item.url ? "bg-sidebar-accent" : ""}
+                      data-testid={`link-sidebar-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* My IP — core authenticated actions */}
         {isAuthenticated && (
           <SidebarGroup>
-            <SidebarGroupLabel>My Account</SidebarGroupLabel>
+            <SidebarGroupLabel>My IP</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {userItems.map((item) => (
+                {myIpItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
                       <a
@@ -273,7 +212,32 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {/* Admin Section - Only show for admins */}
+        {/* Settings — account management and utilities */}
+        {isAuthenticated && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Settings</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {settingsItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <a
+                        href={item.url}
+                        className={location === item.url ? "bg-sidebar-accent" : ""}
+                        data-testid={`link-sidebar-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.title}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* Administration — admin only */}
         {isAdmin && (
           <SidebarGroup>
             <SidebarGroupLabel className="flex items-center gap-2">
