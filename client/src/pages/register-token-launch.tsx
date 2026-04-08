@@ -448,6 +448,7 @@ export default function RegisterTokenLaunch() {
 
   const form = useForm<TokenLaunchFormValues>({
     resolver: zodResolver(tokenLaunchSchema),
+    mode: "onBlur",
     defaultValues: {
       supplyLocked: "no",
       authorityWallet: "",
@@ -685,7 +686,7 @@ export default function RegisterTokenLaunch() {
                             <img
                               src={filePreview}
                               alt="Preview"
-                              className="max-w-xs max-h-64 rounded border"
+                              className="max-w-xs max-h-64 rounded border object-contain"
                               data-testid="img-file-preview"
                             />
                           </div>
@@ -1164,14 +1165,20 @@ export default function RegisterTokenLaunch() {
                       <Textarea
                         placeholder="E.g., 80% liquidity pool, 10% team (vested 12 months), 5% marketing, 5% community rewards..."
                         rows={4}
+                        maxLength={2000}
                         {...field}
                         data-testid="textarea-tokenomics"
                       />
                     </FormControl>
-                    <FormDescription>
-                      How will tokens be distributed? Include percentages for liquidity, team,
-                      marketing, etc. (minimum 30 characters)
-                    </FormDescription>
+                    <div className="flex items-center justify-between">
+                      <FormDescription>
+                        How will tokens be distributed? Include percentages for liquidity, team,
+                        marketing, etc. (minimum 30 characters)
+                      </FormDescription>
+                      <span className={`text-xs shrink-0 ml-2 ${(field.value?.length || 0) >= 2000 ? "text-destructive" : "text-muted-foreground"}`}>
+                        {field.value?.length || 0}/2000
+                      </span>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1374,7 +1381,13 @@ export default function RegisterTokenLaunch() {
                       8. Twitter / X Handle *
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="@yourusername" {...field} data-testid="input-twitter" />
+                      <Input
+                        placeholder="@yourusername"
+                        {...field}
+                        maxLength={50}
+                        onBlur={(e) => { field.onBlur(); field.onChange(e.target.value.replace(/^@+/, "")); }}
+                        data-testid="input-twitter"
+                      />
                     </FormControl>
                     <FormDescription>Your project's Twitter/X account handle</FormDescription>
                     <FormMessage />

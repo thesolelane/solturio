@@ -109,6 +109,7 @@ export default function CreateLicense() {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedLogoId, setSelectedLogoId] = useState<string>(params.logoId || "");
   const [selectedTemplate, setSelectedTemplate] = useState<string>("custom");
+  const [licenseeEmailError, setLicenseeEmailError] = useState("");
 
   const [formData, setFormData] = useState({
     licenseType: "non_exclusive" as
@@ -255,6 +256,16 @@ export default function CreateLicense() {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.licenseeEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.licenseeEmail)) {
+      setLicenseeEmailError("Enter a valid email address (e.g., name@domain.com)");
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid licensee email address",
         variant: "destructive",
       });
       return;
@@ -426,6 +437,7 @@ export default function CreateLicense() {
                           src={selectedLogo.thumbnailUrl}
                           alt={selectedLogo.fileName}
                           className="w-24 h-24 object-contain rounded border"
+                          onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiUyM2FhYSIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHJlY3Qgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiB4PSIzIiB5PSIzIiByeD0iMiIgcnk9IjIiLz48Y2lyY2xlIGN4PSI5IiBjeT0iOSIgcj0iMiIvPjxwYXRoIGQ9Im0yMSAxNS0zLjA4Ni0zLjA4NmEyIDIgMCAwIDAtMi44MjggMEw2IDIxIi8+PC9zdmc+'; }}
                         />
                       )}
                       <div className="flex-1">
@@ -1356,13 +1368,22 @@ export default function CreateLicense() {
                   id="licensee-email"
                   type="email"
                   value={formData.licenseeEmail}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, licenseeEmail: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    setFormData((prev) => ({ ...prev, licenseeEmail: e.target.value }));
+                    setLicenseeEmailError("");
+                  }}
+                  onBlur={() => {
+                    if (formData.licenseeEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.licenseeEmail)) {
+                      setLicenseeEmailError("Enter a valid email address (e.g., name@domain.com)");
+                    } else {
+                      setLicenseeEmailError("");
+                    }
+                  }}
                   placeholder="Optional contact email..."
                   className="mt-2"
                   data-testid="input-licensee-email"
                 />
+                {licenseeEmailError && <p className="text-sm text-destructive mt-1">{licenseeEmailError}</p>}
               </div>
 
               <Separator />
@@ -1375,6 +1396,7 @@ export default function CreateLicense() {
                       src={selectedLogo.thumbnailUrl}
                       alt={selectedLogo.fileName}
                       className="w-20 h-20 rounded-lg object-cover border"
+                      onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiUyM2FhYSIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHJlY3Qgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiB4PSIzIiB5PSIzIiByeD0iMiIgcnk9IjIiLz48Y2lyY2xlIGN4PSI5IiBjeT0iOSIgcj0iMiIvPjxwYXRoIGQ9Im0yMSAxNS0zLjA4Ni0zLjA4NmEyIDIgMCAwIDAtMi44MjggMEw2IDIxIi8+PC9zdmc+'; }}
                     />
                   )}
                   <div className="flex-1 text-sm space-y-2">

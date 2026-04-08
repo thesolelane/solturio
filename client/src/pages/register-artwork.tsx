@@ -716,7 +716,7 @@ export default function RegisterArtwork() {
                               <img
                                 src={filePreview}
                                 alt="Preview"
-                                className="max-w-xs max-h-64 rounded border"
+                                className="max-w-xs max-h-64 rounded border object-contain"
                                 data-testid="img-file-preview"
                               />
                             </div>
@@ -1377,11 +1377,17 @@ export default function RegisterArtwork() {
                           <FormLabel>Payment Amount *</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="e.g., $500 USD or 2 SOL"
+                              placeholder="e.g., 500.00"
+                              inputMode="decimal"
                               {...field}
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9.,]/g, "");
+                                field.onChange(val);
+                              }}
                               data-testid="input-payment-amount"
                             />
                           </FormControl>
+                          <FormDescription>Enter the numeric amount paid (digits and decimal only)</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -1803,13 +1809,19 @@ export default function RegisterArtwork() {
                         <Textarea
                           placeholder="Portfolio display, client projects, merchandise, social media branding, NFT marketplace..."
                           rows={4}
+                          maxLength={1000}
                           {...field}
                           data-testid="textarea-intended-use"
                         />
                       </FormControl>
-                      <FormDescription>
-                        List all planned uses (minimum 20 characters)
-                      </FormDescription>
+                      <div className="flex items-center justify-between">
+                        <FormDescription>
+                          List all planned uses (minimum 20 characters)
+                        </FormDescription>
+                        <span className={`text-xs shrink-0 ml-2 ${(field.value?.length || 0) >= 1000 ? "text-destructive" : "text-muted-foreground"}`}>
+                          {field.value?.length || 0}/1000
+                        </span>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -1851,6 +1863,8 @@ export default function RegisterArtwork() {
                           <Input
                             placeholder="@yourusername"
                             {...field}
+                            maxLength={50}
+                            onBlur={(e) => { field.onBlur(); field.onChange(e.target.value.replace(/^@+/, "")); }}
                             data-testid="input-twitter-handle"
                           />
                         </FormControl>
@@ -1869,6 +1883,8 @@ export default function RegisterArtwork() {
                           <Input
                             placeholder="@yourusername"
                             {...field}
+                            maxLength={50}
+                            onBlur={(e) => { field.onBlur(); field.onChange(e.target.value.replace(/^@+/, "")); }}
                             data-testid="input-telegram-handle"
                           />
                         </FormControl>
@@ -1887,6 +1903,8 @@ export default function RegisterArtwork() {
                           <Input
                             placeholder="@yourusername"
                             {...field}
+                            maxLength={50}
+                            onBlur={(e) => { field.onBlur(); field.onChange(e.target.value.replace(/^@+/, "")); }}
                             data-testid="input-instagram-handle"
                           />
                         </FormControl>
@@ -1905,6 +1923,8 @@ export default function RegisterArtwork() {
                           <Input
                             placeholder="username#1234"
                             {...field}
+                            maxLength={50}
+                            onBlur={(e) => { field.onBlur(); field.onChange(e.target.value.replace(/^@+/, "")); }}
                             data-testid="input-discord-handle"
                           />
                         </FormControl>

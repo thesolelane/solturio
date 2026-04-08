@@ -40,6 +40,7 @@ export default function ArtworkLicensing() {
   );
   const [buyerName, setBuyerName] = useState("");
   const [buyerEmail, setBuyerEmail] = useState("");
+  const [buyerEmailError, setBuyerEmailError] = useState("");
   const [badgePosition, setBadgePosition] = useState<
     "top-left" | "top-right" | "bottom-left" | "bottom-right"
   >("bottom-right");
@@ -92,6 +93,15 @@ export default function ArtworkLicensing() {
       toast({
         title: "Missing Information",
         description: "Please select artwork and provide buyer details",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail)) {
+      setBuyerEmailError("Enter a valid email address (e.g., name@domain.com)");
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid buyer email address",
         variant: "destructive",
       });
       return;
@@ -244,10 +254,18 @@ This artwork is registered and protected on the Solturio blockchain platform.
                   id="email"
                   type="email"
                   value={buyerEmail}
-                  onChange={(e) => setBuyerEmail(e.target.value)}
+                  onChange={(e) => { setBuyerEmail(e.target.value); setBuyerEmailError(""); }}
+                  onBlur={() => {
+                    if (buyerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail)) {
+                      setBuyerEmailError("Enter a valid email address (e.g., name@domain.com)");
+                    } else {
+                      setBuyerEmailError("");
+                    }
+                  }}
                   placeholder="buyer@example.com"
                   data-testid="input-buyer-email"
                 />
+                {buyerEmailError && <p className="text-sm text-destructive mt-1">{buyerEmailError}</p>}
               </div>
             </CardContent>
           </Card>

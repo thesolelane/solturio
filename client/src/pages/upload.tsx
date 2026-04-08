@@ -49,6 +49,7 @@ export default function Upload() {
   const [isDragging, setIsDragging] = useState(false);
   const [companyName, setCompanyName] = useState("");
   const [imageUrlInput, setImageUrlInput] = useState("");
+  const [imageUrlError, setImageUrlError] = useState("");
   const queryClient = useQueryClient();
 
   // Fetch user data to check wallet type
@@ -482,18 +483,32 @@ export default function Upload() {
               provide the URL
             </p>
             <div className="flex gap-2">
-              <Input
-                type="url"
-                placeholder="https://your-wallet.solturio.sol/logo.png"
-                className="flex-1"
-                value={imageUrlInput}
-                onChange={(e) => setImageUrlInput(e.target.value)}
-                data-testid="input-image-url"
-              />
+              <div className="flex-1">
+                <Input
+                  type="url"
+                  placeholder="https://your-wallet.solturio.sol/logo.png"
+                  value={imageUrlInput}
+                  onChange={(e) => { setImageUrlInput(e.target.value); setImageUrlError(""); }}
+                  onBlur={() => {
+                    if (imageUrlInput && !/^https?:\/\/.+/.test(imageUrlInput)) {
+                      setImageUrlError("Enter a valid URL starting with http:// or https://");
+                    } else {
+                      setImageUrlError("");
+                    }
+                  }}
+                  data-testid="input-image-url"
+                />
+                {imageUrlError && <p className="text-sm text-destructive mt-1">{imageUrlError}</p>}
+              </div>
               <Button
                 variant="outline"
                 onClick={() => {
+                  if (imageUrlInput && !/^https?:\/\/.+/.test(imageUrlInput)) {
+                    setImageUrlError("Enter a valid URL starting with http:// or https://");
+                    return;
+                  }
                   if (imageUrlInput) {
+                    setImageUrlError("");
                     // Add URL-based logo registration
                     const fileName = imageUrlInput.split("/").pop() || "image.png";
                     setLogos((prev) => [
@@ -588,10 +603,14 @@ export default function Upload() {
                         id={`desc-${index}`}
                         placeholder="Brief description..."
                         value={logo.description}
+                        maxLength={200}
                         onChange={(e) => updateDescription(index, e.target.value)}
                         className="resize-none text-sm min-h-16"
                         data-testid={`input-description-${index}`}
                       />
+                      <p className={`text-xs mt-1 text-right ${logo.description.length >= 200 ? "text-destructive" : "text-muted-foreground"}`}>
+                        {logo.description.length}/200
+                      </p>
                     </div>
                   </Card>
                 ))}

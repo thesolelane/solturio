@@ -145,6 +145,36 @@ interface WizardData {
   hasColorClaim: boolean;
 }
 
+interface ApplicantErrors {
+  applicantName?: string;
+  applicantCountry?: string;
+  applicantState?: string;
+  applicantZip?: string;
+}
+
+function validateApplicantInfo(data: WizardData): ApplicantErrors {
+  const errors: ApplicantErrors = {};
+  if (!data.applicantName.trim()) {
+    errors.applicantName = "Legal name is required.";
+  }
+  const country = data.applicantCountry.trim().toUpperCase();
+  if (!country) {
+    errors.applicantCountry = "Country is required.";
+  }
+  if (country === "US") {
+    if (!data.applicantState.trim()) {
+      errors.applicantState = "State is required for US applicants.";
+    }
+    const zip = data.applicantZip.trim();
+    if (!zip) {
+      errors.applicantZip = "ZIP code is required for US applicants.";
+    } else if (!/^\d{5}(-\d{4})?$/.test(zip)) {
+      errors.applicantZip = "Enter a valid ZIP code (e.g., 12345 or 12345-6789).";
+    }
+  }
+  return errors;
+}
+
 const DEFAULT_WIZARD_DATA: WizardData = {
   selectedLogoId: "",
   markType: "",
@@ -158,7 +188,7 @@ const DEFAULT_WIZARD_DATA: WizardData = {
   applicantCity: "",
   applicantState: "",
   applicantZip: "",
-  applicantCountry: "US",
+  applicantCountry: "",
   entityType: "",
   citizenship: "US",
   colorClaim: "",
@@ -175,6 +205,8 @@ export default function TrademarkAssistant() {
   const [wizardStep, setWizardStep] = useState(1);
   const [wizardData, setWizardData] = useState<WizardData>(DEFAULT_WIZARD_DATA);
   const [wizardComplete, setWizardComplete] = useState(false);
+  const [applicantErrors, setApplicantErrors] = useState<ApplicantErrors>({});
+  const [applicantTouched, setApplicantTouched] = useState<Record<string, boolean>>({});
   const summaryRef = useRef<HTMLDivElement>(null);
 
   const { data: logos = [] } = useQuery<Logo[]>({
@@ -253,9 +285,17 @@ export default function TrademarkAssistant() {
       case 3: return wizardData.selectedClasses.length > 0;
       case 4: return wizardData.filingBasis !== "";
       case 5: return true;
-      case 6: return wizardData.applicantName.trim().length > 0 && wizardData.entityType !== "";
+      case 6: {
+        const errs = validateApplicantInfo(wizardData);
+        return Object.keys(errs).length === 0 && wizardData.entityType !== "";
+      }
       default: return false;
     }
+  };
+
+  const handleApplicantBlur = (field: string) => {
+    setApplicantTouched((prev) => ({ ...prev, [field]: true }));
+    setApplicantErrors(validateApplicantInfo(wizardData));
   };
 
   const handleDownloadSummary = () => {
@@ -594,12 +634,18 @@ export default function TrademarkAssistant() {
                             : "The mark consists of the word 'EXAMPLE' in bold letters below a circular logo design featuring..."
                         }
                         value={wizardData.markDescription}
+                        maxLength={2000}
                         onChange={(e) => updateWizard({ markDescription: e.target.value })}
                         className="min-h-[120px]"
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Be precise and complete. Do not use subjective terms like "beautiful" or "unique."
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-muted-foreground">
+                          Be precise and complete. Do not use subjective terms like "beautiful" or "unique."
+                        </p>
+                        <span className={`text-xs shrink-0 ml-2 ${wizardData.markDescription.length >= 2000 ? "text-destructive" : "text-muted-foreground"}`}>
+                          {wizardData.markDescription.length}/2000
+                        </span>
+                      </div>
                     </div>
                     {selectedLogo && (
                       <Alert>
@@ -708,6 +754,7 @@ export default function TrademarkAssistant() {
                               <Textarea
                                 data-testid={`textarea-gs-${code}`}
                                 placeholder={`Describe your goods/services for Class ${code}...`}
+                                maxLength={1000}
                                 value={wizardData.goodsServicesDescriptions[code] || ""}
                                 onChange={(e) =>
                                   updateWizard({
@@ -718,6 +765,11 @@ export default function TrademarkAssistant() {
                                   })
                                 }
                               />
+                              <div className="flex justify-end">
+                                <span className={`text-xs ${(wizardData.goodsServicesDescriptions[code]?.length || 0) >= 1000 ? "text-destructive" : "text-muted-foreground"}`}>
+                                  {wizardData.goodsServicesDescriptions[code]?.length || 0}/1000
+                                </span>
+                              </div>
                             </div>
                           );
                         })}
@@ -875,17 +927,26 @@ export default function TrademarkAssistant() {
                   <CardContent className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="md:col-span-2 space-y-2">
-                        <Label htmlFor="applicant-name">Legal Name of Applicant</Label>
+                        <Label htmlFor="applicant-name">Legal Name of Applicant *</Label>
                         <Input
                           id="applicant-name"
                           data-testid="input-applicant-name"
                           placeholder={user?.firstName ? `${user.firstName} ${user.lastName || ""}`.trim() : "Full legal name or company name"}
                           value={wizardData.applicantName}
-                          onChange={(e) => updateWizard({ applicantName: e.target.value })}
+                          onChange={(e) => {
+                            updateWizard({ applicantName: e.target.value });
+                            if (applicantTouched.applicantName) {
+                              setApplicantErrors(validateApplicantInfo({ ...wizardData, applicantName: e.target.value }));
+                            }
+                          }}
+                          onBlur={() => handleApplicantBlur("applicantName")}
                         />
+                        {applicantTouched.applicantName && applicantErrors.applicantName && (
+                          <p className="text-sm text-destructive">{applicantErrors.applicantName}</p>
+                        )}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="entity-type">Entity Type</Label>
+                        <Label htmlFor="entity-type">Entity Type *</Label>
                         <Select value={wizardData.entityType} onValueChange={(v: any) => updateWizard({ entityType: v })}>
                           <SelectTrigger id="entity-type" data-testid="select-entity-type">
                             <SelectValue placeholder="Select entity type" />
@@ -931,34 +992,86 @@ export default function TrademarkAssistant() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="state">State</Label>
+                        <Label htmlFor="state">
+                          State {wizardData.applicantCountry.trim().toUpperCase() === "US" && <span className="text-destructive">*</span>}
+                        </Label>
                         <Input
                           id="state"
                           data-testid="input-state"
                           placeholder="State"
                           value={wizardData.applicantState}
-                          onChange={(e) => updateWizard({ applicantState: e.target.value })}
+                          onChange={(e) => {
+                            updateWizard({ applicantState: e.target.value });
+                            if (applicantTouched.applicantState) {
+                              setApplicantErrors(validateApplicantInfo({ ...wizardData, applicantState: e.target.value }));
+                            }
+                          }}
+                          onBlur={() => handleApplicantBlur("applicantState")}
                         />
+                        {applicantTouched.applicantState && applicantErrors.applicantState && (
+                          <p className="text-sm text-destructive">{applicantErrors.applicantState}</p>
+                        )}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="zip">ZIP Code</Label>
+                        <Label htmlFor="zip">
+                          ZIP Code {wizardData.applicantCountry.trim().toUpperCase() === "US" && <span className="text-destructive">*</span>}
+                        </Label>
                         <Input
                           id="zip"
                           data-testid="input-zip"
-                          placeholder="00000"
+                          placeholder="12345 or 12345-6789"
+                          inputMode="numeric"
                           value={wizardData.applicantZip}
-                          onChange={(e) => updateWizard({ applicantZip: e.target.value })}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/[^\d-]/g, "");
+                            updateWizard({ applicantZip: val });
+                            if (applicantTouched.applicantZip) {
+                              setApplicantErrors(validateApplicantInfo({ ...wizardData, applicantZip: val }));
+                            }
+                          }}
+                          onBlur={() => handleApplicantBlur("applicantZip")}
                         />
+                        {applicantTouched.applicantZip && applicantErrors.applicantZip && (
+                          <p className="text-sm text-destructive">{applicantErrors.applicantZip}</p>
+                        )}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="country">Country</Label>
-                        <Input
-                          id="country"
-                          data-testid="input-country"
-                          placeholder="US"
+                        <Label htmlFor="country">Country *</Label>
+                        <Select
                           value={wizardData.applicantCountry}
-                          onChange={(e) => updateWizard({ applicantCountry: e.target.value })}
-                        />
+                          onValueChange={(val) => {
+                            updateWizard({ applicantCountry: val });
+                            if (applicantTouched.applicantCountry) {
+                              setApplicantErrors(validateApplicantInfo({ ...wizardData, applicantCountry: val }));
+                            }
+                          }}
+                        >
+                          <SelectTrigger id="country" data-testid="input-country" onBlur={() => handleApplicantBlur("applicantCountry")}>
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="US">United States</SelectItem>
+                            <SelectItem value="CA">Canada</SelectItem>
+                            <SelectItem value="GB">United Kingdom</SelectItem>
+                            <SelectItem value="AU">Australia</SelectItem>
+                            <SelectItem value="DE">Germany</SelectItem>
+                            <SelectItem value="FR">France</SelectItem>
+                            <SelectItem value="JP">Japan</SelectItem>
+                            <SelectItem value="CN">China</SelectItem>
+                            <SelectItem value="IN">India</SelectItem>
+                            <SelectItem value="BR">Brazil</SelectItem>
+                            <SelectItem value="MX">Mexico</SelectItem>
+                            <SelectItem value="ES">Spain</SelectItem>
+                            <SelectItem value="IT">Italy</SelectItem>
+                            <SelectItem value="NL">Netherlands</SelectItem>
+                            <SelectItem value="SG">Singapore</SelectItem>
+                            <SelectItem value="KR">South Korea</SelectItem>
+                            <SelectItem value="OTHER">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {applicantTouched.applicantCountry && applicantErrors.applicantCountry && (
+                          <p className="text-sm text-destructive">{applicantErrors.applicantCountry}</p>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -978,7 +1091,16 @@ export default function TrademarkAssistant() {
                 </Button>
                 {wizardStep < STEPS.length ? (
                   <Button
-                    onClick={() => setWizardStep((s) => s + 1)}
+                    onClick={() => {
+                      if (wizardStep === 6) {
+                        const allTouched = { applicantName: true, applicantCountry: true, applicantState: true, applicantZip: true };
+                        setApplicantTouched(allTouched);
+                        const errs = validateApplicantInfo(wizardData);
+                        setApplicantErrors(errs);
+                        if (Object.keys(errs).length > 0 || !wizardData.entityType) return;
+                      }
+                      setWizardStep((s) => s + 1);
+                    }}
                     disabled={!canProceedStep(wizardStep)}
                     data-testid="button-wizard-next"
                   >
@@ -987,7 +1109,16 @@ export default function TrademarkAssistant() {
                   </Button>
                 ) : (
                   <Button
-                    onClick={() => setWizardComplete(true)}
+                    onClick={() => {
+                      if (wizardStep === 6) {
+                        const allTouched = { applicantName: true, applicantCountry: true, applicantState: true, applicantZip: true };
+                        setApplicantTouched(allTouched);
+                        const errs = validateApplicantInfo(wizardData);
+                        setApplicantErrors(errs);
+                        if (Object.keys(errs).length > 0 || !wizardData.entityType) return;
+                      }
+                      setWizardComplete(true);
+                    }}
                     disabled={!canProceedStep(wizardStep)}
                     data-testid="button-wizard-complete"
                   >

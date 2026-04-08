@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 export default function WalletRecovery() {
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [walletName, setWalletName] = useState("");
   const { toast } = useToast();
 
@@ -22,6 +23,11 @@ export default function WalletRecovery() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError("Enter a valid email address (e.g., name@domain.com)");
+      return;
+    }
 
     try {
       await requestRecoveryMutation.mutateAsync({ email, walletName });
@@ -174,10 +180,18 @@ export default function WalletRecovery() {
                     type="email"
                     placeholder="you@example.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => { setEmail(e.target.value); setEmailError(""); }}
+                    onBlur={() => {
+                      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        setEmailError("Enter a valid email address (e.g., name@domain.com)");
+                      } else {
+                        setEmailError("");
+                      }
+                    }}
                     required
                     data-testid="input-recovery-email"
                   />
+                  {emailError && <p className="text-sm text-destructive">{emailError}</p>}
                   <p className="text-xs text-muted-foreground">
                     Must match the email on your Solturio account
                   </p>

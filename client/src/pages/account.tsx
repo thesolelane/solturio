@@ -61,7 +61,25 @@ export default function AccountPage() {
     websiteUrl: "",
     bio: "",
   });
+  const [websiteError, setWebsiteError] = useState("");
   const [showExportDialog, setShowExportDialog] = useState(false);
+
+  const BIO_MAX = 500;
+
+  const stripLeadingAt = (value: string) => value.replace(/^@+/, "");
+
+  const validateUrl = (url: string): string => {
+    if (!url.trim()) return "";
+    try {
+      const u = new URL(url);
+      if (u.protocol !== "http:" && u.protocol !== "https:") {
+        return "URL must start with http:// or https://";
+      }
+      return "";
+    } catch {
+      return "Enter a valid URL (e.g., https://yourwebsite.com)";
+    }
+  };
   const [exportedPrivateKey, setExportedPrivateKey] = useState<number[] | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
@@ -819,8 +837,12 @@ export default function AccountPage() {
                     id="twitter-handle"
                     placeholder="username"
                     value={socialHandles.twitterHandle}
+                    maxLength={50}
                     onChange={(e) =>
                       setSocialHandles({ ...socialHandles, twitterHandle: e.target.value })
+                    }
+                    onBlur={(e) =>
+                      setSocialHandles({ ...socialHandles, twitterHandle: stripLeadingAt(e.target.value) })
                     }
                     className="pl-7"
                     data-testid="input-twitter"
@@ -857,8 +879,12 @@ export default function AccountPage() {
                     id="telegram-handle"
                     placeholder="username"
                     value={socialHandles.telegramHandle}
+                    maxLength={50}
                     onChange={(e) =>
                       setSocialHandles({ ...socialHandles, telegramHandle: e.target.value })
+                    }
+                    onBlur={(e) =>
+                      setSocialHandles({ ...socialHandles, telegramHandle: stripLeadingAt(e.target.value) })
                     }
                     className="pl-7"
                     data-testid="input-telegram"
@@ -891,8 +917,12 @@ export default function AccountPage() {
                   id="discord-handle"
                   placeholder="username#0000 or just username"
                   value={socialHandles.discordHandle}
+                  maxLength={50}
                   onChange={(e) =>
                     setSocialHandles({ ...socialHandles, discordHandle: e.target.value })
+                  }
+                  onBlur={(e) =>
+                    setSocialHandles({ ...socialHandles, discordHandle: stripLeadingAt(e.target.value) })
                   }
                   data-testid="input-discord"
                 />
@@ -927,8 +957,12 @@ export default function AccountPage() {
                     id="instagram-handle"
                     placeholder="username"
                     value={socialHandles.instagramHandle}
+                    maxLength={50}
                     onChange={(e) =>
                       setSocialHandles({ ...socialHandles, instagramHandle: e.target.value })
+                    }
+                    onBlur={(e) =>
+                      setSocialHandles({ ...socialHandles, instagramHandle: stripLeadingAt(e.target.value) })
                     }
                     className="pl-7"
                     data-testid="input-instagram"
@@ -989,19 +1023,28 @@ export default function AccountPage() {
                 Website
               </Label>
               <div className="flex gap-2">
-                <Input
-                  id="website"
-                  placeholder="https://yourwebsite.com"
-                  value={socialHandles.websiteUrl}
-                  onChange={(e) =>
-                    setSocialHandles({ ...socialHandles, websiteUrl: e.target.value })
-                  }
-                  data-testid="input-website"
-                />
+                <div className="flex-1 space-y-1">
+                  <Input
+                    id="website"
+                    placeholder="https://yourwebsite.com"
+                    value={socialHandles.websiteUrl}
+                    onChange={(e) => {
+                      setSocialHandles({ ...socialHandles, websiteUrl: e.target.value });
+                      setWebsiteError("");
+                    }}
+                    onBlur={(e) => setWebsiteError(validateUrl(e.target.value))}
+                    data-testid="input-website"
+                  />
+                  {websiteError && (
+                    <p className="text-sm text-destructive">{websiteError}</p>
+                  )}
+                </div>
                 <Button
-                  onClick={() =>
-                    updateSocialHandlesMutation.mutate({ websiteUrl: socialHandles.websiteUrl })
-                  }
+                  onClick={() => {
+                    const err = validateUrl(socialHandles.websiteUrl);
+                    if (err) { setWebsiteError(err); return; }
+                    updateSocialHandlesMutation.mutate({ websiteUrl: socialHandles.websiteUrl });
+                  }}
                   disabled={updateSocialHandlesMutation.isPending}
                   data-testid="button-save-website"
                 >
@@ -1023,18 +1066,23 @@ export default function AccountPage() {
                   id="bio"
                   placeholder="Tell us about your company or community..."
                   value={socialHandles.bio}
+                  maxLength={BIO_MAX}
                   onChange={(e) => setSocialHandles({ ...socialHandles, bio: e.target.value })}
                   rows={4}
                   data-testid="input-bio"
                 />
-                <Button
-                  onClick={() => updateSocialHandlesMutation.mutate({ bio: socialHandles.bio })}
-                  disabled={updateSocialHandlesMutation.isPending}
-                  className="w-full sm:w-auto"
-                  data-testid="button-save-bio"
-                >
-                  Save Bio
-                </Button>
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs ${socialHandles.bio.length >= BIO_MAX ? "text-destructive" : "text-muted-foreground"}`}>
+                    {socialHandles.bio.length}/{BIO_MAX}
+                  </span>
+                  <Button
+                    onClick={() => updateSocialHandlesMutation.mutate({ bio: socialHandles.bio })}
+                    disabled={updateSocialHandlesMutation.isPending}
+                    data-testid="button-save-bio"
+                  >
+                    Save Bio
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
