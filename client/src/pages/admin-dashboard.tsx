@@ -52,6 +52,7 @@ import {
   ShoppingCart,
   HardDrive,
   ArrowUpRight,
+  KeyRound,
 } from "lucide-react";
 import { Link } from "wouter";
 import { TokenAdminPanel } from "@/components/TokenAdminPanel";
@@ -623,7 +624,7 @@ export default function AdminDashboard() {
 
       {/* Admin Tools Tabs */}
       <Tabs defaultValue="treasury" className="space-y-4">
-        <TabsList className="grid grid-cols-4 md:grid-cols-8 w-full">
+        <TabsList className="grid grid-cols-4 md:grid-cols-9 w-full">
           <TabsTrigger value="subscriptions" data-testid="tab-subscriptions">
             Subscriptions
           </TabsTrigger>
@@ -647,6 +648,9 @@ export default function AdminDashboard() {
           </TabsTrigger>
           <TabsTrigger value="settings" data-testid="tab-settings">
             Settings
+          </TabsTrigger>
+          <TabsTrigger value="secrets" data-testid="tab-secrets">
+            Secrets
           </TabsTrigger>
         </TabsList>
 
@@ -1523,6 +1527,33 @@ export default function AdminDashboard() {
               </div>
               <Button variant="outline" className="w-full" disabled>
                 Manage Admin Access (Coming Soon)
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="secrets" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <KeyRound className="w-5 h-5" />
+                Secrets Vault
+              </CardTitle>
+              <CardDescription>
+                AES-256 encrypted storage for API keys and sensitive credentials. Values are never
+                stored in plaintext.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Manage encrypted secrets used by the platform. Use the dedicated Secrets Vault page
+                to add, reveal, edit, and delete secrets.
+              </p>
+              <Button asChild data-testid="button-goto-secrets">
+                <Link href="/admin/secrets">
+                  <KeyRound className="w-4 h-4 mr-2" />
+                  Open Secrets Vault
+                </Link>
               </Button>
             </CardContent>
           </Card>

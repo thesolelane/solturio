@@ -197,6 +197,11 @@ export function AppSidebar() {
       url: "/admin/payments",
       icon: DollarSign,
     },
+    {
+      title: "Secrets Vault",
+      url: "/admin/secrets",
+      icon: KeyRound,
+    },
   ];
 
   return (

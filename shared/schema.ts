@@ -2276,3 +2276,25 @@ export const masterAccessResponseSchema = z.object({
 });
 
 export type MasterAccessResponse = z.infer<typeof masterAccessResponseSchema>;
+
+// ============================================
+// ADMIN SECRETS VAULT
+// ============================================
+
+export const adminSecrets = pgTable("admin_secrets", {
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 255 }).notNull().unique(),
+  encryptedValue: text("encrypted_value").notNull(),
+  iv: varchar("iv", { length: 64 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAdminSecretSchema = createInsertSchema(adminSecrets).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertAdminSecret = z.infer<typeof insertAdminSecretSchema>;
+export type AdminSecret = typeof adminSecrets.$inferSelect;

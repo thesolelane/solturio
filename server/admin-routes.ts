@@ -5,6 +5,8 @@ import { storage } from "./storage";
 import { pool } from "./db";
 import { arweaveService } from "./services/arweave";
 import { Connection, PublicKey } from "@solana/web3.js";
+import rateLimit from "express-rate-limit";
+import { encrypt, decrypt } from "./encryption";
 
 export const adminRouter = Router();
 
@@ -1027,6 +1029,112 @@ adminRouter.patch(
     } catch (error) {
       console.error("Admin report status update error:", error);
       res.status(500).json({ message: "Failed to update report status" });
+    }
+  }
+);
+
+// ============================================
+// ADMIN SECRETS VAULT ROUTES
+// ============================================
+
+const revealRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: { message: "Too many reveal requests, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { xForwardedForHeader: false, trustProxy: false },
+});
+
+adminRouter.get("/admin/secrets", isAuthenticated, isAdmin, async (req: any, res) => {
+  try {
+    const secrets = await storage.listAdminSecrets();
+    res.json(secrets);
+  } catch (error) {
+    console.error("Error listing secrets:", error);
+    res.status(500).json({ message: "Failed to list secrets" });
+  }
+});
+
+adminRouter.post("/admin/secrets", isAuthenticated, isAdmin, async (req: any, res) => {
+  try {
+    const { name, value } = req.body;
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      return res.status(400).json({ message: "Name is required" });
+    }
+    if (!value || typeof value !== "string" || value.trim().length === 0) {
+      return res.status(400).json({ message: "Value is required" });
+    }
+    const { encryptedValue, iv } = encrypt(value);
+    const secret = await storage.createAdminSecret(name.trim(), encryptedValue, iv);
+    res.status(201).json({ id: secret.id, name: secret.name, createdAt: secret.createdAt });
+  } catch (error: any) {
+    console.error("Error creating secret:", error);
+    if (error.code === "23505") {
+      return res.status(409).json({ message: "A secret with that name already exists" });
+    }
+    res.status(500).json({ message: error.message || "Failed to create secret" });
+  }
+});
+
+adminRouter.patch("/admin/secrets/:id", isAuthenticated, isAdmin, async (req: any, res) => {
+  try {
+    const { id } = req.params;
+    const { name, value } = req.body;
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      return res.status(400).json({ message: "Name is required" });
+    }
+    if (!value || typeof value !== "string" || value.trim().length === 0) {
+      return res.status(400).json({ message: "Value is required" });
+    }
+    const existing = await storage.getAdminSecret(id);
+    if (!existing) {
+      return res.status(404).json({ message: "Secret not found" });
+    }
+    const { encryptedValue, iv } = encrypt(value);
+    const updated = await storage.updateAdminSecret(id, name.trim(), encryptedValue, iv);
+    res.json({ id: updated.id, name: updated.name, createdAt: updated.createdAt });
+  } catch (error: any) {
+    console.error("Error updating secret:", error);
+    if (error.code === "23505") {
+      return res.status(409).json({ message: "A secret with that name already exists" });
+    }
+    res.status(500).json({ message: error.message || "Failed to update secret" });
+  }
+});
+
+adminRouter.delete("/admin/secrets/:id", isAuthenticated, isAdmin, async (req: any, res) => {
+  try {
+    const { id } = req.params;
+    const existing = await storage.getAdminSecret(id);
+    if (!existing) {
+      return res.status(404).json({ message: "Secret not found" });
+    }
+    await storage.deleteAdminSecret(id);
+    res.json({ message: "Secret deleted" });
+  } catch (error) {
+    console.error("Error deleting secret:", error);
+    res.status(500).json({ message: "Failed to delete secret" });
+  }
+});
+
+adminRouter.get(
+  "/admin/secrets/:id/reveal",
+  revealRateLimiter,
+  isAuthenticated,
+  isAdmin,
+  async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const secret = await storage.getAdminSecret(id);
+      if (!secret) {
+        return res.status(404).json({ message: "Secret not found" });
+      }
+      const plaintext = decrypt(secret.encryptedValue, secret.iv);
+      res.json({ value: plaintext });
+    } catch (error: any) {
+      console.error("Error revealing secret:", error);
+      res.status(500).json({ message: error.message || "Failed to reveal secret" });
     }
   }
 );

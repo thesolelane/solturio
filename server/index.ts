@@ -64,7 +64,9 @@ app.use((req, res, next) => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
+      // Never log response bodies for secret reveal endpoints (plaintext values)
+      const isSecretReveal = /\/api\/admin\/secrets\/[^/]+\/reveal/.test(path);
+      if (capturedJsonResponse && !isSecretReveal) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
 

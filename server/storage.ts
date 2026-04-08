@@ -209,6 +209,13 @@ export interface IStorage {
   }>;
   checkExpiredVisitorRewards(): Promise<number>;
   verifyVisitorSessionToken(visitorId: string, sessionToken: string): Promise<boolean>;
+
+  // Admin Secrets Vault operations
+  listAdminSecrets(): Promise<{ id: string; name: string; createdAt: Date | null }[]>;
+  getAdminSecret(id: string): Promise<import("@shared/schema").AdminSecret | undefined>;
+  createAdminSecret(name: string, encryptedValue: string, iv: string): Promise<import("@shared/schema").AdminSecret>;
+  updateAdminSecret(id: string, name: string, encryptedValue: string, iv: string): Promise<import("@shared/schema").AdminSecret>;
+  deleteAdminSecret(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1498,6 +1505,42 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return expired.length;
+  }
+
+  // Admin Secrets Vault operations
+  async listAdminSecrets(): Promise<{ id: string; name: string; createdAt: Date | null }[]> {
+    const { adminSecrets } = await import("@shared/schema");
+    return db
+      .select({ id: adminSecrets.id, name: adminSecrets.name, createdAt: adminSecrets.createdAt })
+      .from(adminSecrets)
+      .orderBy(adminSecrets.name);
+  }
+
+  async getAdminSecret(id: string): Promise<import("@shared/schema").AdminSecret | undefined> {
+    const { adminSecrets } = await import("@shared/schema");
+    const [row] = await db.select().from(adminSecrets).where(eq(adminSecrets.id, id));
+    return row;
+  }
+
+  async createAdminSecret(name: string, encryptedValue: string, iv: string): Promise<import("@shared/schema").AdminSecret> {
+    const { adminSecrets } = await import("@shared/schema");
+    const [row] = await db.insert(adminSecrets).values({ name, encryptedValue, iv }).returning();
+    return row;
+  }
+
+  async updateAdminSecret(id: string, name: string, encryptedValue: string, iv: string): Promise<import("@shared/schema").AdminSecret> {
+    const { adminSecrets } = await import("@shared/schema");
+    const [row] = await db
+      .update(adminSecrets)
+      .set({ name, encryptedValue, iv })
+      .where(eq(adminSecrets.id, id))
+      .returning();
+    return row;
+  }
+
+  async deleteAdminSecret(id: string): Promise<void> {
+    const { adminSecrets } = await import("@shared/schema");
+    await db.delete(adminSecrets).where(eq(adminSecrets.id, id));
   }
 }
 
