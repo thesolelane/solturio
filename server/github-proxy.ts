@@ -189,9 +189,7 @@ githubProxyRouter.get("/oauth/callback", async (req: any, res) => {
 
     const data = response.data;
     if (data.onChain) {
-      const encodedInstruction = encodeURIComponent(
-        JSON.stringify(data.onChain)
-      );
+      const encodedInstruction = encodeURIComponent(JSON.stringify(data.onChain));
       return res.redirect(`/account?github_instruction=${encodedInstruction}`);
     }
 

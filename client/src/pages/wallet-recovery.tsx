@@ -22,7 +22,7 @@ export default function WalletRecovery() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       await requestRecoveryMutation.mutateAsync({ email, walletName });
       toast({
@@ -52,8 +52,9 @@ export default function WalletRecovery() {
           <Alert className="border-primary bg-primary/5">
             <ShieldCheck className="h-4 w-4 text-primary" />
             <AlertDescription>
-              <span className="font-semibold">Your certificates are safe.</span> Since your wallet holds legal documents 
-              (not financial assets), we can recover it with proper identity verification.
+              <span className="font-semibold">Your certificates are safe.</span> Since your wallet
+              holds legal documents (not financial assets), we can recover it with proper identity
+              verification.
             </AlertDescription>
           </Alert>
 
@@ -126,7 +127,8 @@ export default function WalletRecovery() {
                 <div className="space-y-1">
                   <h4 className="font-semibold">Identity Verification</h4>
                   <p className="text-sm text-muted-foreground">
-                    Verify your identity by logging in with the same provider you registered with (Replit/GitHub/Google).
+                    Verify your identity by logging in with the same provider you registered with
+                    (Replit/GitHub/Google).
                   </p>
                 </div>
               </div>
@@ -150,7 +152,8 @@ export default function WalletRecovery() {
                 <div className="space-y-1">
                   <h4 className="font-semibold">Receive New Recovery Phrase</h4>
                   <p className="text-sm text-muted-foreground">
-                    Once verified and payment confirmed, receive your new 12-word recovery phrase via secure email.
+                    Once verified and payment confirmed, receive your new 12-word recovery phrase
+                    via secure email.
                   </p>
                 </div>
               </div>
@@ -199,8 +202,9 @@ export default function WalletRecovery() {
                 <Alert variant="destructive">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    <span className="font-semibold">Important:</span> Recovery may be denied if identity verification fails 
-                    or if fraudulent activity is detected. The $100 fee is non-refundable once processing begins.
+                    <span className="font-semibold">Important:</span> Recovery may be denied if
+                    identity verification fails or if fraudulent activity is detected. The $100 fee
+                    is non-refundable once processing begins.
                   </AlertDescription>
                 </Alert>
 
@@ -223,16 +227,16 @@ export default function WalletRecovery() {
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>
-                <span className="font-semibold text-foreground">FREE & Instant:</span> Writing down your 12-word phrase 
-                takes 2 minutes and costs nothing.
+                <span className="font-semibold text-foreground">FREE & Instant:</span> Writing down
+                your 12-word phrase takes 2 minutes and costs nothing.
               </p>
               <p>
-                <span className="font-semibold text-foreground">No Waiting:</span> Immediate access to your wallet anytime, 
-                no 24-48 hour delay.
+                <span className="font-semibold text-foreground">No Waiting:</span> Immediate access
+                to your wallet anytime, no 24-48 hour delay.
               </p>
               <p>
-                <span className="font-semibold text-foreground">Save $100:</span> Recovery service is for emergencies only. 
-                Keep your phrase safe and avoid the fee entirely.
+                <span className="font-semibold text-foreground">Save $100:</span> Recovery service
+                is for emergencies only. Keep your phrase safe and avoid the fee entirely.
               </p>
             </CardContent>
           </Card>

@@ -43,7 +43,10 @@ export default function RegisterSelectTemplate() {
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Token Launch Template */}
-        <Card className="hover-elevate cursor-pointer" onClick={() => setLocation("/register/token-launch")}>
+        <Card
+          className="hover-elevate cursor-pointer"
+          onClick={() => setLocation("/register/token-launch")}
+        >
           <CardHeader>
             <div className="flex items-start gap-4 mb-4">
               <div className="p-3 rounded-lg bg-primary/10">
@@ -52,7 +55,8 @@ export default function RegisterSelectTemplate() {
               <div className="flex-1">
                 <CardTitle className="text-2xl mb-2">Token Launch</CardTitle>
                 <CardDescription className="text-base">
-                  Comprehensive registration for cryptocurrency tokens, meme coins, and blockchain projects
+                  Comprehensive registration for cryptocurrency tokens, meme coins, and blockchain
+                  projects
                 </CardDescription>
               </div>
             </div>
@@ -99,8 +103,8 @@ export default function RegisterSelectTemplate() {
               </ul>
             </div>
 
-            <Button 
-              className="w-full mt-6" 
+            <Button
+              className="w-full mt-6"
               size="lg"
               onClick={(e) => {
                 e.stopPropagation();
@@ -115,7 +119,10 @@ export default function RegisterSelectTemplate() {
         </Card>
 
         {/* Artwork Template */}
-        <Card className="hover-elevate cursor-pointer" onClick={() => setLocation("/register/artwork")}>
+        <Card
+          className="hover-elevate cursor-pointer"
+          onClick={() => setLocation("/register/artwork")}
+        >
           <CardHeader>
             <div className="flex items-start gap-4 mb-4">
               <div className="p-3 rounded-lg bg-primary/10">
@@ -124,7 +131,8 @@ export default function RegisterSelectTemplate() {
               <div className="flex-1">
                 <CardTitle className="text-2xl mb-2">Artwork & Design</CardTitle>
                 <CardDescription className="text-base">
-                  Streamlined registration for individual artists, designers, and creative professionals
+                  Streamlined registration for individual artists, designers, and creative
+                  professionals
                 </CardDescription>
               </div>
             </div>
@@ -171,9 +179,9 @@ export default function RegisterSelectTemplate() {
               </ul>
             </div>
 
-            <Button 
-              className="w-full mt-6" 
-              size="lg" 
+            <Button
+              className="w-full mt-6"
+              size="lg"
               variant="outline"
               onClick={(e) => {
                 e.stopPropagation();
@@ -195,13 +203,15 @@ export default function RegisterSelectTemplate() {
             <div>
               <h3 className="font-semibold mb-2">Why Registration Templates Matter</h3>
               <p className="text-sm text-muted-foreground mb-3">
-                Our smart legal questionnaires establish <span className="font-bold">"full intent"</span> - proving you created 
-                and own the intellectual property <span className="font-bold">before</span> anyone else. This creates an ironclad 
-                legal defense against copycats and provides maximum protection in IP disputes.
+                Our smart legal questionnaires establish{" "}
+                <span className="font-bold">"full intent"</span> - proving you created and own the
+                intellectual property <span className="font-bold">before</span> anyone else. This
+                creates an ironclad legal defense against copycats and provides maximum protection
+                in IP disputes.
               </p>
               <p className="text-sm text-muted-foreground">
-                Each template is optimized for different use cases, asking 5-10 legally-focused questions that build 
-                a comprehensive ownership record on the blockchain.
+                Each template is optimized for different use cases, asking 5-10 legally-focused
+                questions that build a comprehensive ownership record on the blockchain.
               </p>
             </div>
           </div>

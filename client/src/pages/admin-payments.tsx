@@ -5,9 +5,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DollarSign,
@@ -73,12 +92,27 @@ interface PaymentStats {
 
 function getStatusBadge(status: string) {
   switch (status) {
-    case 'confirmed':
-      return <Badge variant="default" className="gap-1"><CheckCircle2 className="w-3 h-3" />Confirmed</Badge>;
-    case 'pending':
-      return <Badge variant="secondary" className="gap-1"><Clock className="w-3 h-3" />Pending</Badge>;
-    case 'failed':
-      return <Badge variant="destructive" className="gap-1"><XCircle className="w-3 h-3" />Failed</Badge>;
+    case "confirmed":
+      return (
+        <Badge variant="default" className="gap-1">
+          <CheckCircle2 className="w-3 h-3" />
+          Confirmed
+        </Badge>
+      );
+    case "pending":
+      return (
+        <Badge variant="secondary" className="gap-1">
+          <Clock className="w-3 h-3" />
+          Pending
+        </Badge>
+      );
+    case "failed":
+      return (
+        <Badge variant="destructive" className="gap-1">
+          <XCircle className="w-3 h-3" />
+          Failed
+        </Badge>
+      );
     default:
       return <Badge variant="secondary">{status}</Badge>;
   }
@@ -86,14 +120,34 @@ function getStatusBadge(status: string) {
 
 function getPaymentTypeBadge(type: string) {
   switch (type) {
-    case 'minting':
-      return <Badge variant="outline" className="gap-1"><Coins className="w-3 h-3" />Minting</Badge>;
-    case 'rental':
-      return <Badge variant="outline" className="gap-1"><Clock className="w-3 h-3" />Rental</Badge>;
-    case 'subscription':
-      return <Badge variant="outline" className="gap-1"><TrendingUp className="w-3 h-3" />Subscription</Badge>;
-    case 'iscl':
-      return <Badge variant="outline" className="gap-1"><DollarSign className="w-3 h-3" />ISCL</Badge>;
+    case "minting":
+      return (
+        <Badge variant="outline" className="gap-1">
+          <Coins className="w-3 h-3" />
+          Minting
+        </Badge>
+      );
+    case "rental":
+      return (
+        <Badge variant="outline" className="gap-1">
+          <Clock className="w-3 h-3" />
+          Rental
+        </Badge>
+      );
+    case "subscription":
+      return (
+        <Badge variant="outline" className="gap-1">
+          <TrendingUp className="w-3 h-3" />
+          Subscription
+        </Badge>
+      );
+    case "iscl":
+      return (
+        <Badge variant="outline" className="gap-1">
+          <DollarSign className="w-3 h-3" />
+          ISCL
+        </Badge>
+      );
     default:
       return <Badge variant="outline">{type}</Badge>;
   }
@@ -117,26 +171,32 @@ export default function AdminPayments() {
   const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
 
   const statsQuery = useQuery<PaymentStats>({
-    queryKey: ['/api/admin/payments/stats'],
+    queryKey: ["/api/admin/payments/stats"],
     enabled: !!isAdmin,
   });
 
   const buildPaymentsUrl = () => {
     const params = new URLSearchParams();
-    if (statusFilter !== 'all') params.set('status', statusFilter);
-    if (tokenFilter !== 'all') params.set('tokenType', tokenFilter);
-    if (typeFilter !== 'all') params.set('paymentType', typeFilter);
-    if (search) params.set('search', search);
-    params.set('page', String(page));
-    params.set('limit', String(limit));
+    if (statusFilter !== "all") params.set("status", statusFilter);
+    if (tokenFilter !== "all") params.set("tokenType", tokenFilter);
+    if (typeFilter !== "all") params.set("paymentType", typeFilter);
+    if (search) params.set("search", search);
+    params.set("page", String(page));
+    params.set("limit", String(limit));
     const qs = params.toString();
-    return `/api/admin/payments${qs ? `?${qs}` : ''}`;
+    return `/api/admin/payments${qs ? `?${qs}` : ""}`;
   };
 
-  const paymentsQuery = useQuery<{ payments: PaymentRecord[]; total: number; page: number; limit: number; stats: any }>({
-    queryKey: ['/api/admin/payments', statusFilter, tokenFilter, typeFilter, search, page, limit],
+  const paymentsQuery = useQuery<{
+    payments: PaymentRecord[];
+    total: number;
+    page: number;
+    limit: number;
+    stats: any;
+  }>({
+    queryKey: ["/api/admin/payments", statusFilter, tokenFilter, typeFilter, search, page, limit],
     queryFn: async () => {
-      const res = await fetch(buildPaymentsUrl(), { credentials: 'include' });
+      const res = await fetch(buildPaymentsUrl(), { credentials: "include" });
       if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
       return res.json();
     },
@@ -178,8 +238,12 @@ export default function AdminPayments() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold" data-testid="text-admin-payments-title">Payment Management</h1>
-            <p className="text-sm text-muted-foreground">Track crypto payments and financial activity across the platform</p>
+            <h1 className="text-2xl font-bold" data-testid="text-admin-payments-title">
+              Payment Management
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Track crypto payments and financial activity across the platform
+            </p>
           </div>
         </div>
         <Button
@@ -192,7 +256,9 @@ export default function AdminPayments() {
           disabled={statsQuery.isRefetching || paymentsQuery.isRefetching}
           data-testid="button-refresh-payments"
         >
-          <RefreshCw className={`w-4 h-4 mr-2 ${(statsQuery.isRefetching || paymentsQuery.isRefetching) ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`w-4 h-4 mr-2 ${statsQuery.isRefetching || paymentsQuery.isRefetching ? "animate-spin" : ""}`}
+          />
           Refresh
         </Button>
       </div>
@@ -200,7 +266,11 @@ export default function AdminPayments() {
       {statsQuery.isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <Card key={i}><CardContent className="pt-6"><Skeleton className="h-8 w-full" /></CardContent></Card>
+            <Card key={i}>
+              <CardContent className="pt-6">
+                <Skeleton className="h-8 w-full" />
+              </CardContent>
+            </Card>
           ))}
         </div>
       ) : stats ? (
@@ -244,38 +314,46 @@ export default function AdminPayments() {
         </div>
       ) : null}
 
-      {stats && stats.overview.totalVolume && Object.keys(stats.overview.totalVolume.byToken).length > 0 && (
-        <Card data-testid="card-token-breakdown">
-          <CardHeader>
-            <CardTitle className="text-lg">Revenue by Token</CardTitle>
-            <CardDescription>Payment volume across all accepted tokens (auto-updates when new tokens are added)</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {Object.entries(stats.overview.totalVolume.byToken).map(([symbol, amount]) => {
-                const tokenDetail = stats.byTokenType.find(t => t.symbol === symbol);
-                const count = tokenDetail?.count || 0;
-                return (
-                  <div
-                    key={symbol}
-                    className="flex items-center justify-between p-3 rounded-md border"
-                    data-testid={`token-stat-${symbol}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Coins className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium">{symbol}</span>
+      {stats &&
+        stats.overview.totalVolume &&
+        Object.keys(stats.overview.totalVolume.byToken).length > 0 && (
+          <Card data-testid="card-token-breakdown">
+            <CardHeader>
+              <CardTitle className="text-lg">Revenue by Token</CardTitle>
+              <CardDescription>
+                Payment volume across all accepted tokens (auto-updates when new tokens are added)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {Object.entries(stats.overview.totalVolume.byToken).map(([symbol, amount]) => {
+                  const tokenDetail = stats.byTokenType.find((t) => t.symbol === symbol);
+                  const count = tokenDetail?.count || 0;
+                  return (
+                    <div
+                      key={symbol}
+                      className="flex items-center justify-between p-3 rounded-md border"
+                      data-testid={`token-stat-${symbol}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Coins className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium">{symbol}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold">
+                          {parseFloat((amount as string) || "0").toFixed(4)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {count} payment{count !== 1 ? "s" : ""}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-bold">{parseFloat(amount as string || '0').toFixed(4)}</div>
-                      <div className="text-xs text-muted-foreground">{count} payment{count !== 1 ? 's' : ''}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
       {stats && Object.keys(stats.byPaymentType).length > 0 && (
         <Card data-testid="card-type-breakdown">
@@ -307,12 +385,21 @@ export default function AdminPayments() {
               <Input
                 placeholder="Search by transaction or wallet..."
                 value={search}
-                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
                 className="pl-10"
                 data-testid="input-search-payments"
               />
             </div>
-            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+            <Select
+              value={statusFilter}
+              onValueChange={(v) => {
+                setStatusFilter(v);
+                setPage(1);
+              }}
+            >
               <SelectTrigger className="w-[140px]" data-testid="select-status-filter">
                 <Filter className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="Status" />
@@ -324,18 +411,32 @@ export default function AdminPayments() {
                 <SelectItem value="failed">Failed</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={tokenFilter} onValueChange={(v) => { setTokenFilter(v); setPage(1); }}>
+            <Select
+              value={tokenFilter}
+              onValueChange={(v) => {
+                setTokenFilter(v);
+                setPage(1);
+              }}
+            >
               <SelectTrigger className="w-[140px]" data-testid="select-token-filter">
                 <SelectValue placeholder="Token" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Tokens</SelectItem>
                 {stats?.byTokenType.map((t) => (
-                  <SelectItem key={t.symbol} value={t.symbol}>{t.symbol}</SelectItem>
+                  <SelectItem key={t.symbol} value={t.symbol}>
+                    {t.symbol}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(1); }}>
+            <Select
+              value={typeFilter}
+              onValueChange={(v) => {
+                setTypeFilter(v);
+                setPage(1);
+              }}
+            >
               <SelectTrigger className="w-[140px]" data-testid="select-type-filter">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
@@ -385,10 +486,12 @@ export default function AdminPayments() {
                             <div className="text-sm">
                               {payment.userFirstName && payment.userLastName
                                 ? `${payment.userFirstName} ${payment.userLastName}`
-                                : payment.userEmail || 'Unknown'}
+                                : payment.userEmail || "Unknown"}
                             </div>
                             {payment.userEmail && payment.userFirstName && (
-                              <div className="text-xs text-muted-foreground">{payment.userEmail}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {payment.userEmail}
+                              </div>
                             )}
                           </TableCell>
                           <TableCell className="font-mono font-medium">
@@ -420,7 +523,9 @@ export default function AdminPayments() {
                             )}
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
-                            {payment.createdAt ? format(new Date(payment.createdAt), 'MMM d, yyyy') : '-'}
+                            {payment.createdAt
+                              ? format(new Date(payment.createdAt), "MMM d, yyyy")
+                              : "-"}
                           </TableCell>
                           <TableCell>
                             <Button
@@ -442,13 +547,14 @@ export default function AdminPayments() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
-                    Showing {((page - 1) * limit) + 1}-{Math.min(page * limit, totalPayments)} of {totalPayments}
+                    Showing {(page - 1) * limit + 1}-{Math.min(page * limit, totalPayments)} of{" "}
+                    {totalPayments}
                   </p>
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page <= 1}
                       data-testid="button-prev-page"
                     >
@@ -457,7 +563,7 @@ export default function AdminPayments() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       disabled={page >= totalPages}
                       data-testid="button-next-page"
                     >
@@ -475,9 +581,7 @@ export default function AdminPayments() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Payment Details</DialogTitle>
-            <DialogDescription>
-              Full details for this payment record
-            </DialogDescription>
+            <DialogDescription>Full details for this payment record</DialogDescription>
           </DialogHeader>
           {selectedPayment && (
             <div className="space-y-4">
@@ -492,14 +596,16 @@ export default function AdminPayments() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Amount</p>
-                  <p className="font-mono font-bold text-lg">{parseFloat(selectedPayment.amount).toFixed(6)} {selectedPayment.tokenType}</p>
+                  <p className="font-mono font-bold text-lg">
+                    {parseFloat(selectedPayment.amount).toFixed(6)} {selectedPayment.tokenType}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">User</p>
                   <p className="text-sm">
                     {selectedPayment.userFirstName && selectedPayment.userLastName
                       ? `${selectedPayment.userFirstName} ${selectedPayment.userLastName}`
-                      : selectedPayment.userEmail || 'Unknown'}
+                      : selectedPayment.userEmail || "Unknown"}
                   </p>
                   {selectedPayment.userEmail && (
                     <p className="text-xs text-muted-foreground">{selectedPayment.userEmail}</p>
@@ -510,17 +616,23 @@ export default function AdminPayments() {
               <div className="space-y-2 border-t pt-4">
                 <div>
                   <p className="text-sm text-muted-foreground">From Wallet</p>
-                  <p className="text-xs font-mono break-all" data-testid="text-from-wallet">{selectedPayment.fromWallet}</p>
+                  <p className="text-xs font-mono break-all" data-testid="text-from-wallet">
+                    {selectedPayment.fromWallet}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">To Wallet</p>
-                  <p className="text-xs font-mono break-all" data-testid="text-to-wallet">{selectedPayment.toWallet}</p>
+                  <p className="text-xs font-mono break-all" data-testid="text-to-wallet">
+                    {selectedPayment.toWallet}
+                  </p>
                 </div>
                 {selectedPayment.transactionSignature && (
                   <div>
                     <p className="text-sm text-muted-foreground">Transaction Signature</p>
                     <div className="flex items-center gap-2">
-                      <p className="text-xs font-mono break-all">{selectedPayment.transactionSignature}</p>
+                      <p className="text-xs font-mono break-all">
+                        {selectedPayment.transactionSignature}
+                      </p>
                       <a
                         href={`https://explorer.solana.com/tx/${selectedPayment.transactionSignature}?cluster=devnet`}
                         target="_blank"
@@ -562,14 +674,16 @@ export default function AdminPayments() {
                 <div>
                   <p className="text-sm text-muted-foreground">Created</p>
                   <p className="text-sm">
-                    {selectedPayment.createdAt ? format(new Date(selectedPayment.createdAt), 'MMM d, yyyy HH:mm') : '-'}
+                    {selectedPayment.createdAt
+                      ? format(new Date(selectedPayment.createdAt), "MMM d, yyyy HH:mm")
+                      : "-"}
                   </p>
                 </div>
                 {selectedPayment.confirmedAt && (
                   <div>
                     <p className="text-sm text-muted-foreground">Confirmed</p>
                     <p className="text-sm">
-                      {format(new Date(selectedPayment.confirmedAt), 'MMM d, yyyy HH:mm')}
+                      {format(new Date(selectedPayment.confirmedAt), "MMM d, yyyy HH:mm")}
                     </p>
                   </div>
                 )}

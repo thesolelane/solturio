@@ -4,12 +4,12 @@
  * REGULATORY: Platform controls accepted payment methods
  */
 
-import { Router } from 'express';
-import { isAuthenticated } from './replitAuth';
-import { storage } from './storage';
-import { isAdminEmail } from '@shared/pricing';
-import { getTokenPrice, getAllCachedPrices } from './price-oracle';
-import { z } from 'zod';
+import { Router } from "express";
+import { isAuthenticated } from "./replitAuth";
+import { storage } from "./storage";
+import { isAdminEmail } from "@shared/pricing";
+import { getTokenPrice, getAllCachedPrices } from "./price-oracle";
+import { z } from "zod";
 
 export const tokensRouter = Router();
 
@@ -17,11 +17,11 @@ export const tokensRouter = Router();
  * GET /tokens/accepted
  * Get all active accepted tokens
  */
-tokensRouter.get('/tokens/accepted', async (req, res) => {
+tokensRouter.get("/tokens/accepted", async (req, res) => {
   try {
     const db = (storage as any).$client;
     if (!db) {
-      return res.status(500).json({ success: false, error: 'Database not available' });
+      return res.status(500).json({ success: false, error: "Database not available" });
     }
 
     const result = await db.query(
@@ -53,7 +53,7 @@ tokensRouter.get('/tokens/accepted', async (req, res) => {
       })),
     });
   } catch (error: any) {
-    console.error('Get tokens error:', error);
+    console.error("Get tokens error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -62,11 +62,11 @@ tokensRouter.get('/tokens/accepted', async (req, res) => {
  * GET /tokens/for-access
  * Get tokens that can be used for platform access payment
  */
-tokensRouter.get('/tokens/for-access', async (req, res) => {
+tokensRouter.get("/tokens/for-access", async (req, res) => {
   try {
     const db = (storage as any).$client;
     if (!db) {
-      return res.status(500).json({ success: false, error: 'Database not available' });
+      return res.status(500).json({ success: false, error: "Database not available" });
     }
 
     const result = await db.query(
@@ -90,7 +90,7 @@ tokensRouter.get('/tokens/for-access', async (req, res) => {
       })),
     });
   } catch (error: any) {
-    console.error('Get access tokens error:', error);
+    console.error("Get access tokens error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -99,11 +99,11 @@ tokensRouter.get('/tokens/for-access', async (req, res) => {
  * GET /tokens/for-licensing
  * Get tokens that can be used for license SC payments
  */
-tokensRouter.get('/tokens/for-licensing', async (req, res) => {
+tokensRouter.get("/tokens/for-licensing", async (req, res) => {
   try {
     const db = (storage as any).$client;
     if (!db) {
-      return res.status(500).json({ success: false, error: 'Database not available' });
+      return res.status(500).json({ success: false, error: "Database not available" });
     }
 
     const result = await db.query(
@@ -127,7 +127,7 @@ tokensRouter.get('/tokens/for-licensing', async (req, res) => {
       })),
     });
   } catch (error: any) {
-    console.error('Get licensing tokens error:', error);
+    console.error("Get licensing tokens error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -136,13 +136,15 @@ tokensRouter.get('/tokens/for-licensing', async (req, res) => {
  * GET /tokens/price/:symbol
  * Get current price for a token
  */
-tokensRouter.get('/tokens/price/:symbol', async (req, res) => {
+tokensRouter.get("/tokens/price/:symbol", async (req, res) => {
   try {
     const { symbol } = req.params;
     const price = await getTokenPrice(symbol.toUpperCase());
 
     if (!price) {
-      return res.status(404).json({ success: false, error: 'Token not found or price unavailable' });
+      return res
+        .status(404)
+        .json({ success: false, error: "Token not found or price unavailable" });
     }
 
     res.json({
@@ -150,7 +152,7 @@ tokensRouter.get('/tokens/price/:symbol', async (req, res) => {
       ...price,
     });
   } catch (error: any) {
-    console.error('Get price error:', error);
+    console.error("Get price error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -159,16 +161,16 @@ tokensRouter.get('/tokens/price/:symbol', async (req, res) => {
  * POST /tokens/applications
  * Submit application for community token acceptance
  */
-tokensRouter.post('/tokens/applications', isAuthenticated, async (req: any, res) => {
+tokensRouter.post("/tokens/applications", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
+      return res.status(401).json({ success: false, error: "Not authenticated" });
     }
 
     const user = await storage.getUser(userId);
     if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
+      return res.status(404).json({ success: false, error: "User not found" });
     }
 
     const schema = z.object({
@@ -189,9 +191,9 @@ tokensRouter.post('/tokens/applications', isAuthenticated, async (req: any, res)
 
     const parsed = schema.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Invalid request',
+      return res.status(400).json({
+        success: false,
+        error: "Invalid request",
         details: parsed.error.issues,
       });
     }
@@ -202,7 +204,7 @@ tokensRouter.post('/tokens/applications', isAuthenticated, async (req: any, res)
     if (data.tokenAgeMonths < 6) {
       return res.status(400).json({
         success: false,
-        error: 'Token must be at least 6 months old to apply for acceptance',
+        error: "Token must be at least 6 months old to apply for acceptance",
       });
     }
 
@@ -230,19 +232,33 @@ tokensRouter.post('/tokens/applications', isAuthenticated, async (req: any, res)
         token_age_months, daily_volume, holder_count, applicant_user_id, applicant_email, applicant_notes)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
        RETURNING id`,
-      [data.symbol, data.name, data.mintAddress, data.decimals, data.logoUrl,
-       data.website, data.twitter, data.telegram, data.discord,
-       data.tokenAgeMonths, data.dailyVolume, data.holderCount,
-       userId, user.email, data.notes]
+      [
+        data.symbol,
+        data.name,
+        data.mintAddress,
+        data.decimals,
+        data.logoUrl,
+        data.website,
+        data.twitter,
+        data.telegram,
+        data.discord,
+        data.tokenAgeMonths,
+        data.dailyVolume,
+        data.holderCount,
+        userId,
+        user.email,
+        data.notes,
+      ]
     );
 
     res.status(201).json({
       success: true,
       applicationId: result.rows[0].id,
-      message: 'Application submitted successfully! Our team will review it within 3-5 business days.',
+      message:
+        "Application submitted successfully! Our team will review it within 3-5 business days.",
     });
   } catch (error: any) {
-    console.error('Submit application error:', error);
+    console.error("Submit application error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -251,17 +267,17 @@ tokensRouter.post('/tokens/applications', isAuthenticated, async (req: any, res)
  * GET /tokens/applications (Admin only)
  * Get all token applications
  */
-tokensRouter.get('/tokens/applications', isAuthenticated, async (req: any, res) => {
+tokensRouter.get("/tokens/applications", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     const user = await storage.getUser(userId);
-    
+
     if (!isAdminEmail(user?.email)) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
+      return res.status(403).json({ success: false, error: "Admin access required" });
     }
 
     const db = (storage as any).$client;
-    const status = req.query.status || 'pending';
+    const status = req.query.status || "pending";
 
     const result = await db.query(
       `SELECT * FROM token_applications 
@@ -276,7 +292,7 @@ tokensRouter.get('/tokens/applications', isAuthenticated, async (req: any, res) 
       count: result.rows.length,
     });
   } catch (error: any) {
-    console.error('Get applications error:', error);
+    console.error("Get applications error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -285,39 +301,36 @@ tokensRouter.get('/tokens/applications', isAuthenticated, async (req: any, res) 
  * POST /tokens/applications/:id/review (Admin only)
  * Review token application
  */
-tokensRouter.post('/tokens/applications/:id/review', isAuthenticated, async (req: any, res) => {
+tokensRouter.post("/tokens/applications/:id/review", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     const user = await storage.getUser(userId);
-    
+
     if (!isAdminEmail(user?.email)) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
+      return res.status(403).json({ success: false, error: "Admin access required" });
     }
 
     const { id } = req.params;
-    
+
     const schema = z.object({
-      decision: z.enum(['approved', 'rejected']),
+      decision: z.enum(["approved", "rejected"]),
       reviewNotes: z.string().optional(),
       rejectionReason: z.string().optional(),
     });
 
     const parsed = schema.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ success: false, error: 'Invalid request' });
+      return res.status(400).json({ success: false, error: "Invalid request" });
     }
 
     const { decision, reviewNotes, rejectionReason } = parsed.data;
     const db = (storage as any).$client;
 
     // Get application
-    const appResult = await db.query(
-      `SELECT * FROM token_applications WHERE id = $1`,
-      [id]
-    );
+    const appResult = await db.query(`SELECT * FROM token_applications WHERE id = $1`, [id]);
 
     if (appResult.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Application not found' });
+      return res.status(404).json({ success: false, error: "Application not found" });
     }
 
     const app = appResult.rows[0];
@@ -332,7 +345,7 @@ tokensRouter.post('/tokens/applications/:id/review', isAuthenticated, async (req
     );
 
     // If approved, add to accepted tokens
-    if (decision === 'approved') {
+    if (decision === "approved") {
       await db.query(
         `INSERT INTO accepted_tokens 
          (symbol, name, mint_address, decimals, logo_url, tier, 
@@ -340,8 +353,17 @@ tokensRouter.post('/tokens/applications/:id/review', isAuthenticated, async (req
           is_active, activated_at)
          VALUES ($1, $2, $3, $4, $5, 'community', $6, $7, $8, $9, true, NOW())
          ON CONFLICT (symbol) DO NOTHING`,
-        [app.symbol, app.name, app.mint_address, app.decimals, app.logo_url,
-         app.website, app.twitter, app.telegram, app.discord]
+        [
+          app.symbol,
+          app.name,
+          app.mint_address,
+          app.decimals,
+          app.logo_url,
+          app.website,
+          app.twitter,
+          app.telegram,
+          app.discord,
+        ]
       );
     }
 
@@ -350,7 +372,7 @@ tokensRouter.post('/tokens/applications/:id/review', isAuthenticated, async (req
       message: `Application ${decision}`,
     });
   } catch (error: any) {
-    console.error('Review application error:', error);
+    console.error("Review application error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -359,13 +381,13 @@ tokensRouter.post('/tokens/applications/:id/review', isAuthenticated, async (req
  * PATCH /tokens/:symbol/toggle (Admin only)
  * Toggle token active status
  */
-tokensRouter.patch('/tokens/:symbol/toggle', isAuthenticated, async (req: any, res) => {
+tokensRouter.patch("/tokens/:symbol/toggle", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     const user = await storage.getUser(userId);
-    
+
     if (!isAdminEmail(user?.email)) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
+      return res.status(403).json({ success: false, error: "Admin access required" });
     }
 
     const { symbol } = req.params;
@@ -381,7 +403,7 @@ tokensRouter.patch('/tokens/:symbol/toggle', isAuthenticated, async (req: any, r
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Token not found' });
+      return res.status(404).json({ success: false, error: "Token not found" });
     }
 
     res.json({
@@ -390,7 +412,7 @@ tokensRouter.patch('/tokens/:symbol/toggle', isAuthenticated, async (req: any, r
       isActive: result.rows[0].is_active,
     });
   } catch (error: any) {
-    console.error('Toggle token error:', error);
+    console.error("Toggle token error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -401,18 +423,18 @@ tokensRouter.patch('/tokens/:symbol/toggle', isAuthenticated, async (req: any, r
  * GET /admin/tokens (Admin only)
  * Get all tokens including inactive ones
  */
-tokensRouter.get('/admin/tokens', isAuthenticated, async (req: any, res) => {
+tokensRouter.get("/admin/tokens", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     const user = await storage.getUser(userId);
-    
+
     if (!isAdminEmail(user?.email)) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
+      return res.status(403).json({ success: false, error: "Admin access required" });
     }
 
     const db = (storage as any).$client;
     if (!db) {
-      return res.status(500).json({ success: false, error: 'Database not available' });
+      return res.status(500).json({ success: false, error: "Database not available" });
     }
 
     const result = await db.query(
@@ -427,21 +449,23 @@ tokensRouter.get('/admin/tokens', isAuthenticated, async (req: any, res) => {
          END, symbol`
     );
 
-    res.json(result.rows.map((t: any) => ({
-      id: t.id,
-      symbol: t.symbol,
-      name: t.name,
-      mintAddress: t.mint_address,
-      decimals: t.decimals,
-      logoUrl: t.logo_url,
-      tier: t.tier,
-      isActive: t.is_active,
-      addedAt: t.added_at,
-      addedBy: t.added_by,
-      notes: t.notes,
-    })));
+    res.json(
+      result.rows.map((t: any) => ({
+        id: t.id,
+        symbol: t.symbol,
+        name: t.name,
+        mintAddress: t.mint_address,
+        decimals: t.decimals,
+        logoUrl: t.logo_url,
+        tier: t.tier,
+        isActive: t.is_active,
+        addedAt: t.added_at,
+        addedBy: t.added_by,
+        notes: t.notes,
+      }))
+    );
   } catch (error: any) {
-    console.error('Admin get tokens error:', error);
+    console.error("Admin get tokens error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -450,23 +474,25 @@ tokensRouter.get('/admin/tokens', isAuthenticated, async (req: any, res) => {
  * POST /admin/tokens (Admin only)
  * Add a new token to the registry
  */
-tokensRouter.post('/admin/tokens', isAuthenticated, async (req: any, res) => {
+tokensRouter.post("/admin/tokens", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     const user = await storage.getUser(userId);
-    
+
     if (!isAdminEmail(user?.email)) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
+      return res.status(403).json({ success: false, error: "Admin access required" });
     }
 
     const { symbol, name, mintAddress, tier, decimals, logoUrl, notes } = req.body;
-    
+
     if (!symbol || !name || !mintAddress) {
-      return res.status(400).json({ success: false, error: 'Symbol, name, and mintAddress are required' });
+      return res
+        .status(400)
+        .json({ success: false, error: "Symbol, name, and mintAddress are required" });
     }
 
     const db = (storage as any).$client;
-    
+
     const result = await db.query(
       `INSERT INTO accepted_tokens 
        (symbol, name, mint_address, decimals, logo_url, tier, is_active, added_by, notes, added_at)
@@ -480,7 +506,16 @@ tokensRouter.post('/admin/tokens', isAuthenticated, async (req: any, res) => {
          notes = EXCLUDED.notes,
          updated_at = NOW()
        RETURNING id, symbol`,
-      [symbol.toUpperCase(), name, mintAddress, decimals || 9, logoUrl, tier || 'whitelisted', userId, notes]
+      [
+        symbol.toUpperCase(),
+        name,
+        mintAddress,
+        decimals || 9,
+        logoUrl,
+        tier || "whitelisted",
+        userId,
+        notes,
+      ]
     );
 
     res.json({
@@ -488,7 +523,7 @@ tokensRouter.post('/admin/tokens', isAuthenticated, async (req: any, res) => {
       token: result.rows[0],
     });
   } catch (error: any) {
-    console.error('Admin add token error:', error);
+    console.error("Admin add token error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -497,13 +532,13 @@ tokensRouter.post('/admin/tokens', isAuthenticated, async (req: any, res) => {
  * POST /admin/tokens/:tokenId/toggle (Admin only)
  * Toggle token by ID
  */
-tokensRouter.post('/admin/tokens/:tokenId/toggle', isAuthenticated, async (req: any, res) => {
+tokensRouter.post("/admin/tokens/:tokenId/toggle", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     const user = await storage.getUser(userId);
-    
+
     if (!isAdminEmail(user?.email)) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
+      return res.status(403).json({ success: false, error: "Admin access required" });
     }
 
     const { tokenId } = req.params;
@@ -520,7 +555,7 @@ tokensRouter.post('/admin/tokens/:tokenId/toggle', isAuthenticated, async (req: 
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Token not found' });
+      return res.status(404).json({ success: false, error: "Token not found" });
     }
 
     res.json({
@@ -528,7 +563,7 @@ tokensRouter.post('/admin/tokens/:tokenId/toggle', isAuthenticated, async (req: 
       token: result.rows[0],
     });
   } catch (error: any) {
-    console.error('Admin toggle token error:', error);
+    console.error("Admin toggle token error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -537,18 +572,18 @@ tokensRouter.post('/admin/tokens/:tokenId/toggle', isAuthenticated, async (req: 
  * GET /admin/tokens/applications (Admin only)
  * Get all token applications
  */
-tokensRouter.get('/admin/tokens/applications', isAuthenticated, async (req: any, res) => {
+tokensRouter.get("/admin/tokens/applications", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     const user = await storage.getUser(userId);
-    
+
     if (!isAdminEmail(user?.email)) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
+      return res.status(403).json({ success: false, error: "Admin access required" });
     }
 
     const db = (storage as any).$client;
     if (!db) {
-      return res.status(500).json({ success: false, error: 'Database not available' });
+      return res.status(500).json({ success: false, error: "Database not available" });
     }
 
     const result = await db.query(
@@ -563,23 +598,25 @@ tokensRouter.get('/admin/tokens/applications', isAuthenticated, async (req: any,
          ta.submitted_at DESC`
     );
 
-    res.json(result.rows.map((a: any) => ({
-      id: a.id,
-      tokenSymbol: a.token_symbol,
-      tokenName: a.token_name,
-      mintAddress: a.mint_address,
-      applicantUserId: a.applicant_user_id,
-      applicantEmail: a.applicant_email,
-      reason: a.reason,
-      projectUrl: a.project_url,
-      status: a.status,
-      reviewedBy: a.reviewed_by,
-      reviewNotes: a.review_notes,
-      submittedAt: a.submitted_at,
-      reviewedAt: a.reviewed_at,
-    })));
+    res.json(
+      result.rows.map((a: any) => ({
+        id: a.id,
+        tokenSymbol: a.token_symbol,
+        tokenName: a.token_name,
+        mintAddress: a.mint_address,
+        applicantUserId: a.applicant_user_id,
+        applicantEmail: a.applicant_email,
+        reason: a.reason,
+        projectUrl: a.project_url,
+        status: a.status,
+        reviewedBy: a.reviewed_by,
+        reviewNotes: a.review_notes,
+        submittedAt: a.submitted_at,
+        reviewedAt: a.reviewed_at,
+      }))
+    );
   } catch (error: any) {
-    console.error('Admin get applications error:', error);
+    console.error("Admin get applications error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -588,88 +625,117 @@ tokensRouter.get('/admin/tokens/applications', isAuthenticated, async (req: any,
  * POST /admin/tokens/applications/:applicationId/review (Admin only)
  * Review a token application
  */
-tokensRouter.post('/admin/tokens/applications/:applicationId/review', isAuthenticated, async (req: any, res) => {
-  try {
-    const userId = req.user?.claims?.sub;
-    const user = await storage.getUser(userId);
-    
-    if (!isAdminEmail(user?.email)) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
-    }
+tokensRouter.post(
+  "/admin/tokens/applications/:applicationId/review",
+  isAuthenticated,
+  async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const user = await storage.getUser(userId);
 
-    const { applicationId } = req.params;
-    const { decision, notes } = req.body;
-    
-    if (!['approved', 'rejected'].includes(decision)) {
-      return res.status(400).json({ success: false, error: 'Decision must be approved or rejected' });
-    }
+      if (!isAdminEmail(user?.email)) {
+        return res.status(403).json({ success: false, error: "Admin access required" });
+      }
 
-    const db = (storage as any).$client;
-    
-    // Get application details
-    const appResult = await db.query(
-      `SELECT * FROM token_applications WHERE id = $1`,
-      [applicationId]
-    );
-    
-    if (appResult.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Application not found' });
-    }
-    
-    const app = appResult.rows[0];
-    
-    // Update application status
-    await db.query(
-      `UPDATE token_applications SET 
+      const { applicationId } = req.params;
+      const { decision, notes } = req.body;
+
+      if (!["approved", "rejected"].includes(decision)) {
+        return res
+          .status(400)
+          .json({ success: false, error: "Decision must be approved or rejected" });
+      }
+
+      const db = (storage as any).$client;
+
+      // Get application details
+      const appResult = await db.query(`SELECT * FROM token_applications WHERE id = $1`, [
+        applicationId,
+      ]);
+
+      if (appResult.rows.length === 0) {
+        return res.status(404).json({ success: false, error: "Application not found" });
+      }
+
+      const app = appResult.rows[0];
+
+      // Update application status
+      await db.query(
+        `UPDATE token_applications SET 
          status = $1, reviewed_by = $2, reviewed_at = NOW(), review_notes = $3
        WHERE id = $4`,
-      [decision, userId, notes, applicationId]
-    );
-    
-    // If approved, add token to registry
-    if (decision === 'approved') {
-      await db.query(
-        `INSERT INTO accepted_tokens 
+        [decision, userId, notes, applicationId]
+      );
+
+      // If approved, add token to registry
+      if (decision === "approved") {
+        await db.query(
+          `INSERT INTO accepted_tokens 
          (symbol, name, mint_address, decimals, logo_url, tier, is_active, added_at)
          VALUES ($1, $2, $3, $4, $5, 'community', true, NOW())
          ON CONFLICT (symbol) DO NOTHING`,
-        [app.symbol, app.name, app.mint_address, app.decimals || 9, app.logo_url]
-      );
-    }
+          [app.symbol, app.name, app.mint_address, app.decimals || 9, app.logo_url]
+        );
+      }
 
-    res.json({
-      success: true,
-      message: `Application ${decision}`,
-    });
-  } catch (error: any) {
-    console.error('Admin review application error:', error);
-    res.status(500).json({ success: false, error: error.message });
+      res.json({
+        success: true,
+        message: `Application ${decision}`,
+      });
+    } catch (error: any) {
+      console.error("Admin review application error:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
   }
-});
+);
 
 /**
  * POST /admin/tokens/seed (Admin only)
  * Seed default tokens
  */
-tokensRouter.post('/admin/tokens/seed', isAuthenticated, async (req: any, res) => {
+tokensRouter.post("/admin/tokens/seed", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     const user = await storage.getUser(userId);
-    
+
     if (!isAdminEmail(user?.email)) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
+      return res.status(403).json({ success: false, error: "Admin access required" });
     }
 
     const db = (storage as any).$client;
-    
+
     // Seed default tokens
     const defaultTokens = [
-      { symbol: 'CATH', name: 'CATH Token', mintAddress: 'CATHYjt15smqH9JuHGpdxEWaWvTM4mBWqsHSZivhpump', tier: 'primary', decimals: 9 },
-      { symbol: 'SOL', name: 'Solana', mintAddress: 'So11111111111111111111111111111111111111112', tier: 'primary', decimals: 9 },
-      { symbol: 'BONK', name: 'Bonk', mintAddress: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263', tier: 'whitelisted', decimals: 5 },
-      { symbol: 'SOLT', name: 'Solturio Rewards', mintAddress: 'SOLT_PLACEHOLDER_MINT_ADDRESS', tier: 'primary', decimals: 9 },
+      {
+        symbol: "CATH",
+        name: "CATH Token",
+        mintAddress: "CATHYjt15smqH9JuHGpdxEWaWvTM4mBWqsHSZivhpump",
+        tier: "primary",
+        decimals: 9,
+      },
+      {
+        symbol: "SOL",
+        name: "Solana",
+        mintAddress: "So11111111111111111111111111111111111111112",
+        tier: "primary",
+        decimals: 9,
+      },
+      {
+        symbol: "BONK",
+        name: "Bonk",
+        mintAddress: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+        tier: "whitelisted",
+        decimals: 5,
+      },
+      {
+        symbol: "SOLT",
+        name: "Solturio Rewards",
+        mintAddress: "SOLT_PLACEHOLDER_MINT_ADDRESS",
+        tier: "primary",
+        decimals: 9,
+      },
     ];
-    
+
     for (const token of defaultTokens) {
       await db.query(
         `INSERT INTO accepted_tokens 
@@ -681,17 +747,24 @@ tokensRouter.post('/admin/tokens/seed', isAuthenticated, async (req: any, res) =
            decimals = EXCLUDED.decimals,
            tier = EXCLUDED.tier,
            updated_at = NOW()`,
-        [token.symbol, token.name, token.mintAddress, token.decimals, token.tier,
-         token.tier === 'primary', token.symbol === 'SOL']
+        [
+          token.symbol,
+          token.name,
+          token.mintAddress,
+          token.decimals,
+          token.tier,
+          token.tier === "primary",
+          token.symbol === "SOL",
+        ]
       );
     }
 
     res.json({
       success: true,
-      message: 'Default tokens seeded',
+      message: "Default tokens seeded",
     });
   } catch (error: any) {
-    console.error('Seed tokens error:', error);
+    console.error("Seed tokens error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -700,25 +773,25 @@ tokensRouter.post('/admin/tokens/seed', isAuthenticated, async (req: any, res) =
  * GET /admin/rewards/pool (Admin only)
  * Get rewards pool statistics
  */
-tokensRouter.get('/admin/rewards/pool', isAuthenticated, async (req: any, res) => {
+tokensRouter.get("/admin/rewards/pool", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     const user = await storage.getUser(userId);
-    
+
     if (!isAdminEmail(user?.email)) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
+      return res.status(403).json({ success: false, error: "Admin access required" });
     }
 
     const db = (storage as any).$client;
     const TOTAL_POOL = 50_000_000; // 50M $SOLT
-    
+
     // Get total distributed from rewards log
     const result = await db.query(
       `SELECT COALESCE(SUM(CAST(final_amount AS NUMERIC)), 0) as total_distributed
        FROM rewards_log`
     );
-    
-    const distributed = parseFloat(result.rows[0]?.total_distributed || '0');
+
+    const distributed = parseFloat(result.rows[0]?.total_distributed || "0");
     const remaining = TOTAL_POOL - distributed;
     const percentUsed = (distributed / TOTAL_POOL) * 100;
 
@@ -729,7 +802,7 @@ tokensRouter.get('/admin/rewards/pool', isAuthenticated, async (req: any, res) =
       percentUsed: Math.round(percentUsed * 100) / 100,
     });
   } catch (error: any) {
-    console.error('Get rewards pool error:', error);
+    console.error("Get rewards pool error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

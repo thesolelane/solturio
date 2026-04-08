@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, uploadFormData } from "@/lib/queryClient";
@@ -73,8 +79,8 @@ export default function MusicUploadWizard({
       formData.append("mode", mode);
 
       if (mode === "part_of_release") {
-        formData.append("releaseType", releaseId ? (releaseType || "album") : newReleaseType);
-        formData.append("releaseTitle", releaseId ? (releaseTitle || "") : newReleaseTitle);
+        formData.append("releaseType", releaseId ? releaseType || "album" : newReleaseType);
+        formData.append("releaseTitle", releaseId ? releaseTitle || "" : newReleaseTitle);
         formData.append("trackNumber", trackNumber);
         if (releaseId) {
           formData.append("releaseId", releaseId);
@@ -95,8 +101,12 @@ export default function MusicUploadWizard({
     onSuccess: (data) => {
       setResult(data);
       setStep("success");
-      queryClient.invalidateQueries({ queryKey: ["/api/music/collections", collectionId, "tracks"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/music/collections", collectionId, "releases"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/music/collections", collectionId, "tracks"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/music/collections", collectionId, "releases"],
+      });
       if (releaseId) {
         queryClient.invalidateQueries({ queryKey: ["/api/music/releases", releaseId] });
       }
@@ -117,16 +127,19 @@ export default function MusicUploadWizard({
     }
   };
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    const dropped = e.dataTransfer.files?.[0];
-    if (dropped && dropped.type.startsWith("audio/")) {
-      setFile(dropped);
-      if (!title) {
-        setTitle(dropped.name.replace(/\.[^/.]+$/, ""));
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      const dropped = e.dataTransfer.files?.[0];
+      if (dropped && dropped.type.startsWith("audio/")) {
+        setFile(dropped);
+        if (!title) {
+          setTitle(dropped.name.replace(/\.[^/.]+$/, ""));
+        }
       }
-    }
-  }, [title]);
+    },
+    [title]
+  );
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -224,7 +237,10 @@ export default function MusicUploadWizard({
         {step === "mode" && (
           <div className="space-y-6 pt-4">
             <RadioGroup value={mode} onValueChange={(v) => setMode(v as typeof mode)}>
-              <div className="flex items-start gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50" onClick={() => setMode("standalone")}>
+              <div
+                className="flex items-start gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50"
+                onClick={() => setMode("standalone")}
+              >
                 <RadioGroupItem value="standalone" id="standalone" data-testid="radio-standalone" />
                 <div>
                   <Label htmlFor="standalone" className="font-medium cursor-pointer">
@@ -235,8 +251,15 @@ export default function MusicUploadWizard({
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50" onClick={() => setMode("part_of_release")}>
-                <RadioGroupItem value="part_of_release" id="part_of_release" data-testid="radio-part-of-release" />
+              <div
+                className="flex items-start gap-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50"
+                onClick={() => setMode("part_of_release")}
+              >
+                <RadioGroupItem
+                  value="part_of_release"
+                  id="part_of_release"
+                  data-testid="radio-part-of-release"
+                />
                 <div>
                   <Label htmlFor="part_of_release" className="font-medium cursor-pointer">
                     Part of EP/Album
@@ -324,7 +347,9 @@ export default function MusicUploadWizard({
             <p className="text-sm text-muted-foreground">
               {uploadProgress < 30 && "Computing audio hash..."}
               {uploadProgress >= 30 && uploadProgress < 60 && "Encrypting master audio..."}
-              {uploadProgress >= 60 && uploadProgress < 90 && "Uploading to decentralized storage..."}
+              {uploadProgress >= 60 &&
+                uploadProgress < 90 &&
+                "Uploading to decentralized storage..."}
               {uploadProgress >= 90 && "Finalizing..."}
             </p>
           </div>
@@ -334,7 +359,7 @@ export default function MusicUploadWizard({
           <div className="space-y-4 pt-4 text-center">
             <CheckCircle2 className="w-16 h-16 mx-auto text-green-500" />
             <p className="font-medium text-lg">Track uploaded successfully!</p>
-            
+
             <div className="text-left bg-muted/50 rounded-lg p-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Audio Hash:</span>

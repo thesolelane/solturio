@@ -15,7 +15,11 @@ export interface ValidatedRequest extends Request {
 }
 
 // Middleware to add request ID and validate timestamp
-export const requestValidatorMiddleware = (req: ValidatedRequest, res: Response, next: NextFunction) => {
+export const requestValidatorMiddleware = (
+  req: ValidatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
   // Generate request ID
   req.requestId = `req_${Math.random().toString(36).substring(7)}_${Date.now()}`;
 

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
+import {
   Shield,
   Ban,
   CheckCircle,
@@ -19,7 +19,7 @@ import {
   Globe,
   Copy,
   Mail,
-  Send
+  Send,
 } from "lucide-react";
 import { SiX, SiTelegram, SiDiscord } from "react-icons/si";
 import {
@@ -44,38 +44,70 @@ import { format } from "date-fns";
 // Get report type icon
 function getReportIcon(reportType: string) {
   switch (reportType) {
-    case 'token': return <Building2 className="w-4 h-4" />;
-    case 'telegram': return <SiTelegram className="w-4 h-4" />;
-    case 'twitter': return <SiX className="w-4 h-4" />;
-    case 'website': return <Globe className="w-4 h-4" />;
-    case 'discord': return <SiDiscord className="w-4 h-4" />;
-    default: return <AlertTriangle className="w-4 h-4" />;
+    case "token":
+      return <Building2 className="w-4 h-4" />;
+    case "telegram":
+      return <SiTelegram className="w-4 h-4" />;
+    case "twitter":
+      return <SiX className="w-4 h-4" />;
+    case "website":
+      return <Globe className="w-4 h-4" />;
+    case "discord":
+      return <SiDiscord className="w-4 h-4" />;
+    default:
+      return <AlertTriangle className="w-4 h-4" />;
   }
 }
 
 // Get report type label
 function getReportTypeLabel(reportType: string) {
   switch (reportType) {
-    case 'token': return 'Token/CA';
-    case 'telegram': return 'Telegram';
-    case 'twitter': return 'Twitter/X';
-    case 'website': return 'Website';
-    case 'discord': return 'Discord';
-    default: return 'Other';
+    case "token":
+      return "Token/CA";
+    case "telegram":
+      return "Telegram";
+    case "twitter":
+      return "Twitter/X";
+    case "website":
+      return "Website";
+    case "discord":
+      return "Discord";
+    default:
+      return "Other";
   }
 }
 
 // Get status badge
 function getStatusBadge(status: string) {
   switch (status) {
-    case 'pending':
-      return <Badge variant="secondary" className="gap-1"><Clock className="w-3 h-3" />Pending</Badge>;
-    case 'submitted':
-      return <Badge variant="default" className="gap-1"><Send className="w-3 h-3" />Submitted</Badge>;
-    case 'resolved':
-      return <Badge variant="default" className="gap-1 bg-green-600"><CheckCircle className="w-3 h-3" />Resolved</Badge>;
-    case 'rejected':
-      return <Badge variant="destructive" className="gap-1"><Ban className="w-3 h-3" />Rejected</Badge>;
+    case "pending":
+      return (
+        <Badge variant="secondary" className="gap-1">
+          <Clock className="w-3 h-3" />
+          Pending
+        </Badge>
+      );
+    case "submitted":
+      return (
+        <Badge variant="default" className="gap-1">
+          <Send className="w-3 h-3" />
+          Submitted
+        </Badge>
+      );
+    case "resolved":
+      return (
+        <Badge variant="default" className="gap-1 bg-green-600">
+          <CheckCircle className="w-3 h-3" />
+          Resolved
+        </Badge>
+      );
+    case "rejected":
+      return (
+        <Badge variant="destructive" className="gap-1">
+          <Ban className="w-3 h-3" />
+          Rejected
+        </Badge>
+      );
     default:
       return <Badge variant="secondary">{status}</Badge>;
   }
@@ -103,7 +135,7 @@ export default function AdminClaims() {
       return apiRequest("PATCH", `/api/admin/reports/${reportId}/status`, { status });
     },
     onSuccess: () => {
-      toast({ 
+      toast({
         title: "Status Updated",
         description: "Report status has been updated",
       });
@@ -113,7 +145,7 @@ export default function AdminClaims() {
   });
 
   // Filter reports
-  const filteredReports = reports.filter(report => {
+  const filteredReports = reports.filter((report) => {
     if (filterType !== "all" && report.reportType !== filterType) return false;
     if (filterStatus !== "all" && report.status !== filterStatus) return false;
     return true;
@@ -121,14 +153,14 @@ export default function AdminClaims() {
 
   // Count reports by type
   const reportCounts = {
-    token: reports.filter(r => r.reportType === 'token').length,
-    telegram: reports.filter(r => r.reportType === 'telegram').length,
-    twitter: reports.filter(r => r.reportType === 'twitter').length,
-    website: reports.filter(r => r.reportType === 'website').length,
-    discord: reports.filter(r => r.reportType === 'discord').length,
-    pending: reports.filter(r => r.status === 'pending').length,
-    submitted: reports.filter(r => r.status === 'submitted').length,
-    resolved: reports.filter(r => r.status === 'resolved').length,
+    token: reports.filter((r) => r.reportType === "token").length,
+    telegram: reports.filter((r) => r.reportType === "telegram").length,
+    twitter: reports.filter((r) => r.reportType === "twitter").length,
+    website: reports.filter((r) => r.reportType === "website").length,
+    discord: reports.filter((r) => r.reportType === "discord").length,
+    pending: reports.filter((r) => r.status === "pending").length,
+    submitted: reports.filter((r) => r.status === "submitted").length,
+    resolved: reports.filter((r) => r.status === "resolved").length,
   };
 
   return (
@@ -242,8 +274,8 @@ export default function AdminClaims() {
           ) : (
             <div className="space-y-4">
               {filteredReports.map((report) => (
-                <div 
-                  key={report.id} 
+                <div
+                  key={report.id}
                   className="border rounded-lg p-4 hover-elevate cursor-pointer"
                   onClick={() => setSelectedReport(report)}
                 >
@@ -256,33 +288,35 @@ export default function AdminClaims() {
                         </Badge>
                         {getStatusBadge(report.status)}
                         <span className="text-xs text-muted-foreground">
-                          {report.createdAt ? format(new Date(report.createdAt), 'MMM d, yyyy HH:mm') : '-'}
+                          {report.createdAt
+                            ? format(new Date(report.createdAt), "MMM d, yyyy HH:mm")
+                            : "-"}
                         </span>
                       </div>
-                      
+
                       <div className="space-y-1">
-                        <p className="font-medium">{report.logo?.fileName || 'Unknown Logo'}</p>
+                        <p className="font-medium">{report.logo?.fileName || "Unknown Logo"}</p>
                         <p className="text-sm text-muted-foreground">
                           Reported by: {report.user?.email || report.userId}
                         </p>
-                        
+
                         {/* Show main offending URL based on type */}
-                        {report.reportType === 'token' && report.copycatContractAddress && (
+                        {report.reportType === "token" && report.copycatContractAddress && (
                           <p className="text-sm font-mono">{report.copycatContractAddress}</p>
                         )}
-                        {report.reportType === 'telegram' && report.copycatTelegram && (
+                        {report.reportType === "telegram" && report.copycatTelegram && (
                           <p className="text-sm text-blue-600">{report.copycatTelegram}</p>
                         )}
-                        {report.reportType === 'twitter' && report.copycatTwitter && (
+                        {report.reportType === "twitter" && report.copycatTwitter && (
                           <p className="text-sm text-blue-600">{report.copycatTwitter}</p>
                         )}
-                        {report.reportType === 'website' && report.copycatWebsite && (
+                        {report.reportType === "website" && report.copycatWebsite && (
                           <p className="text-sm text-blue-600">{report.copycatWebsite}</p>
                         )}
-                        {report.reportType === 'discord' && report.copycatDiscord && (
+                        {report.reportType === "discord" && report.copycatDiscord && (
                           <p className="text-sm text-blue-600">{report.copycatDiscord}</p>
                         )}
-                        
+
                         {report.evidenceDescription && (
                           <p className="text-sm text-muted-foreground line-clamp-2">
                             {report.evidenceDescription}
@@ -290,7 +324,7 @@ export default function AdminClaims() {
                         )}
                       </div>
                     </div>
-                    
+
                     <Button variant="outline" size="sm" className="ml-4">
                       View Details
                     </Button>
@@ -308,24 +342,25 @@ export default function AdminClaims() {
           <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>IP Theft Report Details</DialogTitle>
-              <DialogDescription>
-                Review report and take appropriate action
-              </DialogDescription>
+              <DialogDescription>Review report and take appropriate action</DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4">
               {/* Report Info */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   {getReportIcon(selectedReport.reportType)}
-                  <span className="font-medium">{getReportTypeLabel(selectedReport.reportType)} Report</span>
+                  <span className="font-medium">
+                    {getReportTypeLabel(selectedReport.reportType)} Report
+                  </span>
                   {getStatusBadge(selectedReport.status)}
                 </div>
+                <p className="text-sm text-muted-foreground">Report ID: {selectedReport.id}</p>
                 <p className="text-sm text-muted-foreground">
-                  Report ID: {selectedReport.id}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Created: {selectedReport.createdAt ? format(new Date(selectedReport.createdAt), 'PPpp') : '-'}
+                  Created:{" "}
+                  {selectedReport.createdAt
+                    ? format(new Date(selectedReport.createdAt), "PPpp")
+                    : "-"}
                 </p>
               </div>
 
@@ -335,7 +370,7 @@ export default function AdminClaims() {
                 <p>{selectedReport.logo?.fileName}</p>
                 <p className="text-sm text-muted-foreground">{selectedReport.logo?.tokenTicker}</p>
                 {selectedReport.logo?.ipfsHash && (
-                  <a 
+                  <a
                     href={`https://gateway.pinata.cloud/ipfs/${selectedReport.logo.ipfsHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -349,26 +384,34 @@ export default function AdminClaims() {
               {/* Offender Details */}
               <div className="border rounded-lg p-4 space-y-2">
                 <h3 className="font-semibold">Offender Details</h3>
-                
-                {selectedReport.reportType === 'token' && (
+
+                {selectedReport.reportType === "token" && (
                   <>
                     {selectedReport.copycatContractAddress && (
-                      <p className="text-sm"><strong>Contract:</strong> {selectedReport.copycatContractAddress}</p>
+                      <p className="text-sm">
+                        <strong>Contract:</strong> {selectedReport.copycatContractAddress}
+                      </p>
                     )}
                     {selectedReport.copycatTicker && (
-                      <p className="text-sm"><strong>Ticker:</strong> {selectedReport.copycatTicker}</p>
+                      <p className="text-sm">
+                        <strong>Ticker:</strong> {selectedReport.copycatTicker}
+                      </p>
                     )}
                     {selectedReport.copycatName && (
-                      <p className="text-sm"><strong>Name:</strong> {selectedReport.copycatName}</p>
+                      <p className="text-sm">
+                        <strong>Name:</strong> {selectedReport.copycatName}
+                      </p>
                     )}
                     {selectedReport.foundOnPlatform && (
-                      <p className="text-sm"><strong>Platform:</strong> {selectedReport.foundOnPlatform}</p>
+                      <p className="text-sm">
+                        <strong>Platform:</strong> {selectedReport.foundOnPlatform}
+                      </p>
                     )}
                   </>
                 )}
-                
-                {selectedReport.reportType === 'telegram' && selectedReport.copycatTelegram && (
-                  <a 
+
+                {selectedReport.reportType === "telegram" && selectedReport.copycatTelegram && (
+                  <a
                     href={selectedReport.copycatTelegram}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -377,9 +420,9 @@ export default function AdminClaims() {
                     <SiTelegram className="w-4 h-4" /> {selectedReport.copycatTelegram}
                   </a>
                 )}
-                
-                {selectedReport.reportType === 'twitter' && selectedReport.copycatTwitter && (
-                  <a 
+
+                {selectedReport.reportType === "twitter" && selectedReport.copycatTwitter && (
+                  <a
                     href={selectedReport.copycatTwitter}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -388,9 +431,9 @@ export default function AdminClaims() {
                     <SiX className="w-4 h-4" /> {selectedReport.copycatTwitter}
                   </a>
                 )}
-                
-                {selectedReport.reportType === 'website' && selectedReport.copycatWebsite && (
-                  <a 
+
+                {selectedReport.reportType === "website" && selectedReport.copycatWebsite && (
+                  <a
                     href={selectedReport.copycatWebsite}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -399,9 +442,9 @@ export default function AdminClaims() {
                     <Globe className="w-4 h-4" /> {selectedReport.copycatWebsite}
                   </a>
                 )}
-                
-                {selectedReport.reportType === 'discord' && selectedReport.copycatDiscord && (
-                  <a 
+
+                {selectedReport.reportType === "discord" && selectedReport.copycatDiscord && (
+                  <a
                     href={selectedReport.copycatDiscord}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -412,7 +455,7 @@ export default function AdminClaims() {
                 )}
 
                 {selectedReport.evidenceUrl && (
-                  <a 
+                  <a
                     href={selectedReport.evidenceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -427,20 +470,22 @@ export default function AdminClaims() {
               {selectedReport.evidenceDescription && (
                 <div className="border rounded-lg p-4 space-y-2">
                   <h3 className="font-semibold">Evidence Description</h3>
-                  <p className="text-sm whitespace-pre-wrap">{selectedReport.evidenceDescription}</p>
+                  <p className="text-sm whitespace-pre-wrap">
+                    {selectedReport.evidenceDescription}
+                  </p>
                 </div>
               )}
 
               {/* Actions */}
               <div className="border-t pt-4 space-y-4">
                 <h3 className="font-semibold">Actions</h3>
-                
+
                 <div className="flex flex-wrap gap-2">
                   <Button
                     variant="default"
                     onClick={() => {
                       // Send to appropriate platform
-                      toast({ 
+                      toast({
                         title: "Takedown Initiated",
                         description: "Takedown request will be sent to the platform",
                       });
@@ -449,12 +494,12 @@ export default function AdminClaims() {
                     <Send className="w-4 h-4 mr-1" />
                     Send Takedown
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     onClick={() => {
                       // Generate DMCA letter
-                      toast({ 
+                      toast({
                         title: "DMCA Letter Generated",
                         description: "DMCA letter has been prepared for sending",
                       });
@@ -463,12 +508,12 @@ export default function AdminClaims() {
                     <Mail className="w-4 h-4 mr-1" />
                     Generate DMCA
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     onClick={() => {
                       // Copy report details
-                      toast({ 
+                      toast({
                         title: "Copied",
                         description: "Report details copied to clipboard",
                       });
@@ -485,10 +530,12 @@ export default function AdminClaims() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => updateStatusMutation.mutate({ 
-                        reportId: selectedReport.id, 
-                        status: 'submitted' 
-                      })}
+                      onClick={() =>
+                        updateStatusMutation.mutate({
+                          reportId: selectedReport.id,
+                          status: "submitted",
+                        })
+                      }
                       disabled={updateStatusMutation.isPending}
                     >
                       Mark Submitted
@@ -497,10 +544,12 @@ export default function AdminClaims() {
                       variant="outline"
                       size="sm"
                       className="text-green-600"
-                      onClick={() => updateStatusMutation.mutate({ 
-                        reportId: selectedReport.id, 
-                        status: 'resolved' 
-                      })}
+                      onClick={() =>
+                        updateStatusMutation.mutate({
+                          reportId: selectedReport.id,
+                          status: "resolved",
+                        })
+                      }
                       disabled={updateStatusMutation.isPending}
                     >
                       Mark Resolved
@@ -509,10 +558,12 @@ export default function AdminClaims() {
                       variant="outline"
                       size="sm"
                       className="text-red-600"
-                      onClick={() => updateStatusMutation.mutate({ 
-                        reportId: selectedReport.id, 
-                        status: 'rejected' 
-                      })}
+                      onClick={() =>
+                        updateStatusMutation.mutate({
+                          reportId: selectedReport.id,
+                          status: "rejected",
+                        })
+                      }
                       disabled={updateStatusMutation.isPending}
                     >
                       Reject

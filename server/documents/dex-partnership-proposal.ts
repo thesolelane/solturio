@@ -23,7 +23,7 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.text("SOLTURIO", 50, 50);
       doc.fontSize(10).fillColor("#666").font("Helvetica");
       doc.text("Plant Your Standard on Chain™", 50, 80);
-      
+
       // Title
       doc.fillColor("#000").fontSize(20).font("Helvetica-Bold");
       doc.text("DEX Partnership Proposal", 50, 120, { align: "center" });
@@ -38,7 +38,8 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.fontSize(11).font("Helvetica");
       doc.text(
         "Solturio offers a FREE, real-time API that instantly verifies logo legitimacy, protecting your users from scams while reducing your platform's liability. Integration takes just 3 lines of code and provides sub-100ms verification.",
-        70, 215,
+        70,
+        215,
         { width: doc.page.width - 140, align: "justify" }
       );
 
@@ -46,7 +47,7 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.moveDown(6);
       doc.font("Helvetica-Bold").fontSize(14);
       doc.text("The Problem Your Platform Faces", 50, 340);
-      
+
       doc.font("Helvetica").fontSize(11);
       doc.moveDown();
       doc.text("Every DEX platform struggles with:", { paragraphGap: 5 });
@@ -59,8 +60,8 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
         "⏰ Manual verification taking hours or days",
         "🔄 No automated way to detect logo theft",
       ];
-      
-      problems.forEach(problem => {
+
+      problems.forEach((problem) => {
         doc.text(problem, { indent: 20, paragraphGap: 5 });
       });
 
@@ -68,7 +69,7 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.moveDown();
       doc.font("Helvetica-Bold").fontSize(14);
       doc.text("Solturio's Solution: Instant Logo Verification");
-      
+
       doc.moveDown();
       doc.font("Helvetica").fontSize(11);
       doc.text(
@@ -84,8 +85,8 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
         "🛡️ Automated DMCA takedown generation",
         "🆓 Completely FREE for DEX platforms",
       ];
-      
-      solutions.forEach(solution => {
+
+      solutions.forEach((solution) => {
         doc.text(solution, { indent: 20, paragraphGap: 5 });
       });
 
@@ -93,10 +94,10 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.addPage();
       doc.font("Helvetica-Bold").fontSize(14);
       doc.text("How It Works - 3 Simple Steps", 50, 50);
-      
+
       doc.moveDown();
       doc.fontSize(11).font("Helvetica");
-      
+
       // Step 1
       doc.rect(50, 100, doc.page.width - 100, 80).stroke("#14F195");
       doc.font("Helvetica-Bold").fontSize(12);
@@ -128,9 +129,12 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.moveDown(8);
       doc.font("Helvetica-Bold").fontSize(14);
       doc.text("Integration: Just 3 Lines of Code");
-      
+
       doc.moveDown();
-      doc.rect(50, 450, doc.page.width - 100, 100).fill("#f5f5f5").stroke("#ccc");
+      doc
+        .rect(50, 450, doc.page.width - 100, 100)
+        .fill("#f5f5f5")
+        .stroke("#ccc");
       doc.fillColor("#000").font("Courier").fontSize(10);
       doc.text("// Simple API Integration", 60, 465);
       doc.text("const verification = await fetch(", 60, 480);
@@ -142,18 +146,20 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.addPage();
       doc.font("Helvetica-Bold").fontSize(14);
       doc.text("Benefits to " + dexName, 50, 50);
-      
+
       doc.moveDown();
       doc.font("Helvetica").fontSize(11);
 
       const benefits = [
         {
           title: "1. Protect Your Users",
-          details: "Instantly identify legitimate projects vs copycats, reducing user losses to scams",
+          details:
+            "Instantly identify legitimate projects vs copycats, reducing user losses to scams",
         },
         {
           title: "2. Reduce Legal Risk",
-          details: "Automated DMCA compliance and IP verification protects your platform from liability",
+          details:
+            "Automated DMCA compliance and IP verification protects your platform from liability",
         },
         {
           title: "3. Competitive Advantage",
@@ -174,11 +180,11 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       ];
 
       let yPos = 100;
-      benefits.forEach(benefit => {
+      benefits.forEach((benefit) => {
         doc.font("Helvetica-Bold").fontSize(11);
         doc.text(benefit.title, 50, yPos);
         doc.font("Helvetica").fontSize(10);
-        doc.text(benefit.details, 50, yPos + 15, { 
+        doc.text(benefit.details, 50, yPos + 15, {
           width: doc.page.width - 100,
           align: "justify",
         });
@@ -189,7 +195,7 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.moveDown();
       doc.font("Helvetica-Bold").fontSize(14);
       doc.text("Expected Results");
-      
+
       doc.moveDown();
       doc.fontSize(11).font("Helvetica");
       doc.text("Based on our research and early implementations:", { paragraphGap: 5 });
@@ -201,8 +207,8 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
         "🎯 95% user satisfaction with verification system",
         "🔒 Complete DMCA compliance coverage",
       ];
-      
-      metrics.forEach(metric => {
+
+      metrics.forEach((metric) => {
         doc.text(metric, { indent: 20, paragraphGap: 5 });
       });
 
@@ -210,9 +216,9 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.addPage();
       doc.font("Helvetica-Bold").fontSize(14);
       doc.text("Partnership Levels", 50, 50);
-      
+
       doc.moveDown();
-      
+
       // Basic Integration
       doc.rect(50, 100, doc.page.width - 100, 120).stroke("#ccc");
       doc.font("Helvetica-Bold").fontSize(12).fillColor("#666");
@@ -250,12 +256,12 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.moveDown(10);
       doc.font("Helvetica-Bold").fontSize(14);
       doc.text("Early Success Stories", 50, 530);
-      
+
       doc.moveDown();
       doc.font("Helvetica").fontSize(11);
       doc.text(
         '"Since integrating Solturio, we\'ve seen a 90% drop in scam reports and our users feel much safer trading on our platform."',
-        { 
+        {
           indent: 20,
           italics: true,
           paragraphGap: 5,
@@ -268,7 +274,7 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.addPage();
       doc.font("Helvetica-Bold").fontSize(14);
       doc.text("Get Started Today - It's Free!", 50, 50);
-      
+
       doc.moveDown();
       doc.font("Helvetica").fontSize(11);
       doc.text("Integration takes less than 10 minutes:", { paragraphGap: 10 });
@@ -279,22 +285,22 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
         "3️⃣ Test with our sandbox environment",
         "4️⃣ Go live and protect your users immediately",
       ];
-      
+
       steps.forEach((step, index) => {
-        doc.rect(50, 130 + (index * 60), doc.page.width - 100, 50).stroke("#14F195");
+        doc.rect(50, 130 + index * 60, doc.page.width - 100, 50).stroke("#14F195");
         doc.font("Helvetica-Bold").fontSize(11);
-        doc.text(step, 60, 145 + (index * 60));
+        doc.text(step, 60, 145 + index * 60);
       });
 
       // Contact Information
       doc.moveDown(10);
       doc.font("Helvetica-Bold").fontSize(14);
       doc.text("Ready to Protect Your Platform?", 50, 400);
-      
+
       doc.moveDown();
       doc.fontSize(11).font("Helvetica");
       doc.text("Contact our DEX Partnership Team:", { paragraphGap: 5 });
-      
+
       doc.text("📧 Email: dex@solturio.app", { indent: 20 });
       doc.text("🌐 Website: solturio.app/dex", { indent: 20 });
       doc.text("📱 Telegram: @SolturioDEX", { indent: 20 });
@@ -308,18 +314,16 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.fontSize(10).font("Helvetica");
       doc.text(
         "First 10 DEX platforms to integrate get lifetime Premium Partnership status with all benefits completely FREE!",
-        60, 535,
+        60,
+        535,
         { width: doc.page.width - 120 }
       );
 
       // Footer
       doc.fillColor("#666").fontSize(9);
-      doc.text(
-        "© 2024 Solturio - Plant Your Standard on Chain™",
-        50,
-        doc.page.height - 50,
-        { align: "center" }
-      );
+      doc.text("© 2024 Solturio - Plant Your Standard on Chain™", 50, doc.page.height - 50, {
+        align: "center",
+      });
 
       doc.end();
     } catch (error) {

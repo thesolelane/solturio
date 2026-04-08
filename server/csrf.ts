@@ -2,7 +2,7 @@ import { RequestHandler } from "express";
 import crypto from "crypto";
 
 // Extend Express Session to include CSRF token
-declare module 'express-session' {
+declare module "express-session" {
   interface SessionData {
     csrfToken?: string;
   }
@@ -10,25 +10,25 @@ declare module 'express-session' {
 
 /**
  * CSRF Protection Middleware
- * 
+ *
  * Implements double-submit cookie pattern for CSRF protection.
  * This prevents malicious websites from making authenticated requests
  * to our API on behalf of logged-in users.
- * 
+ *
  * Security measures:
  * 1. sameSite='lax' cookie (prevents most CSRF attacks)
  * 2. CSRF token validation for state-changing operations
  * 3. Origin header validation
  */
 
-const CSRF_TOKEN_NAME = 'XSRF-TOKEN';
-const CSRF_HEADER_NAME = 'x-csrf-token';
+const CSRF_TOKEN_NAME = "XSRF-TOKEN";
+const CSRF_HEADER_NAME = "x-csrf-token";
 
 /**
  * Generate a cryptographically secure CSRF token
  */
 function generateCsrfToken(): string {
-  return crypto.randomBytes(32).toString('hex');
+  return crypto.randomBytes(32).toString("hex");
 }
 
 /**
@@ -45,7 +45,7 @@ export const setCsrfToken: RequestHandler = (req, res, next) => {
   res.cookie(CSRF_TOKEN_NAME, req.session.csrfToken, {
     httpOnly: false, // Must be readable by JS to include in request headers
     secure: true,
-    sameSite: 'lax',
+    sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
   });
 
@@ -58,22 +58,26 @@ export const setCsrfToken: RequestHandler = (req, res, next) => {
  */
 export const validateCsrfToken: RequestHandler = (req, res, next) => {
   // Skip CSRF validation for safe methods (GET, HEAD, OPTIONS)
-  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
     return next();
   }
 
   // Skip CSRF validation for auth callback (OAuth flow)
-  if (req.path === '/api/callback') {
+  if (req.path === "/api/callback") {
     return next();
   }
 
   // Skip CSRF validation for extension API endpoints (they use JWT Bearer auth)
-  if (req.path.startsWith('/api/extension/')) {
+  if (req.path.startsWith("/api/extension/")) {
     return next();
   }
 
   // Skip CSRF validation for watermark API (public verification endpoints only)
-  const publicWatermarkRoutes = ['/api/watermark/verify', '/api/watermark/extract-hash', '/api/watermark/supported-types'];
+  const publicWatermarkRoutes = [
+    "/api/watermark/verify",
+    "/api/watermark/extract-hash",
+    "/api/watermark/supported-types",
+  ];
   if (publicWatermarkRoutes.includes(req.path)) {
     return next();
   }
@@ -83,17 +87,17 @@ export const validateCsrfToken: RequestHandler = (req, res, next) => {
 
   // Validate token presence and match
   if (!sessionToken || !headerToken || sessionToken !== headerToken) {
-    console.warn('CSRF token validation failed:', {
+    console.warn("CSRF token validation failed:", {
       path: req.path,
       method: req.method,
       hasSessionToken: !!sessionToken,
       hasHeaderToken: !!headerToken,
       tokensMatch: sessionToken === headerToken,
     });
-    
-    return res.status(403).json({ 
-      message: 'Invalid CSRF token',
-      error: 'CSRF_VALIDATION_FAILED'
+
+    return res.status(403).json({
+      message: "Invalid CSRF token",
+      error: "CSRF_VALIDATION_FAILED",
     });
   }
 
@@ -107,12 +111,12 @@ export const validateCsrfToken: RequestHandler = (req, res, next) => {
  */
 export const validateOrigin: RequestHandler = (req, res, next) => {
   // Skip origin validation for safe methods
-  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
     return next();
   }
 
   // Skip origin validation for extension API endpoints (they use JWT Bearer auth)
-  if (req.path.startsWith('/api/extension/')) {
+  if (req.path.startsWith("/api/extension/")) {
     return next();
   }
 
@@ -130,25 +134,25 @@ export const validateOrigin: RequestHandler = (req, res, next) => {
   if (origin) {
     try {
       // Handle null, undefined, or malformed origins
-      if (origin === 'null' || !origin.startsWith('http')) {
+      if (origin === "null" || !origin.startsWith("http")) {
         // Reject suspicious origins
-        console.warn('Invalid origin header:', { origin, path: req.path });
-        return res.status(403).json({ 
-          message: 'Invalid request origin',
-          error: 'ORIGIN_VALIDATION_FAILED'
+        console.warn("Invalid origin header:", { origin, path: req.path });
+        return res.status(403).json({
+          message: "Invalid request origin",
+          error: "ORIGIN_VALIDATION_FAILED",
         });
       }
-      
+
       const originHost = new URL(origin).host;
       if (originHost === host) {
         return next();
       }
     } catch (error) {
       // Malformed origin - reject rather than crash
-      console.warn('Malformed origin header:', { origin, error, path: req.path });
-      return res.status(403).json({ 
-        message: 'Malformed request origin',
-        error: 'ORIGIN_VALIDATION_FAILED'
+      console.warn("Malformed origin header:", { origin, error, path: req.path });
+      return res.status(403).json({
+        message: "Malformed request origin",
+        error: "ORIGIN_VALIDATION_FAILED",
       });
     }
   }
@@ -162,12 +166,12 @@ export const validateOrigin: RequestHandler = (req, res, next) => {
       }
     } catch (error) {
       // Malformed referer - log but don't block (referer is less critical)
-      console.warn('Malformed referer header:', { referer, error });
+      console.warn("Malformed referer header:", { referer, error });
     }
   }
 
   // Origin/referer present but doesn't match - reject
-  console.warn('Origin validation failed:', {
+  console.warn("Origin validation failed:", {
     path: req.path,
     method: req.method,
     origin,
@@ -175,9 +179,9 @@ export const validateOrigin: RequestHandler = (req, res, next) => {
     host,
   });
 
-  return res.status(403).json({ 
-    message: 'Invalid request origin',
-    error: 'ORIGIN_VALIDATION_FAILED'
+  return res.status(403).json({
+    message: "Invalid request origin",
+    error: "ORIGIN_VALIDATION_FAILED",
   });
 };
 
@@ -185,8 +189,4 @@ export const validateOrigin: RequestHandler = (req, res, next) => {
  * Combined CSRF protection middleware
  * Use this on all authenticated routes that modify state
  */
-export const csrfProtection: RequestHandler[] = [
-  setCsrfToken,
-  validateCsrfToken,
-  validateOrigin,
-];
+export const csrfProtection: RequestHandler[] = [setCsrfToken, validateCsrfToken, validateOrigin];

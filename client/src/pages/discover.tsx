@@ -1,7 +1,20 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Search, Twitter, Send, Instagram, Globe, Users, ExternalLink, Copy, Loader2, Image, Shield, ArrowLeft } from "lucide-react";
+import {
+  Search,
+  Twitter,
+  Send,
+  Instagram,
+  Globe,
+  Users,
+  ExternalLink,
+  Copy,
+  Loader2,
+  Image,
+  Shield,
+  ArrowLeft,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -34,7 +47,11 @@ export default function DiscoverPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState<"all" | "ticker" | "social">("all");
 
-  const { data: results, isLoading, refetch } = useQuery<PublicCollection[]>({
+  const {
+    data: results,
+    isLoading,
+    refetch,
+  } = useQuery<PublicCollection[]>({
     queryKey: ["/api/public/search", searchQuery, searchType],
     queryFn: async () => {
       const params = new URLSearchParams({ query: searchQuery, type: searchType });
@@ -83,8 +100,8 @@ export default function DiscoverPage() {
           <div className="text-center">
             <h1 className="text-3xl font-bold mb-2">Discover Protected Creations</h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Search for verified artists, token creators, and their protected collections. 
-              Find collaborators or verify authentic ownership.
+              Search for verified artists, token creators, and their protected collections. Find
+              collaborators or verify authentic ownership.
             </p>
           </div>
         </div>
@@ -108,7 +125,7 @@ export default function DiscoverPage() {
                 Search
               </Button>
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
               <Badge
                 variant={searchType === "all" ? "default" : "outline"}
@@ -143,7 +160,8 @@ export default function DiscoverPage() {
             <Shield className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
             <h2 className="text-xl font-semibold mb-2">Search for Protected Creations</h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Enter at least 2 characters to search for artists, token tickers, or social media handles.
+              Enter at least 2 characters to search for artists, token tickers, or social media
+              handles.
             </p>
           </div>
         )}
@@ -170,35 +188,48 @@ export default function DiscoverPage() {
             <p className="text-sm text-muted-foreground">
               Found {results.length} result{results.length !== 1 ? "s" : ""}
             </p>
-            
+
             {results.map((collection) => (
-              <Card key={collection.id} className="p-6" data-testid={`card-collection-${collection.id}`}>
+              <Card
+                key={collection.id}
+                className="p-6"
+                data-testid={`card-collection-${collection.id}`}
+              >
                 <div className="flex flex-col lg:flex-row lg:items-start gap-6">
                   <div className="flex-shrink-0">
                     <div className="w-20 h-20 rounded-lg bg-primary/10 flex items-center justify-center">
                       <Image className="w-10 h-10 text-primary" />
                     </div>
                   </div>
-                  
+
                   <div className="flex-1 space-y-4">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="text-xl font-semibold">{collection.name}</h3>
                           {collection.ticker && (
-                            <Badge variant="secondary" data-testid={`badge-ticker-${collection.id}`}>
+                            <Badge
+                              variant="secondary"
+                              data-testid={`badge-ticker-${collection.id}`}
+                            >
                               ${collection.ticker}
                             </Badge>
                           )}
                           {collection.status === "minted" && (
-                            <Badge className="bg-green-600" data-testid={`badge-verified-${collection.id}`}>
+                            <Badge
+                              className="bg-green-600"
+                              data-testid={`badge-verified-${collection.id}`}
+                            >
                               Verified
                             </Badge>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {collection.registrationType === "token" ? "Token Project" : "Artwork Collection"}
-                          {collection.logoCount > 0 && ` • ${collection.logoCount} image${collection.logoCount !== 1 ? "s" : ""}`}
+                          {collection.registrationType === "token"
+                            ? "Token Project"
+                            : "Artwork Collection"}
+                          {collection.logoCount > 0 &&
+                            ` • ${collection.logoCount} image${collection.logoCount !== 1 ? "s" : ""}`}
                         </p>
                       </div>
                     </div>
@@ -217,25 +248,33 @@ export default function DiscoverPage() {
                             variant="outline"
                             size="sm"
                             className="gap-2"
-                            onClick={() => window.open(`https://twitter.com/${collection.user.twitterHandle}`, "_blank")}
+                            onClick={() =>
+                              window.open(
+                                `https://twitter.com/${collection.user.twitterHandle}`,
+                                "_blank"
+                              )
+                            }
                             data-testid={`link-twitter-${collection.id}`}
                           >
-                            <Twitter className="w-4 h-4" />
-                            @{collection.user.twitterHandle}
+                            <Twitter className="w-4 h-4" />@{collection.user.twitterHandle}
                             <ExternalLink className="w-3 h-3" />
                           </Button>
                         )}
-                        
+
                         {collection.user.telegramHandle && (
                           <Button
                             variant="outline"
                             size="sm"
                             className="gap-2"
-                            onClick={() => window.open(`https://t.me/${collection.user.telegramHandle}`, "_blank")}
+                            onClick={() =>
+                              window.open(
+                                `https://t.me/${collection.user.telegramHandle}`,
+                                "_blank"
+                              )
+                            }
                             data-testid={`link-telegram-${collection.id}`}
                           >
-                            <Send className="w-4 h-4" />
-                            @{collection.user.telegramHandle}
+                            <Send className="w-4 h-4" />@{collection.user.telegramHandle}
                             <ExternalLink className="w-3 h-3" />
                           </Button>
                         )}
@@ -245,11 +284,15 @@ export default function DiscoverPage() {
                             variant="outline"
                             size="sm"
                             className="gap-2"
-                            onClick={() => window.open(`https://instagram.com/${collection.user.instagramHandle}`, "_blank")}
+                            onClick={() =>
+                              window.open(
+                                `https://instagram.com/${collection.user.instagramHandle}`,
+                                "_blank"
+                              )
+                            }
                             data-testid={`link-instagram-${collection.id}`}
                           >
-                            <Instagram className="w-4 h-4" />
-                            @{collection.user.instagramHandle}
+                            <Instagram className="w-4 h-4" />@{collection.user.instagramHandle}
                             <ExternalLink className="w-3 h-3" />
                           </Button>
                         )}
@@ -259,7 +302,9 @@ export default function DiscoverPage() {
                             variant="outline"
                             size="sm"
                             className="gap-2"
-                            onClick={() => window.open(collection.user.telegramGroupLink!, "_blank")}
+                            onClick={() =>
+                              window.open(collection.user.telegramGroupLink!, "_blank")
+                            }
                             data-testid={`link-tg-group-${collection.id}`}
                           >
                             <Users className="w-4 h-4" />
@@ -282,16 +327,23 @@ export default function DiscoverPage() {
                           </Button>
                         )}
 
-                        {!collection.user.twitterHandle && !collection.user.telegramHandle && !collection.user.instagramHandle && !collection.user.websiteUrl && (
-                          <span className="text-sm text-muted-foreground">No contact information available</span>
-                        )}
+                        {!collection.user.twitterHandle &&
+                          !collection.user.telegramHandle &&
+                          !collection.user.instagramHandle &&
+                          !collection.user.websiteUrl && (
+                            <span className="text-sm text-muted-foreground">
+                              No contact information available
+                            </span>
+                          )}
                       </div>
                     </div>
 
                     {collection.ticker && (
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-muted-foreground">Ticker:</span>
-                        <code className="bg-muted px-2 py-1 rounded text-sm">${collection.ticker}</code>
+                        <code className="bg-muted px-2 py-1 rounded text-sm">
+                          ${collection.ticker}
+                        </code>
                         <Button
                           variant="ghost"
                           size="icon"

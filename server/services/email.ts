@@ -31,15 +31,15 @@ export interface ReceiptData {
   walletAddress?: string;
   registrationType: "Token Creator" | "Artwork Artist" | "General Registration";
   itemName: string;
-  
+
   lineItems: LineItem[];
-  
+
   subtotal: string;
   platformFee?: string;
   discount?: string;
   total: string;
   currency: string;
-  
+
   paymentStatus: "confirmed" | "pending" | "failed";
   txHash?: string;
   timestamp: string;
@@ -161,10 +161,7 @@ export async function sendPaymentConfirmation(
 /**
  * Send wallet creation confirmation
  */
-export async function sendWalletCreated(
-  userEmail: string,
-  walletDomain: string
-): Promise<boolean> {
+export async function sendWalletCreated(userEmail: string, walletDomain: string): Promise<boolean> {
   return sendTransactionalEmail({
     to: userEmail,
     subject: "Your Solturio Wallet Created - Action Required",
@@ -304,9 +301,7 @@ export async function sendNFTMintingComplete(
 /**
  * Generate and send a dynamic receipt with line items
  */
-export async function sendDynamicReceipt(
-  receipt: ReceiptData
-): Promise<boolean> {
+export async function sendDynamicReceipt(receipt: ReceiptData): Promise<boolean> {
   const statusColors = {
     confirmed: "#27AE60",
     pending: "#F39C12",
@@ -319,14 +314,18 @@ export async function sendDynamicReceipt(
   };
 
   // Build line items HTML table
-  const lineItemsHtml = receipt.lineItems.map((item) => `
+  const lineItemsHtml = receipt.lineItems
+    .map(
+      (item) => `
     <tr style="border-bottom: 1px solid #f0f0f0;">
       <td style="padding: 12px 0; text-align: left; color: #333;">${item.description}</td>
       <td style="padding: 12px 0; text-align: center; color: #666; width: 60px;">${item.quantity}</td>
       <td style="padding: 12px 0; text-align: right; color: #666; width: 100px;">${item.unitPrice} ${item.currency}</td>
       <td style="padding: 12px 0; text-align: right; font-weight: bold; color: #333; width: 100px;">${item.subtotal} ${item.currency}</td>
     </tr>
-  `).join("");
+  `
+    )
+    .join("");
 
   const html = `
     <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 700px; margin: 0 auto; background: #ffffff;">
@@ -372,10 +371,14 @@ export async function sendDynamicReceipt(
             <p style="margin: 0; color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Registration Type</p>
             <p style="margin: 5px 0 0 0; color: #333; font-size: 15px; font-weight: 500;">${receipt.registrationType}</p>
             
-            ${receipt.walletAddress ? `
+            ${
+              receipt.walletAddress
+                ? `
               <p style="margin: 15px 0 0 0; color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Wallet</p>
               <p style="margin: 5px 0 0 0; color: #666; font-size: 12px; word-break: break-all; font-family: monospace;">${receipt.walletAddress}</p>
-            ` : ""}
+            `
+                : ""
+            }
           </div>
         </div>
 
@@ -409,19 +412,27 @@ export async function sendDynamicReceipt(
             <span style="color: #333; font-size: 14px; font-weight: 500;">${receipt.subtotal} ${receipt.currency}</span>
           </div>
           
-          ${receipt.platformFee ? `
+          ${
+            receipt.platformFee
+              ? `
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e8ecf1;">
               <span style="color: #666; font-size: 14px;">Platform Fee</span>
               <span style="color: #333; font-size: 14px; font-weight: 500;">${receipt.platformFee} ${receipt.currency}</span>
             </div>
-          ` : ""}
+          `
+              : ""
+          }
           
-          ${receipt.discount ? `
+          ${
+            receipt.discount
+              ? `
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e8ecf1;">
               <span style="color: #27AE60; font-size: 14px;">Discount</span>
               <span style="color: #27AE60; font-size: 14px; font-weight: 500;">-${receipt.discount} ${receipt.currency}</span>
             </div>
-          ` : ""}
+          `
+              : ""
+          }
           
           <div style="display: flex; justify-content: space-between; background: linear-gradient(135deg, #D4AF37 0%, #C9A227 100%); padding: 15px; border-radius: 4px;">
             <span style="color: white; font-size: 16px; font-weight: bold;">Total Amount</span>
@@ -430,7 +441,9 @@ export async function sendDynamicReceipt(
         </div>
 
         <!-- Transaction Details (if confirmed) -->
-        ${receipt.paymentStatus === 'confirmed' && receipt.txHash ? `
+        ${
+          receipt.paymentStatus === "confirmed" && receipt.txHash
+            ? `
           <div style="background: #ecf7ed; border: 1px solid #d4edda; border-radius: 6px; padding: 15px; margin-bottom: 30px;">
             <p style="margin: 0; color: #155724; font-size: 12px; font-weight: bold; text-transform: uppercase;">Transaction Confirmed</p>
             <p style="margin: 8px 0 0 0; color: #666; font-size: 13px;">
@@ -443,12 +456,16 @@ export async function sendDynamicReceipt(
               <strong>Date:</strong> ${new Date(receipt.timestamp).toLocaleString()}
             </p>
           </div>
-        ` : receipt.paymentStatus === 'pending' ? `
+        `
+            : receipt.paymentStatus === "pending"
+              ? `
           <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 15px; margin-bottom: 30px;">
             <p style="margin: 0; color: #856404; font-size: 12px; font-weight: bold; text-transform: uppercase;">⏳ Payment Pending</p>
             <p style="margin: 8px 0 0 0; color: #666; font-size: 13px;">Your payment is being verified on the blockchain. This typically takes 2-5 minutes.</p>
           </div>
-        ` : ""}
+        `
+              : ""
+        }
 
         <!-- Next Steps -->
         <div style="background: #fffaf0; border: 1px solid #e8dcc8; border-left: 4px solid #D4AF37; border-radius: 6px; padding: 20px; margin-bottom: 30px;">

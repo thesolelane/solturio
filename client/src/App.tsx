@@ -115,8 +115,8 @@ function Router() {
 export default function App() {
   // Custom sidebar width for Solturio
   const style = {
-    "--sidebar-width": "16rem",       // 256px
-    "--sidebar-width-icon": "3rem",   // 48px
+    "--sidebar-width": "16rem", // 256px
+    "--sidebar-width-icon": "3rem", // 48px
   };
 
   return (
@@ -130,9 +130,7 @@ export default function App() {
                 <SidebarTrigger data-testid="button-sidebar-toggle">
                   <Menu className="w-5 h-5" />
                 </SidebarTrigger>
-                <div className="text-sm text-muted-foreground">
-                  Plant Your Standard on Chain™
-                </div>
+                <div className="text-sm text-muted-foreground">Plant Your Standard on Chain™</div>
               </header>
               <main className="flex-1 overflow-auto">
                 <Router />

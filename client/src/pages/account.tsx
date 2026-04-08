@@ -2,7 +2,30 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Shield, Wallet, Mail, Bell, CheckCircle2, AlertCircle, Loader2, Twitter, Send, MessageSquare, Key, Copy, Download, ExternalLink, Github, Moon, Sun, Palette, Instagram, Users, Globe, FileText } from "lucide-react";
+import {
+  Shield,
+  Wallet,
+  Mail,
+  Bell,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Twitter,
+  Send,
+  MessageSquare,
+  Key,
+  Copy,
+  Download,
+  ExternalLink,
+  Github,
+  Moon,
+  Sun,
+  Palette,
+  Instagram,
+  Users,
+  Globe,
+  FileText,
+} from "lucide-react";
 import { GitHubLink } from "@/components/github-link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,11 +43,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { User } from "@shared/schema";
 import { Link } from "wouter";
@@ -166,7 +185,15 @@ export default function AccountPage() {
 
   // Update social handles mutation with optimistic updates
   const updateSocialHandlesMutation = useMutation({
-    mutationFn: async (data: { twitterHandle?: string; telegramHandle?: string; discordHandle?: string; instagramHandle?: string; telegramGroupLink?: string; websiteUrl?: string; bio?: string }) => {
+    mutationFn: async (data: {
+      twitterHandle?: string;
+      telegramHandle?: string;
+      discordHandle?: string;
+      instagramHandle?: string;
+      telegramGroupLink?: string;
+      websiteUrl?: string;
+      bio?: string;
+    }) => {
       const response = await apiRequest("PATCH", "/api/account/social-handles", data);
       return response.json();
     },
@@ -321,13 +348,13 @@ export default function AccountPage() {
           <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
             <div className="flex items-center gap-3">
               {/* Light Mode Logo - Dark colored logo for light backgrounds */}
-              <img 
+              <img
                 src="/solturio-logo-light-mode.png"
                 alt="Solturio Logo for Light Mode"
                 className="w-14 h-14 object-contain dark:hidden"
               />
               {/* Dark Mode Logo - White colored logo for dark backgrounds */}
-              <img 
+              <img
                 src="/solturio-logo-dark-mode.png"
                 alt="Solturio Logo for Dark Mode"
                 className="w-14 h-14 object-contain hidden dark:block"
@@ -359,7 +386,9 @@ export default function AccountPage() {
         {/* Account Status Card */}
         <Card className="p-6 mb-6" data-testid="card-account-status">
           <div className="flex items-start gap-4 mb-4">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${canUploadOrPay ? 'bg-green-500/10' : 'bg-yellow-500/10'}`}>
+            <div
+              className={`w-12 h-12 rounded-full flex items-center justify-center ${canUploadOrPay ? "bg-green-500/10" : "bg-yellow-500/10"}`}
+            >
               {canUploadOrPay ? (
                 <CheckCircle2 className="w-6 h-6 text-green-600" />
               ) : (
@@ -378,10 +407,16 @@ export default function AccountPage() {
                 </p>
               )}
               <div className="flex flex-wrap items-center gap-2 mt-3">
-                <Badge variant={isEmailVerified ? "default" : "secondary"} data-testid="badge-email-status">
+                <Badge
+                  variant={isEmailVerified ? "default" : "secondary"}
+                  data-testid="badge-email-status"
+                >
                   {isEmailVerified ? "Email Verified" : "Email Not Verified"}
                 </Badge>
-                <Badge variant={isWalletLinked ? "default" : "secondary"} data-testid="badge-wallet-status">
+                <Badge
+                  variant={isWalletLinked ? "default" : "secondary"}
+                  data-testid="badge-wallet-status"
+                >
                   {isWalletLinked ? "Wallet Connected" : "Wallet Not Connected"}
                 </Badge>
               </div>
@@ -395,12 +430,14 @@ export default function AccountPage() {
           <div className="space-y-4">
             <div>
               <Label>Email</Label>
-              <div className="text-sm text-muted-foreground mt-1">{user?.email || "No email provided"}</div>
+              <div className="text-sm text-muted-foreground mt-1">
+                {user?.email || "No email provided"}
+              </div>
             </div>
             <div>
               <Label>Name</Label>
               <div className="text-sm text-muted-foreground mt-1">
-                {user?.firstName || user?.lastName 
+                {user?.firstName || user?.lastName
                   ? `${user?.firstName || ""} ${user?.lastName || ""}`.trim()
                   : "No name provided"}
               </div>
@@ -426,7 +463,7 @@ export default function AccountPage() {
                   <p className="text-sm text-muted-foreground mb-3">
                     Verify your email to unlock wallet generation and payment features.
                   </p>
-                  <Button 
+                  <Button
                     onClick={() => sendVerificationMutation.mutate()}
                     disabled={sendVerificationMutation.isPending}
                     data-testid="button-verify-email"
@@ -463,7 +500,8 @@ export default function AccountPage() {
                 <AlertTitle>Lost Access to Your Wallet?</AlertTitle>
                 <AlertDescription className="flex items-center justify-between gap-4">
                   <span className="text-sm">
-                    Recovery service available for $100 + identity verification. Your certificates are safe.
+                    Recovery service available for $100 + identity verification. Your certificates
+                    are safe.
                   </span>
                   <Button size="sm" variant="outline" asChild data-testid="button-wallet-recovery">
                     <Link href="/wallet-recovery">
@@ -475,7 +513,7 @@ export default function AccountPage() {
                   </Button>
                 </AlertDescription>
               </Alert>
-              
+
               {!isEmailVerified ? (
                 <Alert className="mb-4">
                   <AlertCircle className="h-4 w-4" />
@@ -490,12 +528,17 @@ export default function AccountPage() {
                     <CheckCircle2 className="w-5 h-5 text-green-600" />
                     <span className="text-sm font-medium">Wallet Generated</span>
                   </div>
-                  
+
                   <div className="space-y-3">
                     <div>
-                      <Label className="text-xs text-muted-foreground">Public Key (Wallet Address)</Label>
+                      <Label className="text-xs text-muted-foreground">
+                        Public Key (Wallet Address)
+                      </Label>
                       <div className="flex gap-2 mt-1">
-                        <div className="flex-1 text-sm font-mono bg-muted p-2 rounded break-all" data-testid="text-solturio-wallet">
+                        <div
+                          className="flex-1 text-sm font-mono bg-muted p-2 rounded break-all"
+                          data-testid="text-solturio-wallet"
+                        >
                           {user.solanaPublicKey}
                         </div>
                         <Button
@@ -512,7 +555,8 @@ export default function AccountPage() {
                     <div className="bg-blue-500/10 border border-blue-500/20 rounded p-3 space-y-2">
                       <p className="text-sm font-medium">Import to Phantom Wallet</p>
                       <p className="text-xs text-muted-foreground">
-                        Your NFTs will be minted to this address. Export the private key below to import into Phantom and manage your NFTs directly.
+                        Your NFTs will be minted to this address. Export the private key below to
+                        import into Phantom and manage your NFTs directly.
                       </p>
                       <div className="flex gap-2 mt-2">
                         <Button
@@ -533,11 +577,7 @@ export default function AccountPage() {
                             </>
                           )}
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          asChild
-                        >
+                        <Button size="sm" variant="outline" asChild>
                           <a href="https://phantom.app/" target="_blank" rel="noopener noreferrer">
                             <ExternalLink className="w-4 h-4 mr-2" />
                             Get Phantom
@@ -560,13 +600,15 @@ export default function AccountPage() {
               ) : (
                 <>
                   <p className="text-sm text-muted-foreground mb-3">
-                    We'll create a secure Solana wallet for you to hold your logo NFTs. You can export the private key to import into Phantom wallet anytime.
+                    We'll create a secure Solana wallet for you to hold your logo NFTs. You can
+                    export the private key to import into Phantom wallet anytime.
                   </p>
                   <Alert className="mb-4">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Why Solturio Wallet?</AlertTitle>
                     <AlertDescription>
-                      This makes it easy to get started with crypto. Your NFTs are minted to this wallet, and you can later import it into Phantom for full control.
+                      This makes it easy to get started with crypto. Your NFTs are minted to this
+                      wallet, and you can later import it into Phantom for full control.
                     </AlertDescription>
                   </Alert>
                   <Button
@@ -606,7 +648,10 @@ export default function AccountPage() {
                     <CheckCircle2 className="w-5 h-5 text-green-600" />
                     <span className="text-sm font-medium">Wallet Connected</span>
                   </div>
-                  <div className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded break-all" data-testid="text-connected-wallet">
+                  <div
+                    className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded break-all"
+                    data-testid="text-connected-wallet"
+                  >
                     {user?.walletAddress}
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
@@ -623,7 +668,8 @@ export default function AccountPage() {
                     </div>
                   ) : null}
                   <p className="text-sm text-muted-foreground mb-3">
-                    Connect your Solana wallet (Phantom, Solflare, or Backpack) to upload logos and make payments.
+                    Connect your Solana wallet (Phantom, Solflare, or Backpack) to upload logos and
+                    make payments.
                   </p>
                   <div className="flex gap-2">
                     <Input
@@ -633,7 +679,7 @@ export default function AccountPage() {
                       disabled={!isEmailVerified || linkWalletMutation.isPending}
                       data-testid="input-wallet-address"
                     />
-                    <Button 
+                    <Button
                       onClick={handleLinkWallet}
                       disabled={!isEmailVerified || linkWalletMutation.isPending}
                       data-testid="button-link-wallet"
@@ -649,7 +695,8 @@ export default function AccountPage() {
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Future: We'll add wallet adapter for one-click connection with Phantom/Solflare/Backpack
+                    Future: We'll add wallet adapter for one-click connection with
+                    Phantom/Solflare/Backpack
                   </p>
                 </>
               )}
@@ -674,7 +721,9 @@ export default function AccountPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="notify-payments">Payment Due Notices</Label>
-                    <p className="text-sm text-muted-foreground">Get notified when payments are due</p>
+                    <p className="text-sm text-muted-foreground">
+                      Get notified when payments are due
+                    </p>
                   </div>
                   <Switch
                     id="notify-payments"
@@ -692,7 +741,9 @@ export default function AccountPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="notify-rentals">Rental Renewal Reminders</Label>
-                    <p className="text-sm text-muted-foreground">Get reminded about image registry rental renewals</p>
+                    <p className="text-sm text-muted-foreground">
+                      Get reminded about image registry rental renewals
+                    </p>
                   </div>
                   <Switch
                     id="notify-rentals"
@@ -761,18 +812,26 @@ export default function AccountPage() {
               </Label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    @
+                  </span>
                   <Input
                     id="twitter-handle"
                     placeholder="username"
                     value={socialHandles.twitterHandle}
-                    onChange={(e) => setSocialHandles({ ...socialHandles, twitterHandle: e.target.value })}
+                    onChange={(e) =>
+                      setSocialHandles({ ...socialHandles, twitterHandle: e.target.value })
+                    }
                     className="pl-7"
                     data-testid="input-twitter"
                   />
                 </div>
                 <Button
-                  onClick={() => updateSocialHandlesMutation.mutate({ twitterHandle: socialHandles.twitterHandle })}
+                  onClick={() =>
+                    updateSocialHandlesMutation.mutate({
+                      twitterHandle: socialHandles.twitterHandle,
+                    })
+                  }
                   disabled={updateSocialHandlesMutation.isPending}
                   data-testid="button-save-twitter"
                 >
@@ -791,18 +850,26 @@ export default function AccountPage() {
               </Label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    @
+                  </span>
                   <Input
                     id="telegram-handle"
                     placeholder="username"
                     value={socialHandles.telegramHandle}
-                    onChange={(e) => setSocialHandles({ ...socialHandles, telegramHandle: e.target.value })}
+                    onChange={(e) =>
+                      setSocialHandles({ ...socialHandles, telegramHandle: e.target.value })
+                    }
                     className="pl-7"
                     data-testid="input-telegram"
                   />
                 </div>
                 <Button
-                  onClick={() => updateSocialHandlesMutation.mutate({ telegramHandle: socialHandles.telegramHandle })}
+                  onClick={() =>
+                    updateSocialHandlesMutation.mutate({
+                      telegramHandle: socialHandles.telegramHandle,
+                    })
+                  }
                   disabled={updateSocialHandlesMutation.isPending}
                   data-testid="button-save-telegram"
                 >
@@ -824,11 +891,17 @@ export default function AccountPage() {
                   id="discord-handle"
                   placeholder="username#0000 or just username"
                   value={socialHandles.discordHandle}
-                  onChange={(e) => setSocialHandles({ ...socialHandles, discordHandle: e.target.value })}
+                  onChange={(e) =>
+                    setSocialHandles({ ...socialHandles, discordHandle: e.target.value })
+                  }
                   data-testid="input-discord"
                 />
                 <Button
-                  onClick={() => updateSocialHandlesMutation.mutate({ discordHandle: socialHandles.discordHandle })}
+                  onClick={() =>
+                    updateSocialHandlesMutation.mutate({
+                      discordHandle: socialHandles.discordHandle,
+                    })
+                  }
                   disabled={updateSocialHandlesMutation.isPending}
                   data-testid="button-save-discord"
                 >
@@ -847,18 +920,26 @@ export default function AccountPage() {
               </Label>
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    @
+                  </span>
                   <Input
                     id="instagram-handle"
                     placeholder="username"
                     value={socialHandles.instagramHandle}
-                    onChange={(e) => setSocialHandles({ ...socialHandles, instagramHandle: e.target.value })}
+                    onChange={(e) =>
+                      setSocialHandles({ ...socialHandles, instagramHandle: e.target.value })
+                    }
                     className="pl-7"
                     data-testid="input-instagram"
                   />
                 </div>
                 <Button
-                  onClick={() => updateSocialHandlesMutation.mutate({ instagramHandle: socialHandles.instagramHandle })}
+                  onClick={() =>
+                    updateSocialHandlesMutation.mutate({
+                      instagramHandle: socialHandles.instagramHandle,
+                    })
+                  }
                   disabled={updateSocialHandlesMutation.isPending}
                   data-testid="button-save-instagram"
                 >
@@ -880,11 +961,17 @@ export default function AccountPage() {
                   id="telegram-group"
                   placeholder="https://t.me/yourgroup"
                   value={socialHandles.telegramGroupLink}
-                  onChange={(e) => setSocialHandles({ ...socialHandles, telegramGroupLink: e.target.value })}
+                  onChange={(e) =>
+                    setSocialHandles({ ...socialHandles, telegramGroupLink: e.target.value })
+                  }
                   data-testid="input-telegram-group"
                 />
                 <Button
-                  onClick={() => updateSocialHandlesMutation.mutate({ telegramGroupLink: socialHandles.telegramGroupLink })}
+                  onClick={() =>
+                    updateSocialHandlesMutation.mutate({
+                      telegramGroupLink: socialHandles.telegramGroupLink,
+                    })
+                  }
                   disabled={updateSocialHandlesMutation.isPending}
                   data-testid="button-save-telegram-group"
                 >
@@ -906,11 +993,15 @@ export default function AccountPage() {
                   id="website"
                   placeholder="https://yourwebsite.com"
                   value={socialHandles.websiteUrl}
-                  onChange={(e) => setSocialHandles({ ...socialHandles, websiteUrl: e.target.value })}
+                  onChange={(e) =>
+                    setSocialHandles({ ...socialHandles, websiteUrl: e.target.value })
+                  }
                   data-testid="input-website"
                 />
                 <Button
-                  onClick={() => updateSocialHandlesMutation.mutate({ websiteUrl: socialHandles.websiteUrl })}
+                  onClick={() =>
+                    updateSocialHandlesMutation.mutate({ websiteUrl: socialHandles.websiteUrl })
+                  }
                   disabled={updateSocialHandlesMutation.isPending}
                   data-testid="button-save-website"
                 >
@@ -959,7 +1050,8 @@ export default function AccountPage() {
               Export Private Key - CRITICAL SECURITY WARNING
             </DialogTitle>
             <DialogDescription>
-              Your private key grants full control over your wallet. Anyone with this key can access and steal your NFTs.
+              Your private key grants full control over your wallet. Anyone with this key can access
+              and steal your NFTs.
             </DialogDescription>
           </DialogHeader>
 
@@ -978,14 +1070,20 @@ export default function AccountPage() {
             <div className="space-y-2">
               <Label>Private Key (Array Format for Phantom)</Label>
               <div className="relative">
-                <pre className="text-xs font-mono bg-muted p-3 rounded max-h-40 overflow-auto border" data-testid="text-private-key">
+                <pre
+                  className="text-xs font-mono bg-muted p-3 rounded max-h-40 overflow-auto border"
+                  data-testid="text-private-key"
+                >
                   {exportedPrivateKey ? JSON.stringify(exportedPrivateKey) : "Loading..."}
                 </pre>
                 <Button
                   size="sm"
                   variant="outline"
                   className="absolute top-2 right-2"
-                  onClick={() => exportedPrivateKey && copyToClipboard(JSON.stringify(exportedPrivateKey), "Private key")}
+                  onClick={() =>
+                    exportedPrivateKey &&
+                    copyToClipboard(JSON.stringify(exportedPrivateKey), "Private key")
+                  }
                   data-testid="button-copy-private-key"
                 >
                   <Copy className="w-3 h-3 mr-1" />

@@ -6,11 +6,11 @@ import multer from "multer";
 import sharp from "sharp";
 
 const router = Router();
-const upload = multer({ 
+const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB max
-  }
+  },
 });
 
 // Check storage service status
@@ -62,11 +62,7 @@ router.post("/ipfs/upload", requireAuth, upload.single("file"), async (req, res)
     };
 
     // Upload to IPFS
-    const result = await ipfsService.uploadFile(
-      req.file.buffer,
-      req.file.originalname,
-      metadata
-    );
+    const result = await ipfsService.uploadFile(req.file.buffer, req.file.originalname, metadata);
 
     if (!result) {
       return res.status(500).json({ error: "Failed to upload to IPFS" });
@@ -113,11 +109,7 @@ router.post("/arweave/upload", requireAuth, upload.single("file"), async (req, r
     }
 
     // Upload to Arweave
-    const result = await arweaveService.uploadFile(
-      req.file.buffer,
-      req.file.mimetype,
-      tags
-    );
+    const result = await arweaveService.uploadFile(req.file.buffer, req.file.mimetype, tags);
 
     if (!result) {
       return res.status(500).json({ error: "Failed to upload to Arweave" });

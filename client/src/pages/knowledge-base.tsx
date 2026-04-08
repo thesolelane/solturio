@@ -27,32 +27,41 @@ export default function KnowledgeBase() {
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <p>
-            <strong>Solturio is NOT a law firm and does not provide legal advice.</strong> We provide 
-            technology tools to help you create blockchain-based proof of logo ownership and manage your 
-            digital assets.
+            <strong>Solturio is NOT a law firm and does not provide legal advice.</strong> We
+            provide technology tools to help you create blockchain-based proof of logo ownership and
+            manage your digital assets.
           </p>
           <p>
-            Recording your logo on the blockchain does NOT constitute legal trademark or copyright registration. 
-            It creates an immutable timestamped record that can support your claims, but does not replace formal 
-            legal registration with government authorities.
+            Recording your logo on the blockchain does NOT constitute legal trademark or copyright
+            registration. It creates an immutable timestamped record that can support your claims,
+            but does not replace formal legal registration with government authorities.
           </p>
           <p>
-            For legal protection and the ability to enforce your rights in court, you must register your trademark 
-            with the USPTO (or equivalent in your country) and/or register your copyright with the U.S. Copyright Office.
+            For legal protection and the ability to enforce your rights in court, you must register
+            your trademark with the USPTO (or equivalent in your country) and/or register your
+            copyright with the U.S. Copyright Office.
           </p>
           <p className="font-semibold">
-            We strongly recommend consulting with a qualified intellectual property attorney for specific legal advice 
-            about protecting your brand.
+            We strongly recommend consulting with a qualified intellectual property attorney for
+            specific legal advice about protecting your brand.
           </p>
         </CardContent>
       </Card>
 
       <Tabs defaultValue="symbols" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="symbols" data-testid="tab-symbols">IP Symbols</TabsTrigger>
-          <TabsTrigger value="trademark" data-testid="tab-trademark">Trademarks</TabsTrigger>
-          <TabsTrigger value="copyright" data-testid="tab-copyright">Copyrights</TabsTrigger>
-          <TabsTrigger value="classes" data-testid="tab-classes">Trademark Classes</TabsTrigger>
+          <TabsTrigger value="symbols" data-testid="tab-symbols">
+            IP Symbols
+          </TabsTrigger>
+          <TabsTrigger value="trademark" data-testid="tab-trademark">
+            Trademarks
+          </TabsTrigger>
+          <TabsTrigger value="copyright" data-testid="tab-copyright">
+            Copyrights
+          </TabsTrigger>
+          <TabsTrigger value="classes" data-testid="tab-classes">
+            Trademark Classes
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="symbols" className="space-y-6">
@@ -84,7 +93,7 @@ export default function KnowledgeBase() {
                 <div>
                   <p className="text-sm font-semibold mb-2">Legal Protection</p>
                   <p className="text-sm text-muted-foreground">
-                    Provides common law rights in the geographic area where you use the mark. 
+                    Provides common law rights in the geographic area where you use the mark.
                     Limited protection compared to ®.
                   </p>
                 </div>
@@ -127,8 +136,8 @@ export default function KnowledgeBase() {
                 <div>
                   <p className="text-sm font-semibold mb-2">Legal Protection</p>
                   <p className="text-sm text-muted-foreground">
-                    Nationwide exclusive rights. Presumption of ownership. Right to sue in federal court. 
-                    Strongest protection available.
+                    Nationwide exclusive rights. Presumption of ownership. Right to sue in federal
+                    court. Strongest protection available.
                   </p>
                 </div>
                 <div>
@@ -137,9 +146,7 @@ export default function KnowledgeBase() {
                     Using ® without registration is illegal and can result in penalties.
                   </p>
                 </div>
-                <Badge className="w-full justify-center">
-                  REQUIRES USPTO REGISTRATION
-                </Badge>
+                <Badge className="w-full justify-center">REQUIRES USPTO REGISTRATION</Badge>
               </CardContent>
             </Card>
 
@@ -170,14 +177,15 @@ export default function KnowledgeBase() {
                 <div>
                   <p className="text-sm font-semibold mb-2">Legal Protection</p>
                   <p className="text-sm text-muted-foreground">
-                    Automatic protection upon creation. Registration strengthens rights and enables 
+                    Automatic protection upon creation. Registration strengthens rights and enables
                     statutory damages in lawsuits.
                   </p>
                 </div>
                 <div>
                   <p className="text-sm font-semibold mb-2">Format</p>
                   <p className="text-sm text-muted-foreground">
-                    © [Year] [Owner Name]<br/>
+                    © [Year] [Owner Name]
+                    <br />
                     Example: © 2025 Cooperanth LLC
                   </p>
                 </div>
@@ -207,7 +215,9 @@ export default function KnowledgeBase() {
                 <div className="p-4 border rounded-lg border-primary/50 bg-primary/5">
                   <p className="font-semibold mb-2">Use ® if:</p>
                   <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-                    <li>• You have a USPTO-registered trademark (Certificate of Registration received)</li>
+                    <li>
+                      • You have a USPTO-registered trademark (Certificate of Registration received)
+                    </li>
                     <li>• Your registration is active and maintained</li>
                     <li>• You want maximum legal protection and deterrence</li>
                   </ul>
@@ -219,7 +229,10 @@ export default function KnowledgeBase() {
                     <li>• Your logo is artistic/creative (not just text or simple shapes)</li>
                     <li>• You want to protect the visual design itself</li>
                     <li>• You've created original artwork, photography, or illustrations</li>
-                    <li>• You can use this even without registration, but registration strengthens your rights</li>
+                    <li>
+                      • You can use this even without registration, but registration strengthens
+                      your rights
+                    </li>
                   </ul>
                 </div>
 
@@ -227,8 +240,9 @@ export default function KnowledgeBase() {
                   <p className="font-semibold mb-2">💡 Pro Tip: You can use multiple symbols!</p>
                   <p className="text-sm text-muted-foreground">
                     For example: <span className="font-mono">MyBrand® © 2025 Cooperanth LLC</span>
-                    <br/>
-                    This indicates both registered trademark status AND copyright protection for the artistic design.
+                    <br />
+                    This indicates both registered trademark status AND copyright protection for the
+                    artistic design.
                   </p>
                 </div>
               </div>
@@ -248,8 +262,9 @@ export default function KnowledgeBase() {
               <div>
                 <h3 className="font-semibold mb-3">Definition</h3>
                 <p className="text-sm text-muted-foreground">
-                  A trademark is any word, phrase, symbol, design, or combination that identifies and distinguishes 
-                  the source of goods or services. Trademarks protect your brand identity and prevent consumer confusion.
+                  A trademark is any word, phrase, symbol, design, or combination that identifies
+                  and distinguishes the source of goods or services. Trademarks protect your brand
+                  identity and prevent consumer confusion.
                 </p>
               </div>
 
@@ -309,12 +324,15 @@ export default function KnowledgeBase() {
                   </Card>
                 </div>
                 <p className="text-sm text-muted-foreground mt-3">
-                  Note: The ® symbol applies to both trademarks and service marks once federally registered.
+                  Note: The ® symbol applies to both trademarks and service marks once federally
+                  registered.
                 </p>
               </div>
 
               <div>
-                <h3 className="font-semibold mb-3">Trademark Rights: Common Law vs. Federal Registration</h3>
+                <h3 className="font-semibold mb-3">
+                  Trademark Rights: Common Law vs. Federal Registration
+                </h3>
                 <div className="space-y-3">
                   <Card>
                     <CardContent className="pt-6 space-y-2">
@@ -330,7 +348,9 @@ export default function KnowledgeBase() {
                   </Card>
                   <Card className="border-primary/50">
                     <CardContent className="pt-6 space-y-2">
-                      <p className="font-semibold text-primary">Federal Registration Rights (Using ®)</p>
+                      <p className="font-semibold text-primary">
+                        Federal Registration Rights (Using ®)
+                      </p>
                       <ul className="text-sm text-muted-foreground space-y-1 ml-4">
                         <li>• Nationwide exclusive rights</li>
                         <li>• Legal presumption of ownership</li>
@@ -361,8 +381,9 @@ export default function KnowledgeBase() {
               <div>
                 <h3 className="font-semibold mb-3">Definition</h3>
                 <p className="text-sm text-muted-foreground">
-                  Copyright protects original works of authorship fixed in a tangible medium. It gives creators 
-                  exclusive rights to reproduce, distribute, display, and create derivative works.
+                  Copyright protects original works of authorship fixed in a tangible medium. It
+                  gives creators exclusive rights to reproduce, distribute, display, and create
+                  derivative works.
                 </p>
               </div>
 
@@ -413,7 +434,9 @@ export default function KnowledgeBase() {
                 <div className="space-y-3">
                   <Card className="border-primary/30">
                     <CardContent className="pt-6">
-                      <p className="font-semibold mb-2 text-primary">✓ Logos That Qualify for Copyright</p>
+                      <p className="font-semibold mb-2 text-primary">
+                        ✓ Logos That Qualify for Copyright
+                      </p>
                       <ul className="text-sm text-muted-foreground space-y-1 ml-4">
                         <li>• Artistic illustrations or drawings</li>
                         <li>• Complex graphic designs with creative elements</li>
@@ -425,7 +448,9 @@ export default function KnowledgeBase() {
                   </Card>
                   <Card className="border-destructive/30">
                     <CardContent className="pt-6">
-                      <p className="font-semibold mb-2 text-destructive">✗ Logos That May NOT Qualify</p>
+                      <p className="font-semibold mb-2 text-destructive">
+                        ✗ Logos That May NOT Qualify
+                      </p>
                       <ul className="text-sm text-muted-foreground space-y-1 ml-4">
                         <li>• Simple geometric shapes (circles, squares)</li>
                         <li>• Plain text in standard fonts</li>
@@ -441,7 +466,8 @@ export default function KnowledgeBase() {
               <div>
                 <h3 className="font-semibold mb-3">Fair Use & Exceptions</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Copyright law includes "fair use" exceptions that allow limited use without permission:
+                  Copyright law includes "fair use" exceptions that allow limited use without
+                  permission:
                 </p>
                 <ul className="text-sm text-muted-foreground space-y-1 ml-4">
                   <li>• Commentary, criticism, or news reporting</li>
@@ -450,7 +476,8 @@ export default function KnowledgeBase() {
                   <li>• Limited scholarly or research use</li>
                 </ul>
                 <p className="text-sm text-muted-foreground mt-3">
-                  Note: Fair use is complex and fact-specific. When in doubt, seek permission or legal advice.
+                  Note: Fair use is complex and fact-specific. When in doubt, seek permission or
+                  legal advice.
                 </p>
               </div>
             </CardContent>
@@ -468,8 +495,9 @@ export default function KnowledgeBase() {
             <CardContent className="space-y-6">
               <div>
                 <p className="text-sm text-muted-foreground mb-4">
-                  When you register a trademark, you must specify which class(es) of goods or services your mark covers. 
-                  Each class requires a separate filing fee ($250-350 per class). Choose strategically!
+                  When you register a trademark, you must specify which class(es) of goods or
+                  services your mark covers. Each class requires a separate filing fee ($250-350 per
+                  class). Choose strategically!
                 </p>
               </div>
 
@@ -478,29 +506,41 @@ export default function KnowledgeBase() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <Card>
                     <CardHeader className="pb-3">
-                      <Badge variant="outline" className="w-fit">Class 25</Badge>
+                      <Badge variant="outline" className="w-fit">
+                        Class 25
+                      </Badge>
                       <CardTitle className="text-base">Clothing & Apparel</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground">
-                      Most common for logo-branded merchandise: t-shirts, hats, shoes, jackets, accessories.
-                      <p className="font-semibold text-primary mt-2">Popular for crypto/Web3 brands</p>
+                      Most common for logo-branded merchandise: t-shirts, hats, shoes, jackets,
+                      accessories.
+                      <p className="font-semibold text-primary mt-2">
+                        Popular for crypto/Web3 brands
+                      </p>
                     </CardContent>
                   </Card>
 
                   <Card>
                     <CardHeader className="pb-3">
-                      <Badge variant="outline" className="w-fit">Class 9</Badge>
+                      <Badge variant="outline" className="w-fit">
+                        Class 9
+                      </Badge>
                       <CardTitle className="text-base">Electronics & Software</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground">
-                      Software, mobile apps, downloadable files, NFTs (digital assets), computer hardware.
-                      <p className="font-semibold text-primary mt-2">Essential for tech companies</p>
+                      Software, mobile apps, downloadable files, NFTs (digital assets), computer
+                      hardware.
+                      <p className="font-semibold text-primary mt-2">
+                        Essential for tech companies
+                      </p>
                     </CardContent>
                   </Card>
 
                   <Card>
                     <CardHeader className="pb-3">
-                      <Badge variant="outline" className="w-fit">Class 16</Badge>
+                      <Badge variant="outline" className="w-fit">
+                        Class 16
+                      </Badge>
                       <CardTitle className="text-base">Paper & Printed Materials</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground">
@@ -510,7 +550,9 @@ export default function KnowledgeBase() {
 
                   <Card>
                     <CardHeader className="pb-3">
-                      <Badge variant="outline" className="w-fit">Class 21</Badge>
+                      <Badge variant="outline" className="w-fit">
+                        Class 21
+                      </Badge>
                       <CardTitle className="text-base">Household Items</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground">
@@ -529,14 +571,17 @@ export default function KnowledgeBase() {
                       <CardTitle className="text-base">Technology Services</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground">
-                      SaaS platforms, software development, hosting services, IT consulting, blockchain services.
+                      SaaS platforms, software development, hosting services, IT consulting,
+                      blockchain services.
                       <p className="font-semibold text-primary mt-2">Perfect for Solturio!</p>
                     </CardContent>
                   </Card>
 
                   <Card>
                     <CardHeader className="pb-3">
-                      <Badge variant="outline" className="w-fit">Class 35</Badge>
+                      <Badge variant="outline" className="w-fit">
+                        Class 35
+                      </Badge>
                       <CardTitle className="text-base">Business Services</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground">
@@ -546,18 +591,23 @@ export default function KnowledgeBase() {
 
                   <Card>
                     <CardHeader className="pb-3">
-                      <Badge variant="outline" className="w-fit">Class 36</Badge>
+                      <Badge variant="outline" className="w-fit">
+                        Class 36
+                      </Badge>
                       <CardTitle className="text-base">Financial Services</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground">
-                      Cryptocurrency services, payment processing, financial transactions, investment services.
+                      Cryptocurrency services, payment processing, financial transactions,
+                      investment services.
                       <p className="font-semibold text-primary mt-2">Key for crypto projects</p>
                     </CardContent>
                   </Card>
 
                   <Card>
                     <CardHeader className="pb-3">
-                      <Badge variant="outline" className="w-fit">Class 41</Badge>
+                      <Badge variant="outline" className="w-fit">
+                        Class 41
+                      </Badge>
                       <CardTitle className="text-base">Education & Entertainment</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground">
@@ -581,7 +631,8 @@ export default function KnowledgeBase() {
                   <div>
                     <p className="font-semibold mb-1">Plan for expansion</p>
                     <p className="text-muted-foreground">
-                      Consider future products. For crypto brands: Class 9 (NFTs) + Class 25 (merch) + Class 42 (platform services) is common.
+                      Consider future products. For crypto brands: Class 9 (NFTs) + Class 25 (merch)
+                      + Class 42 (platform services) is common.
                     </p>
                   </div>
                   <div>
@@ -593,7 +644,8 @@ export default function KnowledgeBase() {
                   <div>
                     <p className="font-semibold mb-1">Actual use required</p>
                     <p className="text-muted-foreground">
-                      You must have evidence of using the mark in each class you file for. Don't file speculatively.
+                      You must have evidence of using the mark in each class you file for. Don't
+                      file speculatively.
                     </p>
                   </div>
                 </CardContent>

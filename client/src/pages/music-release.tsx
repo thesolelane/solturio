@@ -43,7 +43,9 @@ export default function MusicReleaseDetail() {
       <div className="container max-w-7xl mx-auto px-6 py-12 text-center">
         <h1 className="text-2xl font-semibold">Release not found</h1>
         <Link href="/music">
-          <Button variant="outline" className="mt-4">Back to Music</Button>
+          <Button variant="outline" className="mt-4">
+            Back to Music
+          </Button>
         </Link>
       </div>
     );
@@ -71,7 +73,11 @@ export default function MusicReleaseDetail() {
       <div className="flex flex-col lg:flex-row gap-8 mb-8">
         <div className="w-64 h-64 rounded-xl bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
           {release.coverArtUri ? (
-            <img src={release.coverArtUri} alt={release.title} className="w-full h-full object-cover" />
+            <img
+              src={release.coverArtUri}
+              alt={release.title}
+              className="w-full h-full object-cover"
+            />
           ) : (
             <Disc3 className="w-24 h-24 text-muted-foreground" />
           )}
@@ -79,13 +85,13 @@ export default function MusicReleaseDetail() {
 
         <div className="flex-1">
           <Badge className="mb-2">{release.releaseType?.toUpperCase()}</Badge>
-          <h1 className="text-3xl font-semibold" data-testid="text-release-title">{release.title}</h1>
+          <h1 className="text-3xl font-semibold" data-testid="text-release-title">
+            {release.title}
+          </h1>
           <p className="text-xl text-muted-foreground mt-1">{release.artistName}</p>
 
           <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
-            {release.releaseDate && (
-              <span>{new Date(release.releaseDate).getFullYear()}</span>
-            )}
+            {release.releaseDate && <span>{new Date(release.releaseDate).getFullYear()}</span>}
             <span>{release.tracks?.length || 0} tracks</span>
             <span>{formatDuration(totalDuration)}</span>
             {release.genre && <Badge variant="outline">{release.genre}</Badge>}
@@ -95,10 +101,14 @@ export default function MusicReleaseDetail() {
 
           <div className="flex flex-wrap gap-2">
             {release.upc && (
-              <Badge variant="secondary" className="font-mono text-xs">UPC: {release.upc}</Badge>
+              <Badge variant="secondary" className="font-mono text-xs">
+                UPC: {release.upc}
+              </Badge>
             )}
             {release.catalogNumber && (
-              <Badge variant="secondary" className="font-mono text-xs">CAT: {release.catalogNumber}</Badge>
+              <Badge variant="secondary" className="font-mono text-xs">
+                CAT: {release.catalogNumber}
+              </Badge>
             )}
             {release.nftAddress && (
               <Badge variant="secondary">
@@ -147,10 +157,18 @@ export default function MusicReleaseDetail() {
       ) : (
         <div className="space-y-2">
           {release.tracks
-            .sort((a, b) => (a.discNumber || 1) * 100 + a.trackNumber - ((b.discNumber || 1) * 100 + b.trackNumber))
+            .sort(
+              (a, b) =>
+                (a.discNumber || 1) * 100 +
+                a.trackNumber -
+                ((b.discNumber || 1) * 100 + b.trackNumber)
+            )
             .map((track) => (
               <Link key={track.id} href={`/music/tracks/${track.id}`}>
-                <Card className="hover-elevate cursor-pointer" data-testid={`card-track-${track.id}`}>
+                <Card
+                  className="hover-elevate cursor-pointer"
+                  data-testid={`card-track-${track.id}`}
+                >
                   <CardContent className="flex items-center gap-4 p-4">
                     <span className="text-sm text-muted-foreground w-8">
                       {track.discNumber && track.discNumber > 1 ? `${track.discNumber}-` : ""}

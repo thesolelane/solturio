@@ -9,13 +9,27 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  Shield, 
-  Users, 
-  FileText, 
-  Building2, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Shield,
+  Users,
+  FileText,
+  Building2,
   TrendingUp,
   DollarSign,
   Package,
@@ -37,7 +51,7 @@ import {
   Check,
   ShoppingCart,
   HardDrive,
-  ArrowUpRight
+  ArrowUpRight,
 } from "lucide-react";
 import { Link } from "wouter";
 import { TokenAdminPanel } from "@/components/TokenAdminPanel";
@@ -74,7 +88,7 @@ interface WalletBalances {
 
 interface TreasuryWallet {
   id: string;
-  role: 'funds' | 'rewards' | 'escrow' | 'bank';
+  role: "funds" | "rewards" | "escrow" | "bank";
   name: string;
   address: string;
   domainName?: string;
@@ -135,10 +149,26 @@ interface ComplianceCase {
 }
 
 const WALLET_ROLE_CONFIG = {
-  funds: { label: "Platform Operations", color: "bg-blue-500", description: "Transaction fees and platform operations" },
-  rewards: { label: "User Rewards", color: "bg-green-500", description: "Quiz rewards and user incentives" },
-  escrow: { label: "Escrow Payments", color: "bg-amber-500", description: "License payments and dispute resolution" },
-  bank: { label: "Company Treasury", color: "bg-purple-500", description: "Final destination for platform revenue" },
+  funds: {
+    label: "Platform Operations",
+    color: "bg-blue-500",
+    description: "Transaction fees and platform operations",
+  },
+  rewards: {
+    label: "User Rewards",
+    color: "bg-green-500",
+    description: "Quiz rewards and user incentives",
+  },
+  escrow: {
+    label: "Escrow Payments",
+    color: "bg-amber-500",
+    description: "License payments and dispute resolution",
+  },
+  bank: {
+    label: "Company Treasury",
+    color: "bg-purple-500",
+    description: "Final destination for platform revenue",
+  },
 };
 
 export default function AdminDashboard() {
@@ -147,35 +177,51 @@ export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [addWalletOpen, setAddWalletOpen] = useState(false);
   const [newWallet, setNewWallet] = useState({
-    role: 'funds' as 'funds' | 'rewards' | 'escrow' | 'bank',
-    name: '',
-    address: '',
-    domainName: '',
-    purpose: '',
-    network: 'devnet',
+    role: "funds" as "funds" | "rewards" | "escrow" | "bank",
+    name: "",
+    address: "",
+    domainName: "",
+    purpose: "",
+    network: "devnet",
   });
 
   useEffect(() => {
     document.title = "Admin Dashboard - Solturio";
   }, []);
 
-  const { data: adminStats, isLoading: statsLoading, refetch: refetchStats } = useQuery<AdminStats>({
-    queryKey: ['/api/admin/stats'],
+  const {
+    data: adminStats,
+    isLoading: statsLoading,
+    refetch: refetchStats,
+  } = useQuery<AdminStats>({
+    queryKey: ["/api/admin/stats"],
     enabled: isAdmin,
   });
 
-  const { data: walletBalances, isLoading: walletsLoading, refetch: refetchWallets } = useQuery<WalletBalances>({
-    queryKey: ['/api/admin/wallets'],
+  const {
+    data: walletBalances,
+    isLoading: walletsLoading,
+    refetch: refetchWallets,
+  } = useQuery<WalletBalances>({
+    queryKey: ["/api/admin/wallets"],
     enabled: isAdmin,
   });
 
-  const { data: treasuryWallets, isLoading: treasuryLoading, refetch: refetchTreasury } = useQuery<TreasuryWallet[]>({
-    queryKey: ['/api/admin/treasury/wallets'],
+  const {
+    data: treasuryWallets,
+    isLoading: treasuryLoading,
+    refetch: refetchTreasury,
+  } = useQuery<TreasuryWallet[]>({
+    queryKey: ["/api/admin/treasury/wallets"],
     enabled: isAdmin,
   });
 
-  const { data: arweavePurchaseInfo, isLoading: arweaveLoading, refetch: refetchArweave } = useQuery<ArweavePurchaseInfo>({
-    queryKey: ['/api/admin/arweave/purchase-info'],
+  const {
+    data: arweavePurchaseInfo,
+    isLoading: arweaveLoading,
+    refetch: refetchArweave,
+  } = useQuery<ArweavePurchaseInfo>({
+    queryKey: ["/api/admin/arweave/purchase-info"],
     enabled: isAdmin,
   });
 
@@ -191,22 +237,24 @@ export default function AdminDashboard() {
   };
 
   const { data: triggerRules, refetch: refetchTriggers } = useQuery<ComplianceTriggerRule[]>({
-    queryKey: ['/api/admin/compliance/triggers'],
+    queryKey: ["/api/admin/compliance/triggers"],
     enabled: isAdmin,
   });
 
   const { data: complianceCases, refetch: refetchCases } = useQuery<ComplianceCase[]>({
-    queryKey: ['/api/admin/compliance/cases'],
+    queryKey: ["/api/admin/compliance/cases"],
     enabled: isAdmin,
   });
 
   const addWalletMutation = useMutation({
     mutationFn: async (wallet: typeof newWallet) => {
-      return apiRequest('POST', '/api/admin/treasury/wallets', wallet);
+      return apiRequest("POST", "/api/admin/treasury/wallets", wallet);
     },
     onMutate: async (walletData) => {
-      await queryClient.cancelQueries({ queryKey: ['/api/admin/treasury/wallets'] });
-      const previousWallets = queryClient.getQueryData<TreasuryWallet[]>(['/api/admin/treasury/wallets']);
+      await queryClient.cancelQueries({ queryKey: ["/api/admin/treasury/wallets"] });
+      const previousWallets = queryClient.getQueryData<TreasuryWallet[]>([
+        "/api/admin/treasury/wallets",
+      ]);
       const optimisticWallet: TreasuryWallet = {
         id: `temp-${Date.now()}`,
         role: walletData.role,
@@ -215,38 +263,61 @@ export default function AdminDashboard() {
         domainName: walletData.domainName || undefined,
         purpose: walletData.purpose || undefined,
         network: walletData.network,
-        status: 'active',
+        status: "active",
         sweepEnabled: false,
         requiredSignatures: 1,
       };
-      queryClient.setQueryData<TreasuryWallet[]>(['/api/admin/treasury/wallets'], (old) => [...(old || []), optimisticWallet]);
+      queryClient.setQueryData<TreasuryWallet[]>(["/api/admin/treasury/wallets"], (old) => [
+        ...(old || []),
+        optimisticWallet,
+      ]);
       setAddWalletOpen(false);
-      setNewWallet({ role: 'funds', name: '', address: '', domainName: '', purpose: '', network: 'devnet' });
+      setNewWallet({
+        role: "funds",
+        name: "",
+        address: "",
+        domainName: "",
+        purpose: "",
+        network: "devnet",
+      });
       return { previousWallets };
     },
     onSuccess: () => {
-      toast({ title: "Wallet Added", description: "Treasury wallet has been registered successfully" });
+      toast({
+        title: "Wallet Added",
+        description: "Treasury wallet has been registered successfully",
+      });
     },
     onError: (error: any, _variables, context) => {
       if (context?.previousWallets) {
-        queryClient.setQueryData<TreasuryWallet[]>(['/api/admin/treasury/wallets'], context.previousWallets);
+        queryClient.setQueryData<TreasuryWallet[]>(
+          ["/api/admin/treasury/wallets"],
+          context.previousWallets
+        );
       }
-      toast({ title: "Failed to Add Wallet", description: error.message || "An error occurred", variant: "destructive" });
+      toast({
+        title: "Failed to Add Wallet",
+        description: error.message || "An error occurred",
+        variant: "destructive",
+      });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/treasury/wallets'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/treasury/wallets"] });
     },
   });
 
   const deleteWalletMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest('DELETE', `/api/admin/treasury/wallets/${id}`);
+      return apiRequest("DELETE", `/api/admin/treasury/wallets/${id}`);
     },
     onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: ['/api/admin/treasury/wallets'] });
-      const previousWallets = queryClient.getQueryData<TreasuryWallet[]>(['/api/admin/treasury/wallets']);
-      queryClient.setQueryData<TreasuryWallet[]>(['/api/admin/treasury/wallets'], (old) =>
-        old?.filter((wallet) => wallet.id !== id) || []
+      await queryClient.cancelQueries({ queryKey: ["/api/admin/treasury/wallets"] });
+      const previousWallets = queryClient.getQueryData<TreasuryWallet[]>([
+        "/api/admin/treasury/wallets",
+      ]);
+      queryClient.setQueryData<TreasuryWallet[]>(
+        ["/api/admin/treasury/wallets"],
+        (old) => old?.filter((wallet) => wallet.id !== id) || []
       );
       return { previousWallets };
     },
@@ -255,33 +326,47 @@ export default function AdminDashboard() {
     },
     onError: (error: any, _id, context) => {
       if (context?.previousWallets) {
-        queryClient.setQueryData<TreasuryWallet[]>(['/api/admin/treasury/wallets'], context.previousWallets);
+        queryClient.setQueryData<TreasuryWallet[]>(
+          ["/api/admin/treasury/wallets"],
+          context.previousWallets
+        );
       }
-      toast({ title: "Failed to Remove Wallet", description: error.message, variant: "destructive" });
+      toast({
+        title: "Failed to Remove Wallet",
+        description: error.message,
+        variant: "destructive",
+      });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/treasury/wallets'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/treasury/wallets"] });
     },
   });
 
   const seedTriggersMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('POST', '/api/admin/compliance/seed-triggers');
+      return apiRequest("POST", "/api/admin/compliance/seed-triggers");
     },
     onSuccess: (data: any) => {
-      toast({ title: "Triggers Seeded", description: data.message || "Default compliance triggers have been created" });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/compliance/triggers'] });
+      toast({
+        title: "Triggers Seeded",
+        description: data.message || "Default compliance triggers have been created",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/compliance/triggers"] });
     },
     onError: (error: any) => {
-      toast({ title: "Failed to Seed Triggers", description: error.message, variant: "destructive" });
-    }
+      toast({
+        title: "Failed to Seed Triggers",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   useEffect(() => {
     if (!authLoading && isAuthenticated && user?.email) {
       const adminAccess = ADMIN_EMAILS.includes(user.email.toLowerCase());
       setIsAdmin(adminAccess);
-      
+
       if (!adminAccess) {
         toast({
           title: "Access Denied",
@@ -346,13 +431,20 @@ export default function AdminDashboard() {
       <div className="mb-8">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-4xl font-bold mb-2" data-testid="text-admin-title">Admin Dashboard</h1>
+            <h1 className="text-4xl font-bold mb-2" data-testid="text-admin-title">
+              Admin Dashboard
+            </h1>
             <p className="text-muted-foreground">
               Solturio platform administration and business tools
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleRefreshAll} data-testid="button-refresh-all">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefreshAll}
+              data-testid="button-refresh-all"
+            >
               <RefreshCw className="w-4 h-4 mr-1" />
               Refresh
             </Button>
@@ -375,14 +467,14 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-total-users">
-              {statsLoading ? "..." : adminStats?.totalUsers ?? 0}
+              {statsLoading ? "..." : (adminStats?.totalUsers ?? 0)}
             </div>
             <p className="text-xs text-muted-foreground">
               {adminStats?.usersWithWallets ?? 0} with wallets
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
@@ -392,14 +484,14 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-logos-protected">
-              {statsLoading ? "..." : adminStats?.logosProtected ?? 0}
+              {statsLoading ? "..." : (adminStats?.logosProtected ?? 0)}
             </div>
             <p className="text-xs text-muted-foreground">
               {adminStats?.mintedCollections ?? 0} collections minted
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
@@ -409,14 +501,12 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-partner-dexs">
-              {statsLoading ? "..." : adminStats?.partnerDexs ?? 0}
+              {statsLoading ? "..." : (adminStats?.partnerDexs ?? 0)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              {adminStats?.pendingDexs ?? 0} pending
-            </p>
+            <p className="text-xs text-muted-foreground">{adminStats?.pendingDexs ?? 0} pending</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
@@ -426,11 +516,9 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-users-with-wallets">
-              {statsLoading ? "..." : adminStats?.usersWithWallets ?? 0}
+              {statsLoading ? "..." : (adminStats?.usersWithWallets ?? 0)}
             </div>
-            <p className="text-xs text-muted-foreground">
-              .solturio.sol domains
-            </p>
+            <p className="text-xs text-muted-foreground">.solturio.sol domains</p>
           </CardContent>
         </Card>
       </div>
@@ -445,9 +533,7 @@ export default function AdminDashboard() {
               </div>
               Solana Treasury
             </CardTitle>
-            <CardDescription>
-              Platform operations wallet for transaction fees
-            </CardDescription>
+            <CardDescription>Platform operations wallet for transaction fees</CardDescription>
           </CardHeader>
           <CardContent>
             {walletsLoading ? (
@@ -467,7 +553,7 @@ export default function AdminDashboard() {
                   {walletBalances.solana.address}
                 </div>
                 <Button variant="outline" size="sm" asChild>
-                  <a 
+                  <a
                     href={`https://explorer.solana.com/address/${walletBalances.solana.address}?cluster=${walletBalances.solana.network}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -496,9 +582,7 @@ export default function AdminDashboard() {
               </div>
               Arweave Storage
             </CardTitle>
-            <CardDescription>
-              Permanent storage for verified badge images
-            </CardDescription>
+            <CardDescription>Permanent storage for verified badge images</CardDescription>
           </CardHeader>
           <CardContent>
             {walletsLoading ? (
@@ -515,7 +599,7 @@ export default function AdminDashboard() {
                   {walletBalances.arweave.address}
                 </div>
                 <Button variant="outline" size="sm" asChild>
-                  <a 
+                  <a
                     href={`https://viewblock.io/arweave/address/${walletBalances.arweave.address}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -540,14 +624,30 @@ export default function AdminDashboard() {
       {/* Admin Tools Tabs */}
       <Tabs defaultValue="treasury" className="space-y-4">
         <TabsList className="grid grid-cols-4 md:grid-cols-8 w-full">
-          <TabsTrigger value="subscriptions" data-testid="tab-subscriptions">Subscriptions</TabsTrigger>
-          <TabsTrigger value="treasury" data-testid="tab-treasury">Treasury</TabsTrigger>
-          <TabsTrigger value="tokens" data-testid="tab-tokens">Tokens</TabsTrigger>
-          <TabsTrigger value="compliance" data-testid="tab-compliance">Compliance</TabsTrigger>
-          <TabsTrigger value="partnerships" data-testid="tab-partnerships">Partnerships</TabsTrigger>
-          <TabsTrigger value="operations" data-testid="tab-operations">Operations</TabsTrigger>
-          <TabsTrigger value="analytics" data-testid="tab-analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="settings" data-testid="tab-settings">Settings</TabsTrigger>
+          <TabsTrigger value="subscriptions" data-testid="tab-subscriptions">
+            Subscriptions
+          </TabsTrigger>
+          <TabsTrigger value="treasury" data-testid="tab-treasury">
+            Treasury
+          </TabsTrigger>
+          <TabsTrigger value="tokens" data-testid="tab-tokens">
+            Tokens
+          </TabsTrigger>
+          <TabsTrigger value="compliance" data-testid="tab-compliance">
+            Compliance
+          </TabsTrigger>
+          <TabsTrigger value="partnerships" data-testid="tab-partnerships">
+            Partnerships
+          </TabsTrigger>
+          <TabsTrigger value="operations" data-testid="tab-operations">
+            Operations
+          </TabsTrigger>
+          <TabsTrigger value="analytics" data-testid="tab-analytics">
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger value="settings" data-testid="tab-settings">
+            Settings
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="subscriptions" className="space-y-4">
@@ -559,7 +659,9 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold">Treasury Wallets</h3>
-              <p className="text-sm text-muted-foreground">Manage platform treasury and fund routing</p>
+              <p className="text-sm text-muted-foreground">
+                Manage platform treasury and fund routing
+              </p>
             </div>
             <Dialog open={addWalletOpen} onOpenChange={setAddWalletOpen}>
               <DialogTrigger asChild>
@@ -571,53 +673,65 @@ export default function AdminDashboard() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Add Treasury Wallet</DialogTitle>
-                  <DialogDescription>Register a new wallet for platform treasury management</DialogDescription>
+                  <DialogDescription>
+                    Register a new wallet for platform treasury management
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
                     <Label>Wallet Role</Label>
-                    <Select value={newWallet.role} onValueChange={(v) => setNewWallet({...newWallet, role: v as any})}>
+                    <Select
+                      value={newWallet.role}
+                      onValueChange={(v) => setNewWallet({ ...newWallet, role: v as any })}
+                    >
                       <SelectTrigger data-testid="select-wallet-role">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="funds">Platform Operations (funds.solturio.sol)</SelectItem>
+                        <SelectItem value="funds">
+                          Platform Operations (funds.solturio.sol)
+                        </SelectItem>
                         <SelectItem value="rewards">User Rewards (rewards.solturio.sol)</SelectItem>
-                        <SelectItem value="escrow">Escrow Payments (escrow.solturio.sol)</SelectItem>
+                        <SelectItem value="escrow">
+                          Escrow Payments (escrow.solturio.sol)
+                        </SelectItem>
                         <SelectItem value="bank">Company Treasury (bank.cooperanth.sol)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
                     <Label>Display Name</Label>
-                    <Input 
-                      placeholder="e.g., Platform Operations Wallet" 
+                    <Input
+                      placeholder="e.g., Platform Operations Wallet"
                       value={newWallet.name}
-                      onChange={(e) => setNewWallet({...newWallet, name: e.target.value})}
+                      onChange={(e) => setNewWallet({ ...newWallet, name: e.target.value })}
                       data-testid="input-wallet-name"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Solana Address</Label>
-                    <Input 
-                      placeholder="Public key address..." 
+                    <Input
+                      placeholder="Public key address..."
                       value={newWallet.address}
-                      onChange={(e) => setNewWallet({...newWallet, address: e.target.value})}
+                      onChange={(e) => setNewWallet({ ...newWallet, address: e.target.value })}
                       data-testid="input-wallet-address"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Domain Name (optional)</Label>
-                    <Input 
-                      placeholder="e.g., funds.solturio.sol" 
+                    <Input
+                      placeholder="e.g., funds.solturio.sol"
                       value={newWallet.domainName}
-                      onChange={(e) => setNewWallet({...newWallet, domainName: e.target.value})}
+                      onChange={(e) => setNewWallet({ ...newWallet, domainName: e.target.value })}
                       data-testid="input-wallet-domain"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Network</Label>
-                    <Select value={newWallet.network} onValueChange={(v) => setNewWallet({...newWallet, network: v})}>
+                    <Select
+                      value={newWallet.network}
+                      onValueChange={(v) => setNewWallet({ ...newWallet, network: v })}
+                    >
                       <SelectTrigger data-testid="select-wallet-network">
                         <SelectValue />
                       </SelectTrigger>
@@ -629,17 +743,19 @@ export default function AdminDashboard() {
                   </div>
                   <div className="space-y-2">
                     <Label>Purpose</Label>
-                    <Input 
-                      placeholder="Brief description of wallet purpose..." 
+                    <Input
+                      placeholder="Brief description of wallet purpose..."
                       value={newWallet.purpose}
-                      onChange={(e) => setNewWallet({...newWallet, purpose: e.target.value})}
+                      onChange={(e) => setNewWallet({ ...newWallet, purpose: e.target.value })}
                       data-testid="input-wallet-purpose"
                     />
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setAddWalletOpen(false)}>Cancel</Button>
-                  <Button 
+                  <Button variant="outline" onClick={() => setAddWalletOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
                     onClick={() => addWalletMutation.mutate(newWallet)}
                     disabled={addWalletMutation.isPending || !newWallet.name || !newWallet.address}
                     data-testid="button-confirm-add-wallet"
@@ -652,20 +768,26 @@ export default function AdminDashboard() {
           </div>
 
           {treasuryLoading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading treasury wallets...</div>
+            <div className="text-center py-8 text-muted-foreground">
+              Loading treasury wallets...
+            </div>
           ) : treasuryWallets && treasuryWallets.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {treasuryWallets.map((wallet) => {
                 const config = WALLET_ROLE_CONFIG[wallet.role];
                 return (
-                  <Card key={wallet.id} className="hover-elevate" data-testid={`card-treasury-wallet-${wallet.id}`}>
+                  <Card
+                    key={wallet.id}
+                    className="hover-elevate"
+                    data-testid={`card-treasury-wallet-${wallet.id}`}
+                  >
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <div className={`w-3 h-3 rounded-full ${config.color}`} />
                           <CardTitle className="text-base">{wallet.name}</CardTitle>
                         </div>
-                        <Badge variant={wallet.status === 'active' ? 'default' : 'secondary'}>
+                        <Badge variant={wallet.status === "active" ? "default" : "secondary"}>
                           {wallet.status}
                         </Badge>
                       </div>
@@ -676,7 +798,8 @@ export default function AdminDashboard() {
                     <CardContent className="space-y-3">
                       <div>
                         <div className="text-2xl font-bold">
-                          {wallet.cachedBalance || '0.000000'} <span className="text-sm font-normal text-muted-foreground">SOL</span>
+                          {wallet.cachedBalance || "0.000000"}{" "}
+                          <span className="text-sm font-normal text-muted-foreground">SOL</span>
                         </div>
                         {wallet.lastBalanceCheck && (
                           <p className="text-xs text-muted-foreground">
@@ -684,19 +807,21 @@ export default function AdminDashboard() {
                           </p>
                         )}
                       </div>
-                      
+
                       <div className="text-xs font-mono text-muted-foreground truncate">
                         {wallet.address}
                       </div>
-                      
+
                       {wallet.domainName && (
-                        <Badge variant="outline" className="text-xs">{wallet.domainName}</Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {wallet.domainName}
+                        </Badge>
                       )}
 
                       <div className="flex items-center gap-2 flex-wrap pt-2">
                         <Button variant="outline" size="sm" asChild>
-                          <a 
-                            href={`https://explorer.solana.com/address/${wallet.address}${wallet.network === 'devnet' ? '?cluster=devnet' : ''}`}
+                          <a
+                            href={`https://explorer.solana.com/address/${wallet.address}${wallet.network === "devnet" ? "?cluster=devnet" : ""}`}
                             target="_blank"
                             rel="noopener noreferrer"
                           >
@@ -704,9 +829,9 @@ export default function AdminDashboard() {
                             Explorer
                           </a>
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="text-destructive"
                           onClick={() => {
                             if (confirm(`Are you sure you want to remove "${wallet.name}"?`)) {
@@ -731,7 +856,10 @@ export default function AdminDashboard() {
                 <p className="text-sm text-muted-foreground mb-4">
                   Add your first treasury wallet to start managing platform funds.
                 </p>
-                <Button onClick={() => setAddWalletOpen(true)} data-testid="button-add-first-wallet">
+                <Button
+                  onClick={() => setAddWalletOpen(true)}
+                  data-testid="button-add-first-wallet"
+                >
                   <Plus className="w-4 h-4 mr-1" />
                   Add First Wallet
                 </Button>
@@ -747,7 +875,9 @@ export default function AdminDashboard() {
                   <ShoppingCart className="w-5 h-5" />
                   Purchase Arweave (AR)
                 </h3>
-                <p className="text-sm text-muted-foreground">Top up your AR balance for permanent badge storage</p>
+                <p className="text-sm text-muted-foreground">
+                  Top up your AR balance for permanent badge storage
+                </p>
               </div>
               <Button
                 variant="outline"
@@ -781,7 +911,9 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Card data-testid="card-ar-current-balance">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Current Balance</CardTitle>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        Current Balance
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-baseline gap-2">
@@ -801,11 +933,16 @@ export default function AdminDashboard() {
 
                   <Card data-testid="card-ar-uploads-remaining">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Uploads Remaining</CardTitle>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        Uploads Remaining
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-bold" data-testid="text-ar-uploads-remaining">
+                        <span
+                          className="text-3xl font-bold"
+                          data-testid="text-ar-uploads-remaining"
+                        >
                           {arweavePurchaseInfo.estimatedUploadsRemaining !== null
                             ? arweavePurchaseInfo.estimatedUploadsRemaining.toLocaleString()
                             : "--"}
@@ -818,19 +955,27 @@ export default function AdminDashboard() {
 
                   <Card data-testid="card-ar-cost-per-upload">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Cost Per Upload</CardTitle>
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        Cost Per Upload
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-muted-foreground">Badge image</span>
-                          <span className="font-mono text-sm font-medium" data-testid="text-ar-badge-cost">
+                          <span
+                            className="font-mono text-sm font-medium"
+                            data-testid="text-ar-badge-cost"
+                          >
                             {arweavePurchaseInfo.estimatedBadgeCost ?? "--"} AR
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-muted-foreground">Metadata JSON</span>
-                          <span className="font-mono text-sm font-medium" data-testid="text-ar-metadata-cost">
+                          <span
+                            className="font-mono text-sm font-medium"
+                            data-testid="text-ar-metadata-cost"
+                          >
                             {arweavePurchaseInfo.estimatedMetadataCost ?? "--"} AR
                           </span>
                         </div>
@@ -847,11 +992,16 @@ export default function AdminDashboard() {
                         <Wallet className="w-4 h-4" />
                         Your Arweave Wallet Address
                       </CardTitle>
-                      <CardDescription>Send AR tokens to this address to top up your balance</CardDescription>
+                      <CardDescription>
+                        Send AR tokens to this address to top up your balance
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-muted rounded-md px-3 py-2 font-mono text-sm break-all" data-testid="text-ar-wallet-address">
+                        <div
+                          className="flex-1 bg-muted rounded-md px-3 py-2 font-mono text-sm break-all"
+                          data-testid="text-ar-wallet-address"
+                        >
                           {arweavePurchaseInfo.address}
                         </div>
                         <Button
@@ -891,7 +1041,10 @@ export default function AdminDashboard() {
                       <ShoppingCart className="w-5 h-5" />
                       Buy AR Tokens
                     </CardTitle>
-                    <CardDescription>Purchase Arweave tokens on a supported exchange, then send them to your wallet address above</CardDescription>
+                    <CardDescription>
+                      Purchase Arweave tokens on a supported exchange, then send them to your wallet
+                      address above
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -901,16 +1054,14 @@ export default function AdminDashboard() {
                           variant="outline"
                           className="justify-between h-auto py-3"
                           asChild
-                          data-testid={`button-buy-ar-${exchange.name.toLowerCase().replace(/\./g, '')}`}
+                          data-testid={`button-buy-ar-${exchange.name.toLowerCase().replace(/\./g, "")}`}
                         >
-                          <a
-                            href={exchange.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
+                          <a href={exchange.url} target="_blank" rel="noopener noreferrer">
                             <div className="text-left">
                               <div className="font-medium">{exchange.name}</div>
-                              <div className="text-xs text-muted-foreground">{exchange.description}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {exchange.description}
+                              </div>
                             </div>
                             <ArrowUpRight className="w-4 h-4 ml-2 shrink-0" />
                           </a>
@@ -928,9 +1079,14 @@ export default function AdminDashboard() {
                   <CardContent>
                     <ol className="space-y-2">
                       {arweavePurchaseInfo.topUpInstructions.map((step, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <span className="font-mono font-medium text-foreground shrink-0">{i + 1}.</span>
-                          <span>{step.replace(/^\d+\.\s*/, '')}</span>
+                        <li
+                          key={i}
+                          className="flex items-start gap-2 text-sm text-muted-foreground"
+                        >
+                          <span className="font-mono font-medium text-foreground shrink-0">
+                            {i + 1}.
+                          </span>
+                          <span>{step.replace(/^\d+\.\s*/, "")}</span>
                         </li>
                       ))}
                     </ol>
@@ -951,10 +1107,12 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold">AML/KYC Compliance</h3>
-              <p className="text-sm text-muted-foreground">Monitor triggers, cases, and user verification status</p>
+              <p className="text-sm text-muted-foreground">
+                Monitor triggers, cases, and user verification status
+              </p>
             </div>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="outline"
               onClick={() => seedTriggersMutation.mutate()}
               disabled={seedTriggersMutation.isPending}
@@ -975,12 +1133,12 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold" data-testid="text-active-triggers">
-                  {triggerRules?.filter(r => r.isActive).length ?? 0}
+                  {triggerRules?.filter((r) => r.isActive).length ?? 0}
                 </div>
                 <p className="text-xs text-muted-foreground">Rules monitoring transactions</p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
@@ -990,7 +1148,9 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold" data-testid="text-open-cases">
-                  {complianceCases?.filter(c => c.status === 'open' || c.status === 'under_review').length ?? 0}
+                  {complianceCases?.filter(
+                    (c) => c.status === "open" || c.status === "under_review"
+                  ).length ?? 0}
                 </div>
                 <p className="text-xs text-muted-foreground">Requiring attention</p>
               </CardContent>
@@ -1005,7 +1165,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold" data-testid="text-pending-review">
-                  {complianceCases?.filter(c => c.status === 'pending').length ?? 0}
+                  {complianceCases?.filter((c) => c.status === "pending").length ?? 0}
                 </div>
                 <p className="text-xs text-muted-foreground">Awaiting manual review</p>
               </CardContent>
@@ -1020,7 +1180,8 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold" data-testid="text-resolved-cases">
-                  {complianceCases?.filter(c => c.status === 'resolved' || c.status === 'closed').length ?? 0}
+                  {complianceCases?.filter((c) => c.status === "resolved" || c.status === "closed")
+                    .length ?? 0}
                 </div>
                 <p className="text-xs text-muted-foreground">Cases closed</p>
               </CardContent>
@@ -1041,35 +1202,46 @@ export default function AdminDashboard() {
             <CardContent>
               {triggerRules && triggerRules.length > 0 ? (
                 <div className="space-y-2">
-                  {triggerRules.filter(r => r.isActive).map((rule) => (
-                    <div 
-                      key={rule.id} 
-                      className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
-                      data-testid={`trigger-rule-${rule.triggerCode}`}
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm">{rule.name}</span>
-                          <Badge variant={rule.severity === 'high' ? 'destructive' : 'secondary'} className="text-xs">
-                            {rule.severity}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">{rule.category}</Badge>
+                  {triggerRules
+                    .filter((r) => r.isActive)
+                    .map((rule) => (
+                      <div
+                        key={rule.id}
+                        className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                        data-testid={`trigger-rule-${rule.triggerCode}`}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">{rule.name}</span>
+                            <Badge
+                              variant={rule.severity === "high" ? "destructive" : "secondary"}
+                              className="text-xs"
+                            >
+                              {rule.severity}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {rule.category}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">{rule.description}</p>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">{rule.description}</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          {rule.requiresDocuments && <Badge variant="outline">Docs Required</Badge>}
+                          {rule.requiresManualReview && (
+                            <Badge variant="outline">Manual Review</Badge>
+                          )}
+                          <span>Tier {rule.requiredTier}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        {rule.requiresDocuments && <Badge variant="outline">Docs Required</Badge>}
-                        {rule.requiresManualReview && <Badge variant="outline">Manual Review</Badge>}
-                        <span>Tier {rule.requiredTier}</span>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <AlertTriangle className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>No trigger rules configured</p>
-                  <p className="text-sm mt-2">Click "Seed Default Triggers" to add standard AML/KYC rules</p>
+                  <p className="text-sm mt-2">
+                    Click "Seed Default Triggers" to add standard AML/KYC rules
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -1090,7 +1262,7 @@ export default function AdminDashboard() {
               {complianceCases && complianceCases.length > 0 ? (
                 <div className="space-y-2">
                   {complianceCases.slice(0, 10).map((caseItem) => (
-                    <div 
+                    <div
                       key={caseItem.id}
                       className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
                       data-testid={`compliance-case-${caseItem.caseNumber}`}
@@ -1098,13 +1270,18 @@ export default function AdminDashboard() {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-sm">{caseItem.caseNumber}</span>
-                          <Badge variant={
-                            caseItem.status === 'open' ? 'destructive' : 
-                            caseItem.status === 'under_review' ? 'default' : 'secondary'
-                          }>
+                          <Badge
+                            variant={
+                              caseItem.status === "open"
+                                ? "destructive"
+                                : caseItem.status === "under_review"
+                                  ? "default"
+                                  : "secondary"
+                            }
+                          >
                             {caseItem.status}
                           </Badge>
-                          <Badge variant={caseItem.priority === 'high' ? 'destructive' : 'outline'}>
+                          <Badge variant={caseItem.priority === "high" ? "destructive" : "outline"}>
                             {caseItem.priority}
                           </Badge>
                         </div>
@@ -1136,7 +1313,10 @@ export default function AdminDashboard() {
 
         <TabsContent value="partnerships" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="hover-elevate cursor-pointer" onClick={() => window.location.href = "/admin/partnerships"}>
+            <Card
+              className="hover-elevate cursor-pointer"
+              onClick={() => (window.location.href = "/admin/partnerships")}
+            >
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Building2 className="w-5 h-5 text-primary" />
@@ -1173,7 +1353,9 @@ export default function AdminDashboard() {
                     <p className="text-sm text-muted-foreground">Platforms reached</p>
                     <p className="text-2xl font-bold">0</p>
                   </div>
-                  <Button size="sm" disabled>Coming Soon</Button>
+                  <Button size="sm" disabled>
+                    Coming Soon
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -1194,7 +1376,9 @@ export default function AdminDashboard() {
                     <p className="text-sm text-muted-foreground">Active campaigns</p>
                     <p className="text-2xl font-bold">0</p>
                   </div>
-                  <Button size="sm" disabled>Coming Soon</Button>
+                  <Button size="sm" disabled>
+                    Coming Soon
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -1215,7 +1399,9 @@ export default function AdminDashboard() {
                     <p className="text-sm text-muted-foreground">Total contacts</p>
                     <p className="text-2xl font-bold">0</p>
                   </div>
-                  <Button size="sm" disabled>Coming Soon</Button>
+                  <Button size="sm" disabled>
+                    Coming Soon
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -1269,7 +1455,9 @@ export default function AdminDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button size="sm" className="w-full" disabled>Coming Soon</Button>
+                <Button size="sm" className="w-full" disabled>
+                  Coming Soon
+                </Button>
               </CardContent>
             </Card>
 
@@ -1285,7 +1473,9 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <Link href="/admin/payments">
-                  <Button size="sm" className="w-full" data-testid="button-manage-payments">Manage Payments</Button>
+                  <Button size="sm" className="w-full" data-testid="button-manage-payments">
+                    Manage Payments
+                  </Button>
                 </Link>
               </CardContent>
             </Card>
@@ -1318,9 +1508,7 @@ export default function AdminDashboard() {
                 <Settings className="w-5 h-5 text-primary" />
                 Admin Settings
               </CardTitle>
-              <CardDescription>
-                Configure platform settings and admin permissions
-              </CardDescription>
+              <CardDescription>Configure platform settings and admin permissions</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">

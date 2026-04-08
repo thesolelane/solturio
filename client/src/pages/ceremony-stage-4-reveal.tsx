@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, Key, AlertTriangle, Camera, Loader2 } from "lucide-react";
@@ -14,8 +21,13 @@ export default function CeremonyStage4Reveal() {
   const [revealed, setRevealed] = useState(false);
   const [secondsViewed, setSecondsViewed] = useState(0);
 
-  const { data: phraseData, isLoading, error, refetch } = useQuery<{ words: string[]; warning: string }>({
-    queryKey: ['/api/ceremony/recovery-phrase'],
+  const {
+    data: phraseData,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery<{ words: string[]; warning: string }>({
+    queryKey: ["/api/ceremony/recovery-phrase"],
     enabled: revealed,
     staleTime: Infinity,
     retry: false,
@@ -84,10 +96,12 @@ export default function CeremonyStage4Reveal() {
                 <div className="flex items-start gap-3">
                   <Camera className="h-6 w-6 text-destructive shrink-0 mt-1" />
                   <div className="space-y-2">
-                    <h3 className="font-semibold text-lg text-destructive">NO SCREENSHOTS ALLOWED</h3>
+                    <h3 className="font-semibold text-lg text-destructive">
+                      NO SCREENSHOTS ALLOWED
+                    </h3>
                     <p className="text-sm text-muted-foreground">
-                      Digital copies can be hacked, stolen, or accidentally shared. 
-                      Paper stored securely cannot be remotely accessed.
+                      Digital copies can be hacked, stolen, or accidentally shared. Paper stored
+                      securely cannot be remotely accessed.
                     </p>
                   </div>
                 </div>
@@ -125,7 +139,7 @@ export default function CeremonyStage4Reveal() {
                 <Alert variant="destructive">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    Failed to retrieve recovery phrase. Please ensure you have a wallet created. 
+                    Failed to retrieve recovery phrase. Please ensure you have a wallet created.
                     {(error as Error).message}
                   </AlertDescription>
                 </Alert>
@@ -133,7 +147,9 @@ export default function CeremonyStage4Reveal() {
                 <>
                   <div className="p-6 border-2 border-primary rounded-lg bg-primary/5 space-y-4">
                     <div className="mb-4">
-                      <h3 className="font-semibold text-lg text-center">Your 12-Word Recovery Phrase</h3>
+                      <h3 className="font-semibold text-lg text-center">
+                        Your 12-Word Recovery Phrase
+                      </h3>
                       <p className="text-xs text-center text-destructive font-semibold mt-2">
                         DO NOT copy or screenshot - Write on paper only
                       </p>
@@ -149,9 +165,7 @@ export default function CeremonyStage4Reveal() {
                           <span className="text-xs text-muted-foreground font-semibold w-6">
                             {index + 1}.
                           </span>
-                          <span className="font-mono font-bold text-lg">
-                            {word}
-                          </span>
+                          <span className="font-mono font-bold text-lg">{word}</span>
                         </div>
                       ))}
                     </div>
@@ -164,7 +178,7 @@ export default function CeremonyStage4Reveal() {
                   <Alert className="border-amber-600 bg-amber-600/5">
                     <AlertTriangle className="h-4 w-4 text-amber-600" />
                     <AlertDescription>
-                      <span className="font-semibold">Write these words in order</span> on paper. 
+                      <span className="font-semibold">Write these words in order</span> on paper.
                       Store the paper in a safe place like a fireproof safe or safety deposit box.
                     </AlertDescription>
                   </Alert>
@@ -184,8 +198,8 @@ export default function CeremonyStage4Reveal() {
                     <Alert>
                       <AlertTriangle className="h-4 w-4" />
                       <AlertDescription>
-                        Please take time to write down all 12 words carefully. 
-                        You must view this screen for at least {10 - secondsViewed} more seconds.
+                        Please take time to write down all 12 words carefully. You must view this
+                        screen for at least {10 - secondsViewed} more seconds.
                       </AlertDescription>
                     </Alert>
                   )}

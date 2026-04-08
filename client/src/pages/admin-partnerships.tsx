@@ -6,19 +6,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { 
-  FileText, 
-  Download, 
-  Building2, 
-  Globe, 
-  Mail, 
-  Send, 
+import {
+  FileText,
+  Download,
+  Building2,
+  Globe,
+  Mail,
+  Send,
   ExternalLink,
   Sparkles,
   Shield,
   Users,
   Rocket,
-  Lock
+  Lock,
 } from "lucide-react";
 
 // Admin email whitelist - should match admin-dashboard.tsx
@@ -44,7 +44,7 @@ export default function AdminPartnerships() {
     if (!authLoading && isAuthenticated && user?.email) {
       const adminAccess = ADMIN_EMAILS.includes(user.email.toLowerCase());
       setIsAdmin(adminAccess);
-      
+
       if (!adminAccess) {
         toast({
           title: "Access Denied",
@@ -95,7 +95,7 @@ export default function AdminPartnerships() {
     try {
       const response = await fetch("/api/documents/solana-foundation-proposal");
       if (!response.ok) throw new Error("Failed to generate document");
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -103,7 +103,7 @@ export default function AdminPartnerships() {
       a.download = "Solturio-Solana-Foundation-Proposal.pdf";
       a.click();
       window.URL.revokeObjectURL(url);
-      
+
       toast({
         title: "Downloaded Successfully",
         description: "Solana Foundation proposal has been downloaded",
@@ -134,9 +134,9 @@ export default function AdminPartnerships() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ dexName }),
       });
-      
+
       if (!response.ok) throw new Error("Failed to generate document");
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -144,7 +144,7 @@ export default function AdminPartnerships() {
       a.download = `Solturio-DEX-Partnership-${dexName}.pdf`;
       a.click();
       window.URL.revokeObjectURL(url);
-      
+
       toast({
         title: "Downloaded Successfully",
         description: `Partnership proposal for ${dexName} has been downloaded`,
@@ -168,13 +168,13 @@ export default function AdminPartnerships() {
           <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
             <div className="flex items-center gap-3">
               {/* Light Mode Logo - Dark colored logo for light backgrounds */}
-              <img 
+              <img
                 src="/solturio-logo-light-mode.png"
                 alt="Solturio Logo for Light Mode"
                 className="w-14 h-14 object-contain dark:hidden"
               />
               {/* Dark Mode Logo - White colored logo for dark backgrounds */}
-              <img 
+              <img
                 src="/solturio-logo-dark-mode.png"
                 alt="Solturio Logo for Dark Mode"
                 className="w-14 h-14 object-contain hidden dark:block"
@@ -195,7 +195,8 @@ export default function AdminPartnerships() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-4">Partnership & Outreach</h1>
           <p className="text-lg text-muted-foreground">
-            Download professional proposals and partnership materials to share Solturio with DEXs, investors, and the Solana ecosystem
+            Download professional proposals and partnership materials to share Solturio with DEXs,
+            investors, and the Solana ecosystem
           </p>
         </div>
 
@@ -210,7 +211,9 @@ export default function AdminPartnerships() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">Wallet Buddhi</h3>
-                  <Badge variant="outline" className="mt-1">First Enterprise Client</Badge>
+                  <Badge variant="outline" className="mt-1">
+                    First Enterprise Client
+                  </Badge>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -225,7 +228,9 @@ export default function AdminPartnerships() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">$CATH Token</h3>
-                  <Badge variant="outline" className="mt-1">Rewards Partner</Badge>
+                  <Badge variant="outline" className="mt-1">
+                    Rewards Partner
+                  </Badge>
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -248,9 +253,9 @@ export default function AdminPartnerships() {
                 <Badge variant="secondary">Grant Proposal</Badge>
               </div>
             </div>
-            
+
             <p className="text-sm text-muted-foreground mb-4">
-              Comprehensive proposal for Solana Foundation grant support and ecosystem integration. 
+              Comprehensive proposal for Solana Foundation grant support and ecosystem integration.
               Includes technical architecture, adoption strategy, and partnership benefits.
             </p>
 
@@ -269,7 +274,7 @@ export default function AdminPartnerships() {
                 </ul>
               </div>
 
-              <Button 
+              <Button
                 onClick={downloadSolanaProposal}
                 className="w-full"
                 data-testid="button-download-solana-proposal"
@@ -291,10 +296,10 @@ export default function AdminPartnerships() {
                 <Badge variant="secondary">Partnership Proposal</Badge>
               </div>
             </div>
-            
+
             <p className="text-sm text-muted-foreground mb-4">
-              Customizable proposal for DEX platforms showcasing our free verification API 
-              and anti-copycat protection system.
+              Customizable proposal for DEX platforms showcasing our free verification API and
+              anti-copycat protection system.
             </p>
 
             <div className="space-y-3">
@@ -323,7 +328,7 @@ export default function AdminPartnerships() {
                 />
               </div>
 
-              <Button 
+              <Button
                 onClick={downloadDEXProposal}
                 className="w-full"
                 disabled={isGenerating}
@@ -346,7 +351,7 @@ export default function AdminPartnerships() {
                 <Badge variant="secondary">Outreach Materials</Badge>
               </div>
             </div>
-            
+
             <p className="text-sm text-muted-foreground mb-4">
               Professional email templates for reaching out to potential partners and platforms.
             </p>
@@ -374,7 +379,7 @@ export default function AdminPartnerships() {
                 <Badge variant="secondary">External Links</Badge>
               </div>
             </div>
-            
+
             <p className="text-sm text-muted-foreground mb-4">
               Useful resources and documentation for partners.
             </p>
@@ -400,7 +405,8 @@ export default function AdminPartnerships() {
         <Card className="p-6 mt-8 bg-gradient-to-r from-primary/5 to-background">
           <h3 className="text-xl font-semibold mb-3">Ready to Partner?</h3>
           <p className="text-muted-foreground mb-4">
-            Contact our partnership team to discuss how Solturio can protect your platform from IP theft and copycats.
+            Contact our partnership team to discuss how Solturio can protect your platform from IP
+            theft and copycats.
           </p>
           <div className="flex flex-wrap gap-4">
             <div className="flex items-center gap-2 text-sm">

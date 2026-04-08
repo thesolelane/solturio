@@ -8,9 +8,29 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -77,16 +97,41 @@ interface UserDetail {
 
 function getStatusBadge(status: string) {
   switch (status) {
-    case 'active':
-      return <Badge variant="default" className="gap-1"><CheckCircle2 className="w-3 h-3" />Active</Badge>;
-    case 'pending':
-      return <Badge variant="secondary" className="gap-1"><Clock className="w-3 h-3" />Pending</Badge>;
-    case 'expired':
-      return <Badge variant="outline" className="gap-1"><XCircle className="w-3 h-3" />Expired</Badge>;
-    case 'suspended':
-      return <Badge variant="destructive" className="gap-1"><Lock className="w-3 h-3" />Suspended</Badge>;
-    case 'admin':
-      return <Badge variant="default" className="gap-1"><Shield className="w-3 h-3" />Admin</Badge>;
+    case "active":
+      return (
+        <Badge variant="default" className="gap-1">
+          <CheckCircle2 className="w-3 h-3" />
+          Active
+        </Badge>
+      );
+    case "pending":
+      return (
+        <Badge variant="secondary" className="gap-1">
+          <Clock className="w-3 h-3" />
+          Pending
+        </Badge>
+      );
+    case "expired":
+      return (
+        <Badge variant="outline" className="gap-1">
+          <XCircle className="w-3 h-3" />
+          Expired
+        </Badge>
+      );
+    case "suspended":
+      return (
+        <Badge variant="destructive" className="gap-1">
+          <Lock className="w-3 h-3" />
+          Suspended
+        </Badge>
+      );
+    case "admin":
+      return (
+        <Badge variant="default" className="gap-1">
+          <Shield className="w-3 h-3" />
+          Admin
+        </Badge>
+      );
     default:
       return <Badge variant="secondary">{status}</Badge>;
   }
@@ -99,7 +144,7 @@ function getUserInitials(user: AdminUser): string {
   if (user.email) {
     return user.email[0].toUpperCase();
   }
-  return '?';
+  return "?";
 }
 
 export default function AdminUsers() {
@@ -123,36 +168,48 @@ export default function AdminUsers() {
       const adminAccess = ADMIN_EMAILS.includes(user.email.toLowerCase());
       setIsAdmin(adminAccess);
       if (!adminAccess) {
-        toast({ title: "Access Denied", description: "Admin access required", variant: "destructive" });
-        setTimeout(() => { window.location.href = "/dashboard"; }, 2000);
+        toast({
+          title: "Access Denied",
+          description: "Admin access required",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 2000);
       }
     } else if (!authLoading && !isAuthenticated) {
-      setTimeout(() => { window.location.href = "/api/login"; }, 500);
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
     }
   }, [user, isAuthenticated, authLoading, toast]);
 
-  const { data: usersData, isLoading: usersLoading, refetch } = useQuery<{
+  const {
+    data: usersData,
+    isLoading: usersLoading,
+    refetch,
+  } = useQuery<{
     users: AdminUser[];
     total: number;
     filtered: number;
   }>({
-    queryKey: ['/api/admin/users', searchQuery, statusFilter],
+    queryKey: ["/api/admin/users", searchQuery, statusFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (searchQuery) params.set('search', searchQuery);
-      if (statusFilter !== 'all') params.set('status', statusFilter);
-      const res = await fetch(`/api/admin/users?${params.toString()}`, { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to fetch users');
+      if (searchQuery) params.set("search", searchQuery);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+      const res = await fetch(`/api/admin/users?${params.toString()}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch users");
       return res.json();
     },
     enabled: isAdmin,
   });
 
   const { data: userDetail, isLoading: detailLoading } = useQuery<UserDetail>({
-    queryKey: ['/api/admin/users', selectedUserId],
+    queryKey: ["/api/admin/users", selectedUserId],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/users/${selectedUserId}`, { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to fetch user details');
+      const res = await fetch(`/api/admin/users/${selectedUserId}`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch user details");
       return res.json();
     },
     enabled: isAdmin && !!selectedUserId,
@@ -160,23 +217,27 @@ export default function AdminUsers() {
 
   const updateUserMutation = useMutation({
     mutationFn: async ({ userId, updates }: { userId: string; updates: any }) => {
-      return apiRequest('PATCH', `/api/admin/users/${userId}`, updates);
+      return apiRequest("PATCH", `/api/admin/users/${userId}`, updates);
     },
     onSuccess: () => {
       toast({ title: "User Updated", description: "User account has been updated successfully" });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       setEditDialogOpen(false);
       setEditUser(null);
     },
     onError: (error: any) => {
-      toast({ title: "Update Failed", description: error.message || "Failed to update user", variant: "destructive" });
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update user",
+        variant: "destructive",
+      });
     },
   });
 
   const openEditDialog = (u: AdminUser) => {
     setEditUser(u);
-    setEditStatus(u.accountStatus || 'pending');
-    setEditSubscriptionTier(u.subscriptionTier || '');
+    setEditStatus(u.accountStatus || "pending");
+    setEditSubscriptionTier(u.subscriptionTier || "");
     setEditDialogOpen(true);
   };
 
@@ -197,10 +258,10 @@ export default function AdminUsers() {
   const users = usersData?.users || [];
 
   const statusCounts = {
-    active: users.filter(u => u.accountStatus === 'active').length,
-    pending: users.filter(u => u.accountStatus === 'pending').length,
-    expired: users.filter(u => u.accountStatus === 'expired').length,
-    withWallets: users.filter(u => u.walletName).length,
+    active: users.filter((u) => u.accountStatus === "active").length,
+    pending: users.filter((u) => u.accountStatus === "pending").length,
+    expired: users.filter((u) => u.accountStatus === "expired").length,
+    withWallets: users.filter((u) => u.walletName).length,
   };
 
   if (authLoading) {
@@ -231,12 +292,19 @@ export default function AdminUsers() {
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold" data-testid="text-admin-users-title">User Management</h1>
+          <h1 className="text-3xl font-bold" data-testid="text-admin-users-title">
+            User Management
+          </h1>
           <p className="text-muted-foreground">
             View and manage platform users, subscriptions, and wallets
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => refetch()} data-testid="button-refresh-users">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => refetch()}
+          data-testid="button-refresh-users"
+        >
           <RefreshCw className="w-4 h-4 mr-1" />
           Refresh
         </Button>
@@ -248,7 +316,9 @@ export default function AdminUsers() {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Total Users</p>
-                <p className="text-2xl font-bold" data-testid="text-user-total">{usersData?.total ?? 0}</p>
+                <p className="text-2xl font-bold" data-testid="text-user-total">
+                  {usersData?.total ?? 0}
+                </p>
               </div>
               <Users className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -259,7 +329,9 @@ export default function AdminUsers() {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Active</p>
-                <p className="text-2xl font-bold text-green-600" data-testid="text-user-active">{statusCounts.active}</p>
+                <p className="text-2xl font-bold text-green-600" data-testid="text-user-active">
+                  {statusCounts.active}
+                </p>
               </div>
               <CheckCircle2 className="w-8 h-8 text-green-600" />
             </div>
@@ -270,7 +342,9 @@ export default function AdminUsers() {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Pending</p>
-                <p className="text-2xl font-bold text-orange-600" data-testid="text-user-pending">{statusCounts.pending}</p>
+                <p className="text-2xl font-bold text-orange-600" data-testid="text-user-pending">
+                  {statusCounts.pending}
+                </p>
               </div>
               <Clock className="w-8 h-8 text-orange-600" />
             </div>
@@ -281,7 +355,9 @@ export default function AdminUsers() {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">With Wallets</p>
-                <p className="text-2xl font-bold" data-testid="text-user-wallets">{statusCounts.withWallets}</p>
+                <p className="text-2xl font-bold" data-testid="text-user-wallets">
+                  {statusCounts.withWallets}
+                </p>
               </div>
               <Wallet className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -354,14 +430,22 @@ export default function AdminUsers() {
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={u.profileImageUrl || undefined} />
-                            <AvatarFallback className="text-xs">{getUserInitials(u)}</AvatarFallback>
+                            <AvatarFallback className="text-xs">
+                              {getUserInitials(u)}
+                            </AvatarFallback>
                           </Avatar>
                           <div>
                             <p className="font-medium text-sm">
-                              {u.firstName || ''} {u.lastName || ''}
-                              {u.isAdmin && <Badge variant="default" className="ml-1 h-4 px-1 text-[10px]">Admin</Badge>}
+                              {u.firstName || ""} {u.lastName || ""}
+                              {u.isAdmin && (
+                                <Badge variant="default" className="ml-1 h-4 px-1 text-[10px]">
+                                  Admin
+                                </Badge>
+                              )}
                             </p>
-                            <p className="text-xs text-muted-foreground truncate max-w-[200px]">{u.email || 'No email'}</p>
+                            <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                              {u.email || "No email"}
+                            </p>
                           </div>
                         </div>
                       </TableCell>
@@ -371,7 +455,9 @@ export default function AdminUsers() {
                           <div>
                             <p className="text-xs font-medium">{u.walletName}</p>
                             {u.ceremonyCompleted && (
-                              <Badge variant="outline" className="text-[10px] h-4 px-1 mt-0.5">Ceremony Done</Badge>
+                              <Badge variant="outline" className="text-[10px] h-4 px-1 mt-0.5">
+                                Ceremony Done
+                              </Badge>
                             )}
                           </div>
                         ) : (
@@ -380,18 +466,24 @@ export default function AdminUsers() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-xs">{u.logoCount} IPs</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {u.logoCount} IPs
+                          </Badge>
                           {u.mintedCount > 0 && (
-                            <Badge variant="outline" className="text-xs">{u.mintedCount} minted</Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {u.mintedCount} minted
+                            </Badge>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm font-mono">{parseFloat(u.sltrBalance).toLocaleString()}</span>
+                        <span className="text-sm font-mono">
+                          {parseFloat(u.sltrBalance).toLocaleString()}
+                        </span>
                       </TableCell>
                       <TableCell>
                         <span className="text-xs text-muted-foreground">
-                          {u.createdAt ? format(new Date(u.createdAt), 'MMM d, yyyy') : '-'}
+                          {u.createdAt ? format(new Date(u.createdAt), "MMM d, yyyy") : "-"}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -439,8 +531,12 @@ export default function AdminUsers() {
               <Tabs defaultValue="profile" className="mt-2">
                 <TabsList className="grid grid-cols-3 w-full">
                   <TabsTrigger value="profile">Profile</TabsTrigger>
-                  <TabsTrigger value="registrations">Registrations ({userDetail.stats.totalLogos})</TabsTrigger>
-                  <TabsTrigger value="collections">Collections ({userDetail.stats.totalCollections})</TabsTrigger>
+                  <TabsTrigger value="registrations">
+                    Registrations ({userDetail.stats.totalLogos})
+                  </TabsTrigger>
+                  <TabsTrigger value="collections">
+                    Collections ({userDetail.stats.totalCollections})
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="profile" className="space-y-4 mt-4">
@@ -448,35 +544,50 @@ export default function AdminUsers() {
                     <Avatar className="h-16 w-16">
                       <AvatarImage src={userDetail.user.profileImageUrl || undefined} />
                       <AvatarFallback className="text-lg">
-                        {userDetail.user.firstName?.[0] || userDetail.user.email?.[0] || '?'}
+                        {userDetail.user.firstName?.[0] || userDetail.user.email?.[0] || "?"}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <h3 className="text-xl font-semibold">
-                        {userDetail.user.firstName || ''} {userDetail.user.lastName || ''}
+                        {userDetail.user.firstName || ""} {userDetail.user.lastName || ""}
                       </h3>
                       <p className="text-sm text-muted-foreground">{userDetail.user.email}</p>
                       <div className="flex items-center gap-2 mt-1">
                         {getStatusBadge(userDetail.user.accountStatus)}
-                        {userDetail.user.isAdmin && <Badge variant="default"><Shield className="w-3 h-3 mr-1" />Admin</Badge>}
+                        {userDetail.user.isAdmin && (
+                          <Badge variant="default">
+                            <Shield className="w-3 h-3 mr-1" />
+                            Admin
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="border rounded-md p-3 space-y-2">
-                      <h4 className="font-medium text-sm flex items-center gap-1"><Wallet className="w-4 h-4" /> Wallet</h4>
+                      <h4 className="font-medium text-sm flex items-center gap-1">
+                        <Wallet className="w-4 h-4" /> Wallet
+                      </h4>
                       {userDetail.user.walletName ? (
                         <>
                           <p className="text-sm">{userDetail.user.walletName}</p>
                           {userDetail.user.solanaPublicKey && (
-                            <p className="text-xs font-mono text-muted-foreground truncate">{userDetail.user.solanaPublicKey}</p>
+                            <p className="text-xs font-mono text-muted-foreground truncate">
+                              {userDetail.user.solanaPublicKey}
+                            </p>
                           )}
                           <div className="flex items-center gap-2">
                             {userDetail.user.ceremonyCompleted ? (
-                              <Badge variant="outline" className="text-xs"><CheckCircle2 className="w-3 h-3 mr-1" />Ceremony Complete</Badge>
+                              <Badge variant="outline" className="text-xs">
+                                <CheckCircle2 className="w-3 h-3 mr-1" />
+                                Ceremony Complete
+                              </Badge>
                             ) : (
-                              <Badge variant="secondary" className="text-xs"><Clock className="w-3 h-3 mr-1" />Ceremony Pending</Badge>
+                              <Badge variant="secondary" className="text-xs">
+                                <Clock className="w-3 h-3 mr-1" />
+                                Ceremony Pending
+                              </Badge>
                             )}
                           </div>
                         </>
@@ -486,43 +597,76 @@ export default function AdminUsers() {
                     </div>
 
                     <div className="border rounded-md p-3 space-y-2">
-                      <h4 className="font-medium text-sm flex items-center gap-1"><Crown className="w-4 h-4" /> Subscription</h4>
-                      <p className="text-sm capitalize">{userDetail.user.subscriptionTier || 'None'}</p>
+                      <h4 className="font-medium text-sm flex items-center gap-1">
+                        <Crown className="w-4 h-4" /> Subscription
+                      </h4>
+                      <p className="text-sm capitalize">
+                        {userDetail.user.subscriptionTier || "None"}
+                      </p>
                       {userDetail.user.subscriptionExpiresAt && (
                         <p className="text-xs text-muted-foreground">
-                          Expires: {format(new Date(userDetail.user.subscriptionExpiresAt), 'MMM d, yyyy')}
+                          Expires:{" "}
+                          {format(new Date(userDetail.user.subscriptionExpiresAt), "MMM d, yyyy")}
                         </p>
                       )}
                     </div>
 
                     <div className="border rounded-md p-3 space-y-2">
-                      <h4 className="font-medium text-sm flex items-center gap-1"><Coins className="w-4 h-4" /> Rewards</h4>
-                      <p className="text-sm">Balance: <span className="font-mono font-medium">{parseFloat(userDetail.user.sltrBalance || '0').toLocaleString()}</span> $SOLT</p>
+                      <h4 className="font-medium text-sm flex items-center gap-1">
+                        <Coins className="w-4 h-4" /> Rewards
+                      </h4>
+                      <p className="text-sm">
+                        Balance:{" "}
+                        <span className="font-mono font-medium">
+                          {parseFloat(userDetail.user.sltrBalance || "0").toLocaleString()}
+                        </span>{" "}
+                        $SOLT
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        Total earned: {parseFloat(userDetail.user.sltrTotalEarned || '0').toLocaleString()} $SOLT
+                        Total earned:{" "}
+                        {parseFloat(userDetail.user.sltrTotalEarned || "0").toLocaleString()} $SOLT
                       </p>
                     </div>
 
                     <div className="border rounded-md p-3 space-y-2">
-                      <h4 className="font-medium text-sm flex items-center gap-1"><Users className="w-4 h-4" /> Referrals</h4>
-                      <p className="text-sm">Code: <span className="font-mono">{userDetail.user.referralCode || 'None'}</span></p>
-                      <p className="text-xs text-muted-foreground">{userDetail.user.referralCount || 0} referrals</p>
+                      <h4 className="font-medium text-sm flex items-center gap-1">
+                        <Users className="w-4 h-4" /> Referrals
+                      </h4>
+                      <p className="text-sm">
+                        Code:{" "}
+                        <span className="font-mono">{userDetail.user.referralCode || "None"}</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {userDetail.user.referralCount || 0} referrals
+                      </p>
                     </div>
                   </div>
 
-                  {(userDetail.user.twitterHandle || userDetail.user.telegramHandle || userDetail.user.websiteUrl) && (
+                  {(userDetail.user.twitterHandle ||
+                    userDetail.user.telegramHandle ||
+                    userDetail.user.websiteUrl) && (
                     <div className="border rounded-md p-3 space-y-2">
                       <h4 className="font-medium text-sm">Social</h4>
                       <div className="flex flex-wrap gap-2">
                         {userDetail.user.twitterHandle && (
-                          <Badge variant="secondary" className="text-xs">X: {userDetail.user.twitterHandle}</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            X: {userDetail.user.twitterHandle}
+                          </Badge>
                         )}
                         {userDetail.user.telegramHandle && (
-                          <Badge variant="secondary" className="text-xs">TG: {userDetail.user.telegramHandle}</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            TG: {userDetail.user.telegramHandle}
+                          </Badge>
                         )}
                         {userDetail.user.websiteUrl && (
-                          <a href={userDetail.user.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
-                            <ExternalLink className="w-3 h-3" />{userDetail.user.websiteUrl}
+                          <a
+                            href={userDetail.user.websiteUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            {userDetail.user.websiteUrl}
                           </a>
                         )}
                       </div>
@@ -530,9 +674,21 @@ export default function AdminUsers() {
                   )}
 
                   <div className="text-xs text-muted-foreground space-y-1">
-                    <p>User ID: <span className="font-mono">{userDetail.user.id}</span></p>
-                    <p>Created: {userDetail.user.createdAt ? format(new Date(userDetail.user.createdAt), 'PPpp') : '-'}</p>
-                    <p>Updated: {userDetail.user.updatedAt ? format(new Date(userDetail.user.updatedAt), 'PPpp') : '-'}</p>
+                    <p>
+                      User ID: <span className="font-mono">{userDetail.user.id}</span>
+                    </p>
+                    <p>
+                      Created:{" "}
+                      {userDetail.user.createdAt
+                        ? format(new Date(userDetail.user.createdAt), "PPpp")
+                        : "-"}
+                    </p>
+                    <p>
+                      Updated:{" "}
+                      {userDetail.user.updatedAt
+                        ? format(new Date(userDetail.user.updatedAt), "PPpp")
+                        : "-"}
+                    </p>
                   </div>
                 </TabsContent>
 
@@ -542,26 +698,41 @@ export default function AdminUsers() {
                   ) : (
                     <div className="space-y-2">
                       {userDetail.logos.map((logo: any) => (
-                        <div key={logo.id} className="border rounded-md p-3 flex items-center justify-between">
+                        <div
+                          key={logo.id}
+                          className="border rounded-md p-3 flex items-center justify-between"
+                        >
                           <div className="space-y-1">
-                            <p className="font-medium text-sm">{logo.fileName || logo.tokenName || 'Untitled'}</p>
+                            <p className="font-medium text-sm">
+                              {logo.fileName || logo.tokenName || "Untitled"}
+                            </p>
                             <div className="flex items-center gap-2">
                               {logo.registrationType && (
-                                <Badge variant="outline" className="text-xs capitalize">{logo.registrationType.replace('_', ' ')}</Badge>
+                                <Badge variant="outline" className="text-xs capitalize">
+                                  {logo.registrationType.replace("_", " ")}
+                                </Badge>
                               )}
                               {logo.tokenTicker && (
-                                <Badge variant="secondary" className="text-xs">${logo.tokenTicker}</Badge>
+                                <Badge variant="secondary" className="text-xs">
+                                  ${logo.tokenTicker}
+                                </Badge>
                               )}
                               {logo.tickerVerified && (
-                                <Badge variant="default" className="text-xs"><CheckCircle2 className="w-3 h-3 mr-1" />Verified</Badge>
+                                <Badge variant="default" className="text-xs">
+                                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                                  Verified
+                                </Badge>
                               )}
                               {logo.nftAddress && (
-                                <Badge variant="default" className="text-xs"><Package className="w-3 h-3 mr-1" />Minted</Badge>
+                                <Badge variant="default" className="text-xs">
+                                  <Package className="w-3 h-3 mr-1" />
+                                  Minted
+                                </Badge>
                               )}
                             </div>
                           </div>
                           <span className="text-xs text-muted-foreground">
-                            {logo.createdAt ? format(new Date(logo.createdAt), 'MMM d, yyyy') : '-'}
+                            {logo.createdAt ? format(new Date(logo.createdAt), "MMM d, yyyy") : "-"}
                           </span>
                         </div>
                       ))}
@@ -575,11 +746,19 @@ export default function AdminUsers() {
                   ) : (
                     <div className="space-y-2">
                       {userDetail.collections.map((col: any) => (
-                        <div key={col.id} className="border rounded-md p-3 flex items-center justify-between">
+                        <div
+                          key={col.id}
+                          className="border rounded-md p-3 flex items-center justify-between"
+                        >
                           <div className="space-y-1">
-                            <p className="font-medium text-sm">{col.name || 'Unnamed Collection'}</p>
+                            <p className="font-medium text-sm">
+                              {col.name || "Unnamed Collection"}
+                            </p>
                             <div className="flex items-center gap-2">
-                              <Badge variant={col.status === 'minted' ? 'default' : 'secondary'} className="text-xs capitalize">
+                              <Badge
+                                variant={col.status === "minted" ? "default" : "secondary"}
+                                className="text-xs capitalize"
+                              >
                                 {col.status}
                               </Badge>
                               {col.collectionAddress && (
@@ -590,7 +769,7 @@ export default function AdminUsers() {
                             </div>
                           </div>
                           <span className="text-xs text-muted-foreground">
-                            {col.createdAt ? format(new Date(col.createdAt), 'MMM d, yyyy') : '-'}
+                            {col.createdAt ? format(new Date(col.createdAt), "MMM d, yyyy") : "-"}
                           </span>
                         </div>
                       ))}
@@ -609,7 +788,8 @@ export default function AdminUsers() {
             <DialogHeader>
               <DialogTitle>Edit User</DialogTitle>
               <DialogDescription>
-                Update account status and subscription for {editUser.email || editUser.firstName || 'this user'}
+                Update account status and subscription for{" "}
+                {editUser.email || editUser.firstName || "this user"}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -641,13 +821,17 @@ export default function AdminUsers() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                Cancel
+              </Button>
               <Button
                 onClick={handleSaveEdit}
                 disabled={updateUserMutation.isPending}
                 data-testid="button-save-user-edit"
               >
-                {updateUserMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : null}
+                {updateUserMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                ) : null}
                 Save Changes
               </Button>
             </DialogFooter>

@@ -66,12 +66,17 @@ subdomainsRouter.post("/subdomains/register", isAuthenticated, async (req: any, 
       details: { subdomain },
     });
 
-    return res.json(formatSuccess({
-      registered: true,
-      subdomain,
-      solturioDomain: scResult.solturioDomain,
-      walletAddress,
-    }, requestId));
+    return res.json(
+      formatSuccess(
+        {
+          registered: true,
+          subdomain,
+          solturioDomain: scResult.solturioDomain,
+          walletAddress,
+        },
+        requestId
+      )
+    );
   } catch (error: any) {
     console.error("Error registering subdomain:", error);
     auditLogger.log({
@@ -105,12 +110,17 @@ subdomainsRouter.get("/subdomains/:name", async (req: any, res) => {
       });
     }
 
-    return res.json(formatSuccess({
-      subdomain: name,
-      registered: true,
-      solturioDomain: `${name}.solturio.sol`,
-      available: true,
-    }, requestId));
+    return res.json(
+      formatSuccess(
+        {
+          subdomain: name,
+          registered: true,
+          solturioDomain: `${name}.solturio.sol`,
+          available: true,
+        },
+        requestId
+      )
+    );
   } catch (error: any) {
     res.status(500).json(formatError(error, requestId));
   }

@@ -46,12 +46,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type SortField = "date" | "name" | "size" | "type";
 type SortDir = "asc" | "desc";
@@ -70,12 +65,24 @@ function formatDate(dateStr: string | Date | null | undefined): string {
 
 function getRegistrationTypeBadge(type: string | null | undefined) {
   if (type === "token_launch") {
-    return <Badge variant="default" data-testid="badge-type-token">Token Launch</Badge>;
+    return (
+      <Badge variant="default" data-testid="badge-type-token">
+        Token Launch
+      </Badge>
+    );
   }
   if (type === "artwork") {
-    return <Badge variant="secondary" data-testid="badge-type-artwork">Artwork</Badge>;
+    return (
+      <Badge variant="secondary" data-testid="badge-type-artwork">
+        Artwork
+      </Badge>
+    );
   }
-  return <Badge variant="outline" data-testid="badge-type-logo">Logo</Badge>;
+  return (
+    <Badge variant="outline" data-testid="badge-type-logo">
+      Logo
+    </Badge>
+  );
 }
 
 function getMintStatus(logo: Logo) {
@@ -88,19 +95,42 @@ function getMintStatus(logo: Logo) {
 function getVerificationBadge(logo: Logo) {
   if (logo.registrationType !== "token_launch") return null;
   if (logo.tickerVerified) {
-    return <Badge variant="default" className="gap-1"><CheckCircle className="w-3 h-3" />Verified</Badge>;
+    return (
+      <Badge variant="default" className="gap-1">
+        <CheckCircle className="w-3 h-3" />
+        Verified
+      </Badge>
+    );
   }
   if (logo.tickerVerificationDeadline) {
     const expired = new Date() > new Date(logo.tickerVerificationDeadline);
     if (expired) {
-      return <Badge variant="destructive" className="gap-1"><AlertTriangle className="w-3 h-3" />Expired</Badge>;
+      return (
+        <Badge variant="destructive" className="gap-1">
+          <AlertTriangle className="w-3 h-3" />
+          Expired
+        </Badge>
+      );
     }
-    return <Badge variant="secondary" className="gap-1"><Clock className="w-3 h-3" />Pending</Badge>;
+    return (
+      <Badge variant="secondary" className="gap-1">
+        <Clock className="w-3 h-3" />
+        Pending
+      </Badge>
+    );
   }
   return null;
 }
 
-function LogoDetailDialog({ logo, open, onClose }: { logo: Logo | null; open: boolean; onClose: () => void }) {
+function LogoDetailDialog({
+  logo,
+  open,
+  onClose,
+}: {
+  logo: Logo | null;
+  open: boolean;
+  onClose: () => void;
+}) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const copyToClipboard = (text: string, field: string) => {
@@ -118,7 +148,10 @@ function LogoDetailDialog({ logo, open, onClose }: { logo: Logo | null; open: bo
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 flex-wrap" data-testid="dialog-logo-title">
+          <DialogTitle
+            className="flex items-center gap-2 flex-wrap"
+            data-testid="dialog-logo-title"
+          >
             <Shield className="w-5 h-5 text-primary flex-shrink-0" />
             <span className="truncate">{logo.fileName}</span>
           </DialogTitle>
@@ -165,7 +198,9 @@ function LogoDetailDialog({ logo, open, onClose }: { logo: Logo | null; open: bo
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <div>
                   <span className="text-muted-foreground text-xs">Dimensions</span>
-                  <p className="font-medium">{logo.width} x {logo.height}px</p>
+                  <p className="font-medium">
+                    {logo.width} x {logo.height}px
+                  </p>
                 </div>
                 <div>
                   <span className="text-muted-foreground text-xs">Format</span>
@@ -193,13 +228,17 @@ function LogoDetailDialog({ logo, open, onClose }: { logo: Logo | null; open: bo
                 {logo.tokenName && (
                   <div>
                     <span className="text-muted-foreground text-xs">Token Name</span>
-                    <p className="font-medium" data-testid="text-token-name">{logo.tokenName}</p>
+                    <p className="font-medium" data-testid="text-token-name">
+                      {logo.tokenName}
+                    </p>
                   </div>
                 )}
                 {logo.tokenTicker && (
                   <div>
                     <span className="text-muted-foreground text-xs">Ticker</span>
-                    <p className="font-medium" data-testid="text-token-ticker">${logo.tokenTicker}</p>
+                    <p className="font-medium" data-testid="text-token-ticker">
+                      ${logo.tokenTicker}
+                    </p>
                   </div>
                 )}
                 {logo.launchPlatform && (
@@ -212,7 +251,10 @@ function LogoDetailDialog({ logo, open, onClose }: { logo: Logo | null; open: bo
                   <div className="col-span-2">
                     <span className="text-muted-foreground text-xs">Contract Address</span>
                     <div className="flex items-center gap-2">
-                      <code className="text-xs font-mono bg-muted px-2 py-1 rounded truncate flex-1" data-testid="text-contract-address">
+                      <code
+                        className="text-xs font-mono bg-muted px-2 py-1 rounded truncate flex-1"
+                        data-testid="text-contract-address"
+                      >
                         {logo.tokenContractAddress}
                       </code>
                       <Button
@@ -221,7 +263,11 @@ function LogoDetailDialog({ logo, open, onClose }: { logo: Logo | null; open: bo
                         onClick={() => copyToClipboard(logo.tokenContractAddress!, "ca")}
                         data-testid="button-copy-ca"
                       >
-                        {copiedField === "ca" ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        {copiedField === "ca" ? (
+                          <Check className="w-3 h-3" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -239,7 +285,10 @@ function LogoDetailDialog({ logo, open, onClose }: { logo: Logo | null; open: bo
               <div>
                 <span className="text-muted-foreground text-xs">SHA-256 File Hash</span>
                 <div className="flex items-center gap-2">
-                  <code className="text-xs font-mono bg-muted px-2 py-1 rounded truncate flex-1" data-testid="text-file-hash">
+                  <code
+                    className="text-xs font-mono bg-muted px-2 py-1 rounded truncate flex-1"
+                    data-testid="text-file-hash"
+                  >
                     {logo.fileHash}
                   </code>
                   <Button
@@ -248,7 +297,11 @@ function LogoDetailDialog({ logo, open, onClose }: { logo: Logo | null; open: bo
                     onClick={() => copyToClipboard(logo.fileHash, "hash")}
                     data-testid="button-copy-hash"
                   >
-                    {copiedField === "hash" ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    {copiedField === "hash" ? (
+                      <Check className="w-3 h-3" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
                   </Button>
                 </div>
               </div>
@@ -257,7 +310,10 @@ function LogoDetailDialog({ logo, open, onClose }: { logo: Logo | null; open: bo
                 <div>
                   <span className="text-muted-foreground text-xs">IPFS CID</span>
                   <div className="flex items-center gap-2">
-                    <code className="text-xs font-mono bg-muted px-2 py-1 rounded truncate flex-1" data-testid="text-ipfs-hash">
+                    <code
+                      className="text-xs font-mono bg-muted px-2 py-1 rounded truncate flex-1"
+                      data-testid="text-ipfs-hash"
+                    >
                       {logo.ipfsHash}
                     </code>
                     <Button
@@ -276,13 +332,18 @@ function LogoDetailDialog({ logo, open, onClose }: { logo: Logo | null; open: bo
                 <div>
                   <span className="text-muted-foreground text-xs">NFT Certificate</span>
                   <div className="flex items-center gap-2">
-                    <code className="text-xs font-mono bg-muted px-2 py-1 rounded truncate flex-1" data-testid="text-nft-address">
+                    <code
+                      className="text-xs font-mono bg-muted px-2 py-1 rounded truncate flex-1"
+                      data-testid="text-nft-address"
+                    >
                       {logo.nftAddress}
                     </code>
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => window.open(`https://solscan.io/token/${logo.nftAddress}`, "_blank")}
+                      onClick={() =>
+                        window.open(`https://solscan.io/token/${logo.nftAddress}`, "_blank")
+                      }
                       data-testid="button-view-nft"
                     >
                       <ExternalLink className="w-3 h-3" />
@@ -295,13 +356,18 @@ function LogoDetailDialog({ logo, open, onClose }: { logo: Logo | null; open: bo
                 <div>
                   <span className="text-muted-foreground text-xs">Transaction Hash</span>
                   <div className="flex items-center gap-2">
-                    <code className="text-xs font-mono bg-muted px-2 py-1 rounded truncate flex-1" data-testid="text-tx-hash">
+                    <code
+                      className="text-xs font-mono bg-muted px-2 py-1 rounded truncate flex-1"
+                      data-testid="text-tx-hash"
+                    >
                       {logo.transactionHash}
                     </code>
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => window.open(`https://solscan.io/tx/${logo.transactionHash}`, "_blank")}
+                      onClick={() =>
+                        window.open(`https://solscan.io/tx/${logo.transactionHash}`, "_blank")
+                      }
                       data-testid="button-view-tx"
                     >
                       <ExternalLink className="w-3 h-3" />
@@ -322,18 +388,26 @@ function LogoDetailDialog({ logo, open, onClose }: { logo: Logo | null; open: bo
                 {logo.copyrightStatus && logo.copyrightStatus !== "none" && (
                   <div>
                     <span className="text-muted-foreground text-xs">Copyright</span>
-                    <p className="font-medium capitalize">{logo.copyrightStatus.replace("_", " ")}</p>
+                    <p className="font-medium capitalize">
+                      {logo.copyrightStatus.replace("_", " ")}
+                    </p>
                     {logo.copyrightApplicationNumber && (
-                      <p className="text-xs text-muted-foreground">#{logo.copyrightApplicationNumber}</p>
+                      <p className="text-xs text-muted-foreground">
+                        #{logo.copyrightApplicationNumber}
+                      </p>
                     )}
                   </div>
                 )}
                 {logo.trademarkStatus && logo.trademarkStatus !== "none" && (
                   <div>
                     <span className="text-muted-foreground text-xs">Trademark</span>
-                    <p className="font-medium capitalize">{logo.trademarkStatus.replace("_", " ")}</p>
+                    <p className="font-medium capitalize">
+                      {logo.trademarkStatus.replace("_", " ")}
+                    </p>
                     {logo.trademarkApplicationNumber && (
-                      <p className="text-xs text-muted-foreground">#{logo.trademarkApplicationNumber}</p>
+                      <p className="text-xs text-muted-foreground">
+                        #{logo.trademarkApplicationNumber}
+                      </p>
                     )}
                   </div>
                 )}
@@ -427,7 +501,7 @@ export default function LogoRegistry() {
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortDir(prev => (prev === "asc" ? "desc" : "asc"));
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSortField(field);
       setSortDir("desc");
@@ -444,7 +518,14 @@ export default function LogoRegistry() {
         const matchesTokenName = logo.tokenName?.toLowerCase().includes(q);
         const matchesHash = logo.fileHash?.toLowerCase().includes(q);
         const matchesCA = logo.tokenContractAddress?.toLowerCase().includes(q);
-        if (!matchesName && !matchesDesc && !matchesTicker && !matchesTokenName && !matchesHash && !matchesCA) {
+        if (
+          !matchesName &&
+          !matchesDesc &&
+          !matchesTicker &&
+          !matchesTokenName &&
+          !matchesHash &&
+          !matchesCA
+        ) {
           return false;
         }
       }
@@ -452,7 +533,10 @@ export default function LogoRegistry() {
         if (typeFilter === "token_launch" && logo.registrationType !== "token_launch") return false;
         if (typeFilter === "artwork" && logo.registrationType !== "artwork") return false;
         if (typeFilter === "logo") {
-          const isPlainLogo = !logo.registrationType || logo.registrationType === "logo" || logo.registrationType === "";
+          const isPlainLogo =
+            !logo.registrationType ||
+            logo.registrationType === "logo" ||
+            logo.registrationType === "";
           if (!isPlainLogo) return false;
         }
       }
@@ -498,7 +582,7 @@ export default function LogoRegistry() {
 
   if (!isAuthenticated) return null;
 
-  const SortButton = ({ field, label }: { field: SortField; label: string }) => (
+  const renderSortButton = (field: SortField, label: string) => (
     <Button
       variant="ghost"
       size="sm"
@@ -508,7 +592,11 @@ export default function LogoRegistry() {
     >
       {label}
       {sortField === field ? (
-        sortDir === "asc" ? <SortAsc className="w-3 h-3" /> : <SortDesc className="w-3 h-3" />
+        sortDir === "asc" ? (
+          <SortAsc className="w-3 h-3" />
+        ) : (
+          <SortDesc className="w-3 h-3" />
+        )
       ) : (
         <ArrowUpDown className="w-3 h-3 text-muted-foreground/50" />
       )}
@@ -519,7 +607,9 @@ export default function LogoRegistry() {
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         <div>
-          <h1 className="text-2xl font-bold mb-1" data-testid="heading-logo-registry">Logo Registry</h1>
+          <h1 className="text-2xl font-bold mb-1" data-testid="heading-logo-registry">
+            Logo Registry
+          </h1>
           <p className="text-muted-foreground text-sm">
             Complete record of all your registered intellectual property
           </p>
@@ -528,19 +618,27 @@ export default function LogoRegistry() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Card className="p-4">
             <p className="text-xs text-muted-foreground mb-1">Total Registered</p>
-            <p className="text-2xl font-bold" data-testid="stat-total">{totalCount}</p>
+            <p className="text-2xl font-bold" data-testid="stat-total">
+              {totalCount}
+            </p>
           </Card>
           <Card className="p-4">
             <p className="text-xs text-muted-foreground mb-1">Minted NFTs</p>
-            <p className="text-2xl font-bold" data-testid="stat-minted">{mintedCount}</p>
+            <p className="text-2xl font-bold" data-testid="stat-minted">
+              {mintedCount}
+            </p>
           </Card>
           <Card className="p-4">
             <p className="text-xs text-muted-foreground mb-1">Token Launches</p>
-            <p className="text-2xl font-bold" data-testid="stat-tokens">{tokenCount}</p>
+            <p className="text-2xl font-bold" data-testid="stat-tokens">
+              {tokenCount}
+            </p>
           </Card>
           <Card className="p-4">
             <p className="text-xs text-muted-foreground mb-1">Artworks</p>
-            <p className="text-2xl font-bold" data-testid="stat-artworks">{artworkCount}</p>
+            <p className="text-2xl font-bold" data-testid="stat-artworks">
+              {artworkCount}
+            </p>
           </Card>
         </div>
 
@@ -596,7 +694,8 @@ export default function LogoRegistry() {
                 <>
                   <h3 className="font-semibold mb-2">No Registrations Yet</h3>
                   <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-                    Start protecting your intellectual property by registering your first logo or artwork.
+                    Start protecting your intellectual property by registering your first logo or
+                    artwork.
                   </p>
                   <Button asChild data-testid="button-register-first">
                     <Link href="/register">Register IP</Link>
@@ -618,12 +717,12 @@ export default function LogoRegistry() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12"></TableHead>
-                      <TableHead><SortButton field="name" label="Name" /></TableHead>
-                      <TableHead><SortButton field="type" label="Type" /></TableHead>
+                      <TableHead>{renderSortButton("name", "Name")}</TableHead>
+                      <TableHead>{renderSortButton("type", "Type")}</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Hash</TableHead>
-                      <TableHead><SortButton field="size" label="Size" /></TableHead>
-                      <TableHead><SortButton field="date" label="Registered" /></TableHead>
+                      <TableHead>{renderSortButton("size", "Size")}</TableHead>
+                      <TableHead>{renderSortButton("date", "Registered")}</TableHead>
                       <TableHead className="w-10"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -647,7 +746,11 @@ export default function LogoRegistry() {
                                   className="w-full h-full object-contain"
                                 />
                               ) : logo.imageUrl ? (
-                                <img src={logo.imageUrl} alt="" className="w-full h-full object-contain" />
+                                <img
+                                  src={logo.imageUrl}
+                                  alt=""
+                                  className="w-full h-full object-contain"
+                                />
                               ) : (
                                 <ImageIcon className="w-4 h-4 text-muted-foreground/30" />
                               )}
@@ -655,7 +758,10 @@ export default function LogoRegistry() {
                           </TableCell>
                           <TableCell>
                             <div className="min-w-0">
-                              <p className="font-medium text-sm truncate max-w-[200px]" title={logo.fileName}>
+                              <p
+                                className="font-medium text-sm truncate max-w-[200px]"
+                                title={logo.fileName}
+                              >
                                 {logo.fileName}
                               </p>
                               {logo.tokenTicker && (
@@ -674,7 +780,10 @@ export default function LogoRegistry() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                            <div
+                              className="flex items-center gap-1"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <code className="text-xs font-mono text-muted-foreground">
                                 {logo.fileHash?.slice(0, 10)}...
                               </code>
@@ -726,9 +835,17 @@ export default function LogoRegistry() {
                       <div className="flex items-start gap-3">
                         <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center overflow-hidden flex-shrink-0">
                           {logo.thumbnailUrl ? (
-                            <img src={`/api/thumbnails/${logo.id}`} alt="" className="w-full h-full object-contain" />
+                            <img
+                              src={`/api/thumbnails/${logo.id}`}
+                              alt=""
+                              className="w-full h-full object-contain"
+                            />
                           ) : logo.imageUrl ? (
-                            <img src={logo.imageUrl} alt="" className="w-full h-full object-contain" />
+                            <img
+                              src={logo.imageUrl}
+                              alt=""
+                              className="w-full h-full object-contain"
+                            />
                           ) : (
                             <ImageIcon className="w-5 h-5 text-muted-foreground/30" />
                           )}

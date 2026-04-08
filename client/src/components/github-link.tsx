@@ -5,22 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Github, 
-  ExternalLink, 
-  CheckCircle, 
-  AlertTriangle, 
+import {
+  Github,
+  ExternalLink,
+  CheckCircle,
+  AlertTriangle,
   Loader2,
   Link as LinkIcon,
   Code,
-  Shield
+  Shield,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { 
-  parseInstructionFromUrl, 
+import {
+  parseInstructionFromUrl,
   getInstructionDescription,
-  type OnChainInstruction 
+  type OnChainInstruction,
 } from "@/lib/transaction-builder";
 
 interface GitHubLinkProps {
@@ -84,8 +84,8 @@ export function GitHubLink({ walletAddress }: GitHubLinkProps) {
     refetchInterval: 30000,
   });
 
-  const linkStatusQueryKey = walletAddress 
-    ? ["/api/github/link-status", walletAddress] 
+  const linkStatusQueryKey = walletAddress
+    ? ["/api/github/link-status", walletAddress]
     : ["/api/github/link-status"];
 
   const { data: linkStatus, isLoading: linkLoading } = useQuery<LinkStatus>({
@@ -203,9 +203,7 @@ export function GitHubLink({ walletAddress }: GitHubLinkProps) {
               <p className="text-sm text-muted-foreground">
                 {getInstructionDescription(pendingInstruction.instruction)}
               </p>
-              <p className="text-xs text-muted-foreground">
-                {pendingInstruction.note}
-              </p>
+              <p className="text-xs text-muted-foreground">{pendingInstruction.note}</p>
               {pendingInstruction.requiresDualSignature && (
                 <Badge variant="secondary" className="mt-2">
                   Requires wallet signature
@@ -218,9 +216,10 @@ export function GitHubLink({ walletAddress }: GitHubLinkProps) {
         {!linkStatus?.linked ? (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Connect your GitHub account to register code repositories and prove ownership of your projects.
+              Connect your GitHub account to register code repositories and prove ownership of your
+              projects.
             </p>
-            
+
             <div className="flex flex-col gap-2">
               <Button
                 onClick={() => startOAuthMutation.mutate()}
@@ -270,7 +269,7 @@ export function GitHubLink({ walletAddress }: GitHubLinkProps) {
                   </h4>
                   <div className="space-y-2">
                     {linkStatus.repositories.map((repo, idx) => (
-                      <div 
+                      <div
                         key={idx}
                         className="flex items-center justify-between p-2 rounded-md bg-muted/50"
                         data-testid={`repo-item-${idx}`}
@@ -280,9 +279,9 @@ export function GitHubLink({ walletAddress }: GitHubLinkProps) {
                           <span className="text-xs text-muted-foreground">
                             {new Date(repo.registeredAt).toLocaleDateString()}
                           </span>
-                          <a 
-                            href={repo.url} 
-                            target="_blank" 
+                          <a
+                            href={repo.url}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary hover:underline"
                           >
@@ -297,7 +296,7 @@ export function GitHubLink({ walletAddress }: GitHubLinkProps) {
             )}
 
             <Separator />
-            
+
             <Button
               variant="outline"
               size="sm"

@@ -4,7 +4,7 @@
  * REGULATORY: Uses decentralized price feeds, not centralized oracles
  */
 
-import { TOKEN_MINTS, getCurrentSubscriptionPricing } from '@shared/pricing';
+import { TOKEN_MINTS, getCurrentSubscriptionPricing } from "@shared/pricing";
 
 interface TokenPrice {
   symbol: string;
@@ -28,12 +28,12 @@ async function fetchJupiterPrice(mintAddress: string): Promise<number | null> {
   try {
     const response = await fetch(`https://price.jup.ag/v6/price?ids=${mintAddress}`);
     if (!response.ok) return null;
-    
+
     const data = await response.json();
     const priceData = data.data?.[mintAddress];
     return priceData?.price ?? null;
   } catch (error) {
-    console.error('Jupiter price fetch error:', error);
+    console.error("Jupiter price fetch error:", error);
     return null;
   }
 }
@@ -60,7 +60,7 @@ export async function getTokenPrice(symbol: string): Promise<TokenPrice | null> 
   const tokenPrice: TokenPrice = {
     symbol,
     priceUsd: price,
-    source: 'jupiter',
+    source: "jupiter",
     timestamp: new Date(),
   };
 
@@ -72,7 +72,7 @@ export async function getTokenPrice(symbol: string): Promise<TokenPrice | null> 
  * Get SOL price in USD
  */
 export async function getSolPrice(): Promise<number> {
-  const price = await getTokenPrice('SOL');
+  const price = await getTokenPrice("SOL");
   return price?.priceUsd ?? 150; // Fallback to reasonable estimate
 }
 
@@ -80,7 +80,7 @@ export async function getSolPrice(): Promise<number> {
  * Get CATH price in USD
  */
 export async function getCathPrice(): Promise<number> {
-  const price = await getTokenPrice('CATH');
+  const price = await getTokenPrice("CATH");
   return price?.priceUsd ?? 0.001; // Fallback to reasonable estimate
 }
 
@@ -99,13 +99,13 @@ export async function calculateCathForSubscription(): Promise<{
   const pricing = getCurrentSubscriptionPricing();
   const solPrice = await getSolPrice();
   const cathPrice = await getCathPrice();
-  
+
   // Calculate USD value of SOL equivalent
   const usdValue = pricing.solEquivalent * solPrice;
-  
+
   // Calculate CATH needed
   const cathAmount = cathPrice > 0 ? usdValue / cathPrice : 0;
-  
+
   return {
     cathAmount: Math.ceil(cathAmount), // Round up to whole tokens
     solEquivalent: pricing.solEquivalent,
@@ -127,5 +127,5 @@ export function getAllCachedPrices(): PriceCache {
  * Clear price cache
  */
 export function clearPriceCache(): void {
-  Object.keys(priceCache).forEach(key => delete priceCache[key]);
+  Object.keys(priceCache).forEach((key) => delete priceCache[key]);
 }

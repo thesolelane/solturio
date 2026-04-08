@@ -8,12 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { 
-  Shield, 
-  AlertTriangle, 
+import {
+  Shield,
+  AlertTriangle,
   AlertCircle,
-  CheckCircle, 
-  Copy, 
+  CheckCircle,
+  Copy,
   Ban,
   FileText,
   ExternalLink,
@@ -24,7 +24,7 @@ import {
   Building2,
   MessageCircle,
   Globe,
-  Users
+  Users,
 } from "lucide-react";
 import { SiX, SiTelegram, SiDiscord } from "react-icons/si";
 import {
@@ -52,7 +52,9 @@ export default function DexProtection() {
   const [verificationResult, setVerificationResult] = useState<any>(null);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [selectedLogo, setSelectedLogo] = useState<Logo | null>(null);
-  const [reportType, setReportType] = useState<"token" | "telegram" | "twitter" | "website" | "discord">("token");
+  const [reportType, setReportType] = useState<
+    "token" | "telegram" | "twitter" | "website" | "discord"
+  >("token");
 
   // Get user's logos
   const { data: logos = [], isLoading: logosLoading } = useQuery<Logo[]>({
@@ -105,7 +107,7 @@ export default function DexProtection() {
       copycatDiscord?: string;
       screenshotUrl?: string;
       evidenceDescription?: string;
-    }) => apiRequest('/api/copycat/report', 'POST', data),
+    }) => apiRequest("/api/copycat/report", "POST", data),
     onSuccess: (result: any) => {
       toast({
         title: "Report Submitted",
@@ -128,7 +130,6 @@ export default function DexProtection() {
     }
   };
 
-
   return (
     <div className="container mx-auto p-6 max-w-6xl">
       <div className="mb-8 text-center">
@@ -143,13 +144,13 @@ export default function DexProtection() {
               Get Protected Now
             </a>
           </Button>
-          <Button 
-            size="lg" 
-            variant="outline" 
+          <Button
+            size="lg"
+            variant="outline"
             className="gap-2"
             onClick={() => {
-              const reportSection = document.getElementById('report-section');
-              reportSection?.scrollIntoView({ behavior: 'smooth' });
+              const reportSection = document.getElementById("report-section");
+              reportSection?.scrollIntoView({ behavior: "smooth" });
             }}
           >
             <ShieldAlert className="w-4 h-4" />
@@ -194,9 +195,7 @@ export default function DexProtection() {
                 <span className="text-lg font-bold">3</span>
               </div>
               <h3 className="font-semibold mb-1">Use on DEXs</h3>
-              <p className="text-sm text-muted-foreground">
-                List with verified Solturio/IPFS URLs
-              </p>
+              <p className="text-sm text-muted-foreground">List with verified Solturio/IPFS URLs</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 rounded-full bg-green-600/10 flex items-center justify-center mx-auto mb-2">
@@ -260,9 +259,17 @@ export default function DexProtection() {
                       </AlertDescription>
                     </Alert>
                     <div className="text-sm space-y-1">
-                      <p><strong>Registration:</strong> {new Date(verificationResult.original.registrationDate).toLocaleDateString()}</p>
+                      <p>
+                        <strong>Registration:</strong>{" "}
+                        {new Date(
+                          verificationResult.original.registrationDate
+                        ).toLocaleDateString()}
+                      </p>
                       {verificationResult.original.ipfsHash && (
-                        <p><strong>IPFS:</strong> {verificationResult.original.ipfsHash.slice(0, 12)}...</p>
+                        <p>
+                          <strong>IPFS:</strong> {verificationResult.original.ipfsHash.slice(0, 12)}
+                          ...
+                        </p>
                       )}
                       {verificationResult.possibleCopies > 0 && (
                         <Badge variant="destructive">
@@ -275,9 +282,7 @@ export default function DexProtection() {
                   <Alert variant="destructive">
                     <AlertTriangle className="w-4 h-4" />
                     <AlertTitle>Not Registered</AlertTitle>
-                    <AlertDescription>
-                      This logo is not registered on Solturio
-                    </AlertDescription>
+                    <AlertDescription>This logo is not registered on Solturio</AlertDescription>
                   </Alert>
                 )}
               </div>
@@ -307,10 +312,12 @@ export default function DexProtection() {
               <>
                 <div className="space-y-2">
                   <Label>Select Your Protected Logo</Label>
-                  <Select onValueChange={(value) => {
-                    const logo = logos.find(l => l.id === value);
-                    setSelectedLogo(logo || null);
-                  }}>
+                  <Select
+                    onValueChange={(value) => {
+                      const logo = logos.find((l) => l.id === value);
+                      setSelectedLogo(logo || null);
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Choose which IP was stolen" />
                     </SelectTrigger>
@@ -342,40 +349,60 @@ export default function DexProtection() {
                       <div className="space-y-4">
                         {/* Report Type Selection */}
                         <div className="space-y-4 border rounded-lg p-4">
-                          <h3 className="font-semibold mb-3">What type of IP theft are you reporting?</h3>
-                          <RadioGroup value={reportType} onValueChange={(value: any) => setReportType(value)}>
+                          <h3 className="font-semibold mb-3">
+                            What type of IP theft are you reporting?
+                          </h3>
+                          <RadioGroup
+                            value={reportType}
+                            onValueChange={(value: any) => setReportType(value)}
+                          >
                             <div className="grid grid-cols-1 gap-3">
                               <div className="flex items-center space-x-2 cursor-pointer">
                                 <RadioGroupItem value="token" id="token" />
-                                <Label htmlFor="token" className="cursor-pointer flex items-center gap-2">
+                                <Label
+                                  htmlFor="token"
+                                  className="cursor-pointer flex items-center gap-2"
+                                >
                                   <Building2 className="w-4 h-4" />
                                   Token/CA using my logo on DEX
                                 </Label>
                               </div>
                               <div className="flex items-center space-x-2 cursor-pointer">
                                 <RadioGroupItem value="telegram" id="telegram" />
-                                <Label htmlFor="telegram" className="cursor-pointer flex items-center gap-2">
+                                <Label
+                                  htmlFor="telegram"
+                                  className="cursor-pointer flex items-center gap-2"
+                                >
                                   <SiTelegram className="w-4 h-4" />
                                   Telegram channel/group impersonation
                                 </Label>
                               </div>
                               <div className="flex items-center space-x-2 cursor-pointer">
                                 <RadioGroupItem value="twitter" id="twitter" />
-                                <Label htmlFor="twitter" className="cursor-pointer flex items-center gap-2">
+                                <Label
+                                  htmlFor="twitter"
+                                  className="cursor-pointer flex items-center gap-2"
+                                >
                                   <SiX className="w-4 h-4" />
                                   Twitter/X account using my brand
                                 </Label>
                               </div>
                               <div className="flex items-center space-x-2 cursor-pointer">
                                 <RadioGroupItem value="website" id="website" />
-                                <Label htmlFor="website" className="cursor-pointer flex items-center gap-2">
+                                <Label
+                                  htmlFor="website"
+                                  className="cursor-pointer flex items-center gap-2"
+                                >
                                   <Globe className="w-4 h-4" />
                                   Fraudulent website copying my brand
                                 </Label>
                               </div>
                               <div className="flex items-center space-x-2 cursor-pointer">
                                 <RadioGroupItem value="discord" id="discord" />
-                                <Label htmlFor="discord" className="cursor-pointer flex items-center gap-2">
+                                <Label
+                                  htmlFor="discord"
+                                  className="cursor-pointer flex items-center gap-2"
+                                >
                                   <SiDiscord className="w-4 h-4" />
                                   Discord server using my IP
                                 </Label>
@@ -409,10 +436,10 @@ export default function DexProtection() {
                                 <Label>Token Ticker</Label>
                                 <Input
                                   placeholder="$FAKE"
-                                id="copycat-ticker"
-                                data-testid="input-copycat-ticker"
-                              />
-                            </div>
+                                  id="copycat-ticker"
+                                  data-testid="input-copycat-ticker"
+                                />
+                              </div>
                               <div>
                                 <Label>Token Name</Label>
                                 <Input
@@ -461,10 +488,18 @@ export default function DexProtection() {
                                     <SelectValue placeholder="Select violation type" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="exact">Exact copy of my brand name</SelectItem>
-                                    <SelectItem value="variation">Deceptive variation (e.g., added underscore)</SelectItem>
-                                    <SelectItem value="logo">Using my logo without permission</SelectItem>
-                                    <SelectItem value="impersonation">Full impersonation of my project</SelectItem>
+                                    <SelectItem value="exact">
+                                      Exact copy of my brand name
+                                    </SelectItem>
+                                    <SelectItem value="variation">
+                                      Deceptive variation (e.g., added underscore)
+                                    </SelectItem>
+                                    <SelectItem value="logo">
+                                      Using my logo without permission
+                                    </SelectItem>
+                                    <SelectItem value="impersonation">
+                                      Full impersonation of my project
+                                    </SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -499,10 +534,18 @@ export default function DexProtection() {
                                     <SelectValue placeholder="Select violation type" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="pfp">Using my logo as profile picture</SelectItem>
-                                    <SelectItem value="handle">Deceptive handle variation</SelectItem>
-                                    <SelectItem value="impersonation">Full account impersonation</SelectItem>
-                                    <SelectItem value="content">Posting my IP without permission</SelectItem>
+                                    <SelectItem value="pfp">
+                                      Using my logo as profile picture
+                                    </SelectItem>
+                                    <SelectItem value="handle">
+                                      Deceptive handle variation
+                                    </SelectItem>
+                                    <SelectItem value="impersonation">
+                                      Full account impersonation
+                                    </SelectItem>
+                                    <SelectItem value="content">
+                                      Posting my IP without permission
+                                    </SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -539,8 +582,12 @@ export default function DexProtection() {
                                   <SelectContent>
                                     <SelectItem value="clone">Complete website clone</SelectItem>
                                     <SelectItem value="logo">Using my logo/brand assets</SelectItem>
-                                    <SelectItem value="phishing">Phishing/scam site using my brand</SelectItem>
-                                    <SelectItem value="content">Copying my content without permission</SelectItem>
+                                    <SelectItem value="phishing">
+                                      Phishing/scam site using my brand
+                                    </SelectItem>
+                                    <SelectItem value="content">
+                                      Copying my content without permission
+                                    </SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -569,10 +616,7 @@ export default function DexProtection() {
                               </div>
                               <div>
                                 <Label>Server Name</Label>
-                                <Input
-                                  placeholder="Fake Project Server"
-                                  id="discord-name"
-                                />
+                                <Input placeholder="Fake Project Server" id="discord-name" />
                               </div>
                               <div>
                                 <Label>Member Count</Label>
@@ -585,7 +629,6 @@ export default function DexProtection() {
                             </div>
                           )}
                         </div>
-
 
                         {/* Evidence */}
                         <div className="space-y-4 border rounded-lg p-4">
@@ -623,27 +666,55 @@ export default function DexProtection() {
                           className="w-full"
                           onClick={() => {
                             // Required fields
-                            const copycatCA = (document.getElementById('copycat-ca') as HTMLInputElement)?.value;
-                            const dexPlatform = (document.getElementById('dex-platform') as HTMLSelectElement)?.value;
-                            const evidenceUrl = (document.getElementById('evidence-url') as HTMLInputElement)?.value;
-                            
+                            const copycatCA = (
+                              document.getElementById("copycat-ca") as HTMLInputElement
+                            )?.value;
+                            const dexPlatform = (
+                              document.getElementById("dex-platform") as HTMLSelectElement
+                            )?.value;
+                            const evidenceUrl = (
+                              document.getElementById("evidence-url") as HTMLInputElement
+                            )?.value;
+
                             // Optional fields
-                            const copycatTicker = (document.getElementById('copycat-ticker') as HTMLInputElement)?.value;
-                            const copycatName = (document.getElementById('copycat-name') as HTMLInputElement)?.value;
-                            
+                            const copycatTicker = (
+                              document.getElementById("copycat-ticker") as HTMLInputElement
+                            )?.value;
+                            const copycatName = (
+                              document.getElementById("copycat-name") as HTMLInputElement
+                            )?.value;
+
                             // Social media
-                            const copycatTwitter = (document.getElementById('copycat-twitter') as HTMLInputElement)?.value;
-                            const copycatTelegram = (document.getElementById('copycat-telegram') as HTMLInputElement)?.value;
-                            const copycatWebsite = (document.getElementById('copycat-website') as HTMLInputElement)?.value;
-                            const copycatDiscord = (document.getElementById('copycat-discord') as HTMLInputElement)?.value;
-                            const copycatTiktok = (document.getElementById('copycat-tiktok') as HTMLInputElement)?.value;
-                            const copycatFacebook = (document.getElementById('copycat-facebook') as HTMLInputElement)?.value;
-                            const copycatInstagram = (document.getElementById('copycat-instagram') as HTMLInputElement)?.value;
-                            
+                            const copycatTwitter = (
+                              document.getElementById("copycat-twitter") as HTMLInputElement
+                            )?.value;
+                            const copycatTelegram = (
+                              document.getElementById("copycat-telegram") as HTMLInputElement
+                            )?.value;
+                            const copycatWebsite = (
+                              document.getElementById("copycat-website") as HTMLInputElement
+                            )?.value;
+                            const copycatDiscord = (
+                              document.getElementById("copycat-discord") as HTMLInputElement
+                            )?.value;
+                            const copycatTiktok = (
+                              document.getElementById("copycat-tiktok") as HTMLInputElement
+                            )?.value;
+                            const copycatFacebook = (
+                              document.getElementById("copycat-facebook") as HTMLInputElement
+                            )?.value;
+                            const copycatInstagram = (
+                              document.getElementById("copycat-instagram") as HTMLInputElement
+                            )?.value;
+
                             // Evidence
-                            const screenshotUrl = (document.getElementById('screenshot-url') as HTMLInputElement)?.value;
-                            const evidenceDescription = (document.getElementById('evidence-description') as HTMLTextAreaElement)?.value;
-                            
+                            const screenshotUrl = (
+                              document.getElementById("screenshot-url") as HTMLInputElement
+                            )?.value;
+                            const evidenceDescription = (
+                              document.getElementById("evidence-description") as HTMLTextAreaElement
+                            )?.value;
+
                             if (selectedLogo && copycatCA && dexPlatform && evidenceUrl) {
                               reportCopycatMutation.mutate({
                                 originalLogoId: selectedLogo.id,
@@ -665,7 +736,8 @@ export default function DexProtection() {
                             } else {
                               toast({
                                 title: "Missing Required Fields",
-                                description: "Please fill in Contract Address, Platform, and Evidence URL",
+                                description:
+                                  "Please fill in Contract Address, Platform, and Evidence URL",
                                 variant: "destructive",
                               });
                             }
@@ -708,7 +780,7 @@ export default function DexProtection() {
               We're building a database of organizations including:
             </AlertDescription>
           </Alert>
-          
+
           <div className="grid md:grid-cols-2 gap-4">
             <div className="p-4 border rounded-lg">
               <h4 className="font-semibold mb-2">DEX Platforms</h4>
@@ -767,9 +839,7 @@ export default function DexProtection() {
             <ShieldAlert className="w-5 h-5" />
             Ticker Variation Protection
           </CardTitle>
-          <CardDescription>
-            Protect against similar variations of your ticker/name
-          </CardDescription>
+          <CardDescription>Protect against similar variations of your ticker/name</CardDescription>
         </CardHeader>
         <CardContent>
           <Alert>
@@ -779,12 +849,19 @@ export default function DexProtection() {
               <p>Register variations that are too close to your original:</p>
               <div className="mt-2 space-y-1">
                 <p className="font-mono text-sm">• $CATH → Protects: $C.A.T.H, $C-A-T-H, $C4TH</p>
-                <p className="font-mono text-sm">• Solturio → Protects: S0lturio, Sol-turio, SOLTURIO</p>
+                <p className="font-mono text-sm">
+                  • Solturio → Protects: S0lturio, Sol-turio, SOLTURIO
+                </p>
               </div>
-              <p className="mt-2">This feature helps you establish priority over copycats using confusingly similar names.</p>
+              <p className="mt-2">
+                This feature helps you establish priority over copycats using confusingly similar
+                names.
+              </p>
             </AlertDescription>
           </Alert>
-          <Badge variant="secondary" className="mt-4">Coming Soon</Badge>
+          <Badge variant="secondary" className="mt-4">
+            Coming Soon
+          </Badge>
         </CardContent>
       </Card>
     </div>

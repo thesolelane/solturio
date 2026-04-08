@@ -5,7 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,7 +40,10 @@ export default function MusicCollections() {
       setCreateOpen(false);
       setNewCollectionName("");
       setNewCollectionDesc("");
-      toast({ title: "Collection created", description: "Your music collection has been created." });
+      toast({
+        title: "Collection created",
+        description: "Your music collection has been created.",
+      });
     },
     onError: (error: any) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -127,7 +136,10 @@ export default function MusicCollections() {
             <p className="text-muted-foreground mb-6">
               Create your first music collection to start protecting your audio IP
             </p>
-            <Button onClick={() => setCreateOpen(true)} data-testid="button-create-first-collection">
+            <Button
+              onClick={() => setCreateOpen(true)}
+              data-testid="button-create-first-collection"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Create Collection
             </Button>
@@ -137,7 +149,10 @@ export default function MusicCollections() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {collections.map((collection) => (
             <Link key={collection.id} href={`/music/collections/${collection.id}`}>
-              <Card className="hover-elevate cursor-pointer h-full" data-testid={`card-collection-${collection.id}`}>
+              <Card
+                className="hover-elevate cursor-pointer h-full"
+                data-testid={`card-collection-${collection.id}`}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -147,17 +162,15 @@ export default function MusicCollections() {
                   </div>
                   <CardTitle className="mt-4">{collection.name}</CardTitle>
                   {collection.description && (
-                    <CardDescription className="line-clamp-2">{collection.description}</CardDescription>
+                    <CardDescription className="line-clamp-2">
+                      {collection.description}
+                    </CardDescription>
                   )}
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary">
-                      {collection.labelName || "Independent"}
-                    </Badge>
-                    {collection.status === "active" && (
-                      <Badge variant="outline">Active</Badge>
-                    )}
+                    <Badge variant="secondary">{collection.labelName || "Independent"}</Badge>
+                    {collection.status === "active" && <Badge variant="outline">Active</Badge>}
                   </div>
                 </CardContent>
               </Card>

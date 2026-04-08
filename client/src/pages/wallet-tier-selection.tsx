@@ -14,7 +14,7 @@ export default function WalletTierSelection() {
   const [customName, setCustomName] = useState("");
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
-  
+
   // Mock user account number (in real app, this would come from backend)
   const accountNumber = "042";
 
@@ -25,14 +25,14 @@ export default function WalletTierSelection() {
     }
 
     setIsCheckingAvailability(true);
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
     // Mock availability check (in real app, this would call backend)
     const reserved = ["solturio", "official", "support", "admin", "trustwallet"];
     const available = !reserved.includes(name.toLowerCase());
-    
+
     setIsAvailable(available);
     setIsCheckingAvailability(false);
   };
@@ -41,7 +41,7 @@ export default function WalletTierSelection() {
     // Only allow alphanumeric characters
     const sanitized = value.toLowerCase().replace(/[^a-z0-9]/g, "");
     setCustomName(sanitized);
-    
+
     if (sanitized.length >= 3) {
       checkNameAvailability(sanitized);
     } else {
@@ -54,8 +54,9 @@ export default function WalletTierSelection() {
     setLocation("/register/ceremony/stage1");
   };
 
-  const isCustomNameValid = selectedTier === "premium" && 
-    customName.length >= 3 && 
+  const isCustomNameValid =
+    selectedTier === "premium" &&
+    customName.length >= 3 &&
     customName.length <= 32 &&
     isAvailable === true;
 
@@ -68,17 +69,16 @@ export default function WalletTierSelection() {
         <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
           <Wallet className="w-8 h-8 text-primary" />
         </div>
-        <h1 className="text-4xl font-bold mb-4">
-          Choose Your Wallet Name
-        </h1>
+        <h1 className="text-4xl font-bold mb-4">Choose Your Wallet Name</h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Your `xxx.solturio.sol` wallet will store certificates, smart contracts, and IPFS hashes. Choose between auto-assigned or custom naming.
+          Your `xxx.solturio.sol` wallet will store certificates, smart contracts, and IPFS hashes.
+          Choose between auto-assigned or custom naming.
         </p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-8">
         {/* Standard Tier */}
-        <Card 
+        <Card
           className={`cursor-pointer transition-all ${selectedTier === "standard" ? "ring-2 ring-primary" : "hover-elevate"}`}
           onClick={() => setSelectedTier("standard")}
         >
@@ -138,7 +138,7 @@ export default function WalletTierSelection() {
         </Card>
 
         {/* Premium Tier */}
-        <Card 
+        <Card
           className={`cursor-pointer transition-all ${selectedTier === "premium" ? "ring-2 ring-primary" : "hover-elevate"}`}
           onClick={() => setSelectedTier("premium")}
         >
@@ -180,7 +180,7 @@ export default function WalletTierSelection() {
                   </div>
                 )}
               </div>
-              
+
               {/* Preview */}
               {customName && (
                 <div className="bg-muted/50 rounded-lg p-4 text-center">
@@ -252,7 +252,9 @@ export default function WalletTierSelection() {
             <div className="space-y-2">
               <h3 className="font-semibold">Important: Wallet Restrictions</h3>
               <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                <li>Your `xxx.solturio.sol` wallet ONLY accepts certificates and smart contracts</li>
+                <li>
+                  Your `xxx.solturio.sol` wallet ONLY accepts certificates and smart contracts
+                </li>
                 <li>SPL tokens sent to this wallet will be automatically rejected/burned</li>
                 <li>This is NOT a trading wallet - use Phantom/Solflare for holding tokens</li>
                 <li>Platform never handles wallet recovery - you control your private keys</li>
@@ -277,10 +279,9 @@ export default function WalletTierSelection() {
           disabled={!canContinue}
           data-testid="button-continue-to-ceremony"
         >
-          {selectedTier === "standard" 
+          {selectedTier === "standard"
             ? "Continue with Standard (0.1 SOL)"
-            : "Continue with Premium (0.15 SOL)"
-          }
+            : "Continue with Premium (0.15 SOL)"}
         </Button>
       </div>
     </div>

@@ -140,7 +140,7 @@ class IPFSService {
     // Use Pinata's dedicated gateway if JWT is available, otherwise public gateway
     const pinataGateway = process.env.PINATA_GATEWAY || "gateway.pinata.cloud";
     const jwt = process.env.PINATA_JWT;
-    
+
     if (jwt) {
       return `https://${pinataGateway}/ipfs/${ipfsHash}?pinataGatewayToken=${jwt}`;
     }

@@ -1,7 +1,22 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Search, Shield, ShieldCheck, ShieldX, Twitter, Send, Instagram, Globe, Calendar, ExternalLink, ArrowLeft, Loader2, Image, User } from "lucide-react";
+import {
+  Search,
+  Shield,
+  ShieldCheck,
+  ShieldX,
+  Twitter,
+  Send,
+  Instagram,
+  Globe,
+  Calendar,
+  ExternalLink,
+  ArrowLeft,
+  Loader2,
+  Image,
+  User,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,7 +54,12 @@ export default function VerifyWalletPage() {
   const [walletInput, setWalletInput] = useState("");
   const [searchedWallet, setSearchedWallet] = useState("");
 
-  const { data: result, isLoading, error, refetch } = useQuery<VerificationResult>({
+  const {
+    data: result,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery<VerificationResult>({
     queryKey: ["/api/public/verify-wallet", searchedWallet],
     queryFn: async () => {
       const res = await fetch(`/api/public/verify-wallet/${encodeURIComponent(searchedWallet)}`);
@@ -86,8 +106,8 @@ export default function VerifyWalletPage() {
               <h1 className="text-3xl font-bold">Wallet Verification</h1>
             </div>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Verify if a Solana wallet address is linked to a registered creator on Solturio.
-              This helps confirm authentic ownership and protect against impersonation.
+              Verify if a Solana wallet address is linked to a registered creator on Solturio. This
+              helps confirm authentic ownership and protect against impersonation.
             </p>
           </div>
         </div>
@@ -113,7 +133,11 @@ export default function VerifyWalletPage() {
                 className="flex-1 font-mono text-sm"
                 data-testid="input-wallet-address"
               />
-              <Button type="submit" disabled={walletInput.length < 32 || isLoading} data-testid="button-verify">
+              <Button
+                type="submit"
+                disabled={walletInput.length < 32 || isLoading}
+                data-testid="button-verify"
+              >
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -132,7 +156,8 @@ export default function VerifyWalletPage() {
             <Shield className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
             <h2 className="text-xl font-semibold mb-2">Enter a Wallet Address</h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Paste a Solana wallet address to check if it belongs to a verified creator with protected IP on Solturio.
+              Paste a Solana wallet address to check if it belongs to a verified creator with
+              protected IP on Solturio.
             </p>
           </div>
         )}
@@ -160,13 +185,15 @@ export default function VerifyWalletPage() {
               <ShieldX className="w-16 h-16 mx-auto text-amber-500 mb-4" />
               <h3 className="text-xl font-semibold mb-2">Not Verified</h3>
               <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                {result.message || "This wallet address is not linked to any registered creator on Solturio."}
+                {result.message ||
+                  "This wallet address is not linked to any registered creator on Solturio."}
               </p>
               <div className="bg-muted rounded-lg p-4 font-mono text-sm break-all">
                 {result.walletAddress}
               </div>
               <p className="text-sm text-muted-foreground mt-4">
-                This doesn't necessarily mean the wallet is fraudulent - it may simply not be registered on our platform.
+                This doesn't necessarily mean the wallet is fraudulent - it may simply not be
+                registered on our platform.
               </p>
             </CardContent>
           </Card>
@@ -179,17 +206,18 @@ export default function VerifyWalletPage() {
                 <div className="flex items-start gap-4">
                   <ShieldCheck className="w-12 h-12 text-green-600 flex-shrink-0" />
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-green-700 dark:text-green-400 mb-2">Verified Creator</h3>
+                    <h3 className="text-xl font-semibold text-green-700 dark:text-green-400 mb-2">
+                      Verified Creator
+                    </h3>
                     <p className="text-muted-foreground mb-4">
-                      This wallet is registered on Solturio and linked to a verified creator account.
+                      This wallet is registered on Solturio and linked to a verified creator
+                      account.
                     </p>
                     <div className="bg-background/50 rounded-lg p-4 font-mono text-sm break-all">
                       {result.walletAddress}
                     </div>
                     {result.walletDomain && (
-                      <Badge className="mt-3 bg-green-600">
-                        {result.walletDomain}
-                      </Badge>
+                      <Badge className="mt-3 bg-green-600">{result.walletDomain}</Badge>
                     )}
                   </div>
                 </div>
@@ -234,11 +262,15 @@ export default function VerifyWalletPage() {
                         variant="outline"
                         size="sm"
                         className="gap-2"
-                        onClick={() => window.open(`https://twitter.com/${result.creator!.twitterHandle}`, "_blank")}
+                        onClick={() =>
+                          window.open(
+                            `https://twitter.com/${result.creator!.twitterHandle}`,
+                            "_blank"
+                          )
+                        }
                         data-testid="link-twitter"
                       >
-                        <Twitter className="w-4 h-4" />
-                        @{result.creator.twitterHandle}
+                        <Twitter className="w-4 h-4" />@{result.creator.twitterHandle}
                         <ExternalLink className="w-3 h-3" />
                       </Button>
                     )}
@@ -247,11 +279,12 @@ export default function VerifyWalletPage() {
                         variant="outline"
                         size="sm"
                         className="gap-2"
-                        onClick={() => window.open(`https://t.me/${result.creator!.telegramHandle}`, "_blank")}
+                        onClick={() =>
+                          window.open(`https://t.me/${result.creator!.telegramHandle}`, "_blank")
+                        }
                         data-testid="link-telegram"
                       >
-                        <Send className="w-4 h-4" />
-                        @{result.creator.telegramHandle}
+                        <Send className="w-4 h-4" />@{result.creator.telegramHandle}
                         <ExternalLink className="w-3 h-3" />
                       </Button>
                     )}
@@ -260,11 +293,15 @@ export default function VerifyWalletPage() {
                         variant="outline"
                         size="sm"
                         className="gap-2"
-                        onClick={() => window.open(`https://instagram.com/${result.creator!.instagramHandle}`, "_blank")}
+                        onClick={() =>
+                          window.open(
+                            `https://instagram.com/${result.creator!.instagramHandle}`,
+                            "_blank"
+                          )
+                        }
                         data-testid="link-instagram"
                       >
-                        <Instagram className="w-4 h-4" />
-                        @{result.creator.instagramHandle}
+                        <Instagram className="w-4 h-4" />@{result.creator.instagramHandle}
                         <ExternalLink className="w-3 h-3" />
                       </Button>
                     )}
@@ -314,8 +351,11 @@ export default function VerifyWalletPage() {
                               )}
                             </div>
                             <p className="text-sm text-muted-foreground">
-                              {collection.registrationType === "token" ? "Token Project" : "Artwork"}
-                              {collection.mintedAt && ` • Verified ${formatDate(collection.mintedAt)}`}
+                              {collection.registrationType === "token"
+                                ? "Token Project"
+                                : "Artwork"}
+                              {collection.mintedAt &&
+                                ` • Verified ${formatDate(collection.mintedAt)}`}
                             </p>
                           </div>
                         </div>

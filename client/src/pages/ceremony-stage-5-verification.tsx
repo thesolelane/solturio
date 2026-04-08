@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,7 +39,7 @@ interface VerifyResponse {
 export default function CeremonyStage5Verification() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  
+
   // Fetch ceremony progress from backend to get current attempt count
   const { data: progress } = useQuery<CeremonyProgress>({
     queryKey: ["/api/ceremony/progress"],
@@ -46,7 +53,9 @@ export default function CeremonyStage5Verification() {
   const randomPositions = challenge?.positions || [];
 
   const [userInputs, setUserInputs] = useState<Record<number, string>>({});
-  const [verificationStatus, setVerificationStatus] = useState<"pending" | "success" | "failed">("pending");
+  const [verificationStatus, setVerificationStatus] = useState<"pending" | "success" | "failed">(
+    "pending"
+  );
   const [attemptsRemaining, setAttemptsRemaining] = useState(3);
   const maxAttempts = 3;
 
@@ -64,7 +73,11 @@ export default function CeremonyStage5Verification() {
     }
   }, [progress]);
 
-  const verifyPhraseMutation = useMutation<VerifyResponse, any, { word1: string; word2: string; word3: string }>({
+  const verifyPhraseMutation = useMutation<
+    VerifyResponse,
+    any,
+    { word1: string; word2: string; word3: string }
+  >({
     mutationFn: async (data: { word1: string; word2: string; word3: string }) => {
       const response = await apiRequest("/api/ceremony/verify-phrase", "POST", data);
       return response as unknown as VerifyResponse;
@@ -100,7 +113,7 @@ export default function CeremonyStage5Verification() {
         }, 2000);
       } else {
         setAttemptsRemaining(result.attemptsRemaining || 0);
-        
+
         if (result.locked) {
           setVerificationStatus("failed");
           toast({
@@ -144,9 +157,10 @@ export default function CeremonyStage5Verification() {
     setLocation("/ceremony/stage-4-reveal");
   };
 
-  const isFormValid = randomPositions && randomPositions.length === 3 && randomPositions.every((pos: number) => 
-    userInputs[pos]?.trim().length > 0
-  );
+  const isFormValid =
+    randomPositions &&
+    randomPositions.length === 3 &&
+    randomPositions.every((pos: number) => userInputs[pos]?.trim().length > 0);
 
   // Show loading while challenge is being fetched
   if (challengeLoading || !randomPositions || randomPositions.length !== 3) {
@@ -178,12 +192,16 @@ export default function CeremonyStage5Verification() {
       <Card className={verificationStatus === "failed" ? "border-destructive" : "border-primary"}>
         <CardHeader className="space-y-4">
           <div className="flex items-center gap-3">
-            <div className={`p-3 rounded-full ${
-              verificationStatus === "failed" ? "bg-destructive/10" : "bg-primary/10"
-            }`}>
-              <Shield className={`h-8 w-8 ${
-                verificationStatus === "failed" ? "text-destructive" : "text-primary"
-              }`} />
+            <div
+              className={`p-3 rounded-full ${
+                verificationStatus === "failed" ? "bg-destructive/10" : "bg-primary/10"
+              }`}
+            >
+              <Shield
+                className={`h-8 w-8 ${
+                  verificationStatus === "failed" ? "text-destructive" : "text-primary"
+                }`}
+              />
             </div>
             <div>
               <CardTitle className="text-2xl">Verification Gauntlet</CardTitle>
@@ -199,14 +217,16 @@ export default function CeremonyStage5Verification() {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  Enter the exact words from your written recovery phrase. 
-                  You have <span className="font-bold">{attemptsRemaining} attempt(s)</span> remaining.
+                  Enter the exact words from your written recovery phrase. You have{" "}
+                  <span className="font-bold">{attemptsRemaining} attempt(s)</span> remaining.
                 </AlertDescription>
               </Alert>
 
               <div className="space-y-4">
-                <h3 className="font-semibold">Enter these specific words from your recovery phrase:</h3>
-                
+                <h3 className="font-semibold">
+                  Enter these specific words from your recovery phrase:
+                </h3>
+
                 {randomPositions.map((position: number) => (
                   <div key={position} className="space-y-2">
                     <Label htmlFor={`word-${position}`} className="text-base">
@@ -217,10 +237,12 @@ export default function CeremonyStage5Verification() {
                       type="text"
                       placeholder={`Enter word #${position}`}
                       value={userInputs[position] || ""}
-                      onChange={(e) => setUserInputs({
-                        ...userInputs,
-                        [position]: e.target.value
-                      })}
+                      onChange={(e) =>
+                        setUserInputs({
+                          ...userInputs,
+                          [position]: e.target.value,
+                        })
+                      }
                       className="font-mono text-lg"
                       data-testid={`input-word-${position}`}
                       autoComplete="off"
@@ -243,9 +265,9 @@ export default function CeremonyStage5Verification() {
 
               <div className="p-4 bg-muted/30 border rounded-lg">
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-semibold">Why we do this:</span> This verification ensures you 
-                  actually wrote down your recovery phrase. If you can't verify it now, you won't be 
-                  able to recover your wallet later.
+                  <span className="font-semibold">Why we do this:</span> This verification ensures
+                  you actually wrote down your recovery phrase. If you can't verify it now, you
+                  won't be able to recover your wallet later.
                 </p>
               </div>
             </>
@@ -279,8 +301,8 @@ export default function CeremonyStage5Verification() {
                 <div className="text-center space-y-2">
                   <h3 className="font-semibold text-lg text-destructive">Verification Failed</h3>
                   <p className="text-sm text-muted-foreground">
-                    You've used all {maxAttempts} attempts. You must restart the ceremony 
-                    and write down your recovery phrase more carefully.
+                    You've used all {maxAttempts} attempts. You must restart the ceremony and write
+                    down your recovery phrase more carefully.
                   </p>
                 </div>
               </div>
@@ -288,8 +310,9 @@ export default function CeremonyStage5Verification() {
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <span className="font-semibold">This is for your protection.</span> If you can't verify 
-                  your recovery phrase now, you won't be able to recover your wallet if you lose access to it.
+                  <span className="font-semibold">This is for your protection.</span> If you can't
+                  verify your recovery phrase now, you won't be able to recover your wallet if you
+                  lose access to it.
                 </AlertDescription>
               </Alert>
 
@@ -308,11 +331,7 @@ export default function CeremonyStage5Verification() {
         <CardFooter className="flex justify-between gap-3">
           {verificationStatus === "pending" && (
             <>
-              <Button
-                variant="outline"
-                onClick={handleGoBack}
-                data-testid="button-go-back"
-              >
+              <Button variant="outline" onClick={handleGoBack} data-testid="button-go-back">
                 Go Back
               </Button>
               <Button

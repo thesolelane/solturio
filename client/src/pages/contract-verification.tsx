@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { 
-  Shield, 
-  CheckCircle, 
+import {
+  Shield,
+  CheckCircle,
   Award,
   Lock,
   Calendar,
@@ -19,7 +19,7 @@ import {
   Loader2,
   AlertCircle,
   Trophy,
-  Star
+  Star,
 } from "lucide-react";
 import {
   Select,
@@ -59,16 +59,17 @@ export default function ContractVerification() {
       contractAddress: string;
       chainId: number;
       deploymentDate: string;
-    }) => apiRequest('/api/contract/bind', 'POST', data),
+    }) => apiRequest("/api/contract/bind", "POST", data),
     onSuccess: (result) => {
       toast({
-        title: result.verificationLevel === 'gold' ? "🏆 Gold Verification!" : "Contract Bound",
-        description: result.verificationLevel === 'gold' ? 
-          "Your logo has received Gold verification for pre-launch registration!" :
-          "Contract successfully bound to your logo",
+        title: result.verificationLevel === "gold" ? "🏆 Gold Verification!" : "Contract Bound",
+        description:
+          result.verificationLevel === "gold"
+            ? "Your logo has received Gold verification for pre-launch registration!"
+            : "Contract successfully bound to your logo",
       });
       setIsBindingDialogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/logos'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/logos"] });
     },
     onError: () => {
       toast({
@@ -86,12 +87,12 @@ export default function ContractVerification() {
 <script src="https://cdn.solturio.app/overlay.js"></script>
 <script>
   Solturio.enableGoldOverlay({
-    contractAddress: '${contractAddress || 'YOUR_CONTRACT_ADDRESS'}',
+    contractAddress: '${contractAddress || "YOUR_CONTRACT_ADDRESS"}',
     showBadge: true,
     position: 'top-right'
   });
 </script>`;
-    
+
     navigator.clipboard.writeText(script);
     setCopiedCode(true);
     toast({
@@ -115,13 +116,15 @@ export default function ContractVerification() {
   // Calculate days before launch for selected logo
   const calculateDaysBeforeLaunch = () => {
     if (!selectedLogo || !deploymentDate) return null;
-    
+
     const registration = new Date(selectedLogo.createdAt);
     const deployment = new Date(deploymentDate);
-    
+
     if (registration >= deployment) return null;
-    
-    const days = Math.floor((deployment.getTime() - registration.getTime()) / (1000 * 60 * 60 * 24));
+
+    const days = Math.floor(
+      (deployment.getTime() - registration.getTime()) / (1000 * 60 * 60 * 24)
+    );
     return days;
   };
 
@@ -144,9 +147,7 @@ export default function ContractVerification() {
             <Trophy className="w-6 h-6 text-yellow-600" />
             Gold Verification System
           </CardTitle>
-          <CardDescription>
-            Register before launch, get permanent gold verification
-          </CardDescription>
+          <CardDescription>Register before launch, get permanent gold verification</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-3 gap-6">
@@ -156,9 +157,7 @@ export default function ContractVerification() {
               </div>
               <Badge className="mb-2 bg-yellow-500 text-white">Gold Check</Badge>
               <p className="text-sm font-semibold">7+ Days Before Launch</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Ultimate proof of legitimacy
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Ultimate proof of legitimacy</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 rounded-full bg-gray-400 flex items-center justify-center mx-auto mb-3">
@@ -166,9 +165,7 @@ export default function ContractVerification() {
               </div>
               <Badge className="mb-2 bg-gray-400 text-white">Silver Check</Badge>
               <p className="text-sm font-semibold">1-7 Days Before</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Pre-launch verification
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Pre-launch verification</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 rounded-full bg-orange-600 flex items-center justify-center mx-auto mb-3">
@@ -176,9 +173,7 @@ export default function ContractVerification() {
               </div>
               <Badge className="mb-2 bg-orange-600 text-white">Standard</Badge>
               <p className="text-sm font-semibold">After Launch</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Basic verification
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Basic verification</p>
             </div>
           </div>
 
@@ -186,12 +181,13 @@ export default function ContractVerification() {
             <Star className="w-4 h-4 text-yellow-600" />
             <AlertTitle>Gold Check Benefits (IPFS/Solturio URLs Only)</AlertTitle>
             <AlertDescription>
-              <strong className="text-yellow-600 block mb-2">⚠️ Gold checks ONLY appear when using Solturio/IPFS URLs!</strong>
-              • Automatic overlay on IPFS images (ipfs.io/ipfs/...)
-              • Won't work with external URLs (imgur, cloudinary, etc.)
-              • Priority in DEX verification when using verified URLs
-              • Legal priority in IP disputes with blockchain proof
-              • Permanent certificate linked to IPFS hash
+              <strong className="text-yellow-600 block mb-2">
+                ⚠️ Gold checks ONLY appear when using Solturio/IPFS URLs!
+              </strong>
+              • Automatic overlay on IPFS images (ipfs.io/ipfs/...) • Won't work with external URLs
+              (imgur, cloudinary, etc.) • Priority in DEX verification when using verified URLs •
+              Legal priority in IP disputes with blockchain proof • Permanent certificate linked to
+              IPFS hash
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -205,25 +201,23 @@ export default function ContractVerification() {
               <Link className="w-5 h-5" />
               Bind Contract to Logo
             </CardTitle>
-            <CardDescription>
-              Connect your logo to your smart contract address
-            </CardDescription>
+            <CardDescription>Connect your logo to your smart contract address</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {logos.length === 0 ? (
               <Alert>
-                <AlertDescription>
-                  Upload logos first to bind them to contracts
-                </AlertDescription>
+                <AlertDescription>Upload logos first to bind them to contracts</AlertDescription>
               </Alert>
             ) : (
               <>
                 <div className="space-y-2">
                   <Label>Select Logo</Label>
-                  <Select onValueChange={(value) => {
-                    const logo = logos.find(l => l.id === value);
-                    setSelectedLogo(logo || null);
-                  }}>
+                  <Select
+                    onValueChange={(value) => {
+                      const logo = logos.find((l) => l.id === value);
+                      setSelectedLogo(logo || null);
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Choose a logo to bind" />
                     </SelectTrigger>
@@ -276,7 +270,7 @@ export default function ContractVerification() {
                             data-testid="input-deployment-date"
                           />
                         </div>
-                        
+
                         {daysBeforeLaunch !== null && (
                           <Alert className={qualifiesForGold ? "border-yellow-500" : ""}>
                             <AlertCircle className="w-4 h-4" />
@@ -285,11 +279,11 @@ export default function ContractVerification() {
                             </AlertTitle>
                             <AlertDescription>
                               Logo registered {daysBeforeLaunch} days before launch.
-                              {qualifiesForGold ? 
-                                " You qualify for GOLD verification!" : 
-                                daysBeforeLaunch > 0 ?
-                                " You qualify for Silver verification." :
-                                " Standard verification only (post-launch)."}
+                              {qualifiesForGold
+                                ? " You qualify for GOLD verification!"
+                                : daysBeforeLaunch > 0
+                                  ? " You qualify for Silver verification."
+                                  : " Standard verification only (post-launch)."}
                             </AlertDescription>
                           </Alert>
                         )}
@@ -297,7 +291,9 @@ export default function ContractVerification() {
                         <Button
                           className="w-full"
                           onClick={handleBindContract}
-                          disabled={!contractAddress || !deploymentDate || bindContractMutation.isPending}
+                          disabled={
+                            !contractAddress || !deploymentDate || bindContractMutation.isPending
+                          }
                         >
                           {bindContractMutation.isPending ? (
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -324,9 +320,7 @@ export default function ContractVerification() {
               <Code className="w-5 h-5" />
               Automatic Gold Overlay
             </CardTitle>
-            <CardDescription>
-              Add gold checks to your IPFS images automatically
-            </CardDescription>
+            <CardDescription>Add gold checks to your IPFS images automatically</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Alert className="border-yellow-500/50">
@@ -394,9 +388,7 @@ export default function ContractVerification() {
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>Gold Check Visual Example</CardTitle>
-          <CardDescription>
-            How verified logos appear with gold checks
-          </CardDescription>
+          <CardDescription>How verified logos appear with gold checks</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-3 gap-6">
@@ -406,8 +398,8 @@ export default function ContractVerification() {
                   LOGO
                 </div>
                 <div className="absolute -bottom-2 -right-2 w-16 h-16">
-                  <img 
-                    src="/gold-check-badge-solturio.png" 
+                  <img
+                    src="/gold-check-badge-solturio.png"
                     alt="Gold Check"
                     className="w-full h-full object-contain filter drop-shadow-lg"
                   />
@@ -425,8 +417,15 @@ export default function ContractVerification() {
                 </div>
                 <div className="absolute top-1 right-1">
                   <svg width="24" height="24" className="filter drop-shadow-lg">
-                    <circle cx="12" cy="12" r="12" fill="#C0C0C0" stroke="#FFF" strokeWidth="2"/>
-                    <path d="M6 12 L10 16 L18 8" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="12" cy="12" r="12" fill="#C0C0C0" stroke="#FFF" strokeWidth="2" />
+                    <path
+                      d="M6 12 L10 16 L18 8"
+                      stroke="white"
+                      strokeWidth="3"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </div>
               </div>
@@ -441,8 +440,15 @@ export default function ContractVerification() {
                 </div>
                 <div className="absolute top-1 right-1">
                   <svg width="24" height="24" className="filter drop-shadow-lg">
-                    <circle cx="12" cy="12" r="12" fill="#CD7F32" stroke="#FFF" strokeWidth="2"/>
-                    <path d="M6 12 L10 16 L18 8" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="12" cy="12" r="12" fill="#CD7F32" stroke="#FFF" strokeWidth="2" />
+                    <path
+                      d="M6 12 L10 16 L18 8"
+                      stroke="white"
+                      strokeWidth="3"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </div>
               </div>

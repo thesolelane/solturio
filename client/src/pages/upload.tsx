@@ -3,7 +3,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest, uploadFormData } from "@/lib/queryClient";
-import { Shield, Upload as UploadIcon, X, Loader2, ArrowRight, Image as ImageIcon, FolderOpen } from "lucide-react";
+import {
+  Shield,
+  Upload as UploadIcon,
+  X,
+  Loader2,
+  ArrowRight,
+  Image as ImageIcon,
+  FolderOpen,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,11 +27,11 @@ interface UploadedLogo {
   description: string;
   ownershipDescription: string;
   intendedUse: string;
-  copyrightStatus: 'none' | 'pre_filing' | 'pending' | 'registered';
+  copyrightStatus: "none" | "pre_filing" | "pending" | "registered";
   copyrightAppNumber: string;
-  trademarkStatus: 'none' | 'pre_filing' | 'pending' | 'registered';
+  trademarkStatus: "none" | "pre_filing" | "pending" | "registered";
   trademarkAppNumber: string;
-  patentStatus: 'none' | 'pre_filing' | 'pending' | 'registered';
+  patentStatus: "none" | "pre_filing" | "pending" | "registered";
   patentAppNumber: string;
   metadata?: {
     width: number;
@@ -39,16 +47,16 @@ export default function Upload() {
   const [, setLocation] = useLocation();
   const [logos, setLogos] = useState<UploadedLogo[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [companyName, setCompanyName] = useState('');
-  const [imageUrlInput, setImageUrlInput] = useState('');
+  const [companyName, setCompanyName] = useState("");
+  const [imageUrlInput, setImageUrlInput] = useState("");
   const queryClient = useQueryClient();
 
   // Fetch user data to check wallet type
   const { data: userData } = useQuery<{ walletType?: string }>({
-    queryKey: ['/api/auth/user'],
+    queryKey: ["/api/auth/user"],
     enabled: isAuthenticated,
   });
-  const isPremium = userData?.walletType === 'premium';
+  const isPremium = userData?.walletType === "premium";
 
   // Set page title
   useEffect(() => {
@@ -69,121 +77,170 @@ export default function Upload() {
     }
   }, [isAuthenticated, authLoading, toast]);
 
-  const extractImageMetadata = useCallback((file: File): Promise<{
-    width: number;
-    height: number;
-    format: string;
-    size: number;
-  }> => {
-    return new Promise((resolve) => {
-      // Check if file is an image type
-      const imageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/gif', 'image/webp'];
-      
-      if (!imageTypes.includes(file.type)) {
-        // Non-image file - return basic metadata
-        const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE';
-        resolve({
-          width: 0,
-          height: 0,
-          format: ext,
-          size: file.size,
-        });
-        return;
-      }
-      
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      
-      img.onload = () => {
-        resolve({
-          width: img.width,
-          height: img.height,
-          format: file.type.split('/')[1].toUpperCase(),
-          size: file.size,
-        });
-        URL.revokeObjectURL(url);
-      };
-      
-      img.onerror = () => {
-        // Fallback if image fails to load
-        URL.revokeObjectURL(url);
-        const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE';
-        resolve({
-          width: 0,
-          height: 0,
-          format: ext,
-          size: file.size,
-        });
-      };
-      
-      img.src = url;
-    });
-  }, []);
+  const extractImageMetadata = useCallback(
+    (
+      file: File
+    ): Promise<{
+      width: number;
+      height: number;
+      format: string;
+      size: number;
+    }> => {
+      return new Promise((resolve) => {
+        // Check if file is an image type
+        const imageTypes = [
+          "image/png",
+          "image/jpeg",
+          "image/jpg",
+          "image/svg+xml",
+          "image/gif",
+          "image/webp",
+        ];
 
-  const handleFiles = useCallback(async (files: FileList | null) => {
-    if (!files) return;
+        if (!imageTypes.includes(file.type)) {
+          // Non-image file - return basic metadata
+          const ext = file.name.split(".").pop()?.toUpperCase() || "FILE";
+          resolve({
+            width: 0,
+            height: 0,
+            format: ext,
+            size: file.size,
+          });
+          return;
+        }
 
-    const newLogos: UploadedLogo[] = [];
-    const validTypes = [
-      'image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/gif', 'image/webp', 'image/tiff', 'image/tif',
-      'application/pdf', 'text/plain', 'application/json', 'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed',
-      'application/postscript', 'image/vnd.adobe.photoshop', 'image/eps', 'application/eps', 'application/octet-stream'
-    ];
-    
-    // Valid extensions as fallback when MIME type is empty or generic
-    const validExtensions = ['png', 'jpg', 'jpeg', 'svg', 'gif', 'webp', 'tiff', 'tif', 'pdf', 'txt', 'json', 'zip', 'rar', 'ai', 'psd', 'eps'];
+        const img = new Image();
+        const url = URL.createObjectURL(file);
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      
-      // Skip hidden system files (macOS .DS_Store, Windows Thumbs.db, etc.)
-      if (file.name.startsWith('.') || file.name === 'Thumbs.db' || file.name === 'desktop.ini') {
-        continue; // Silently skip system files
-      }
-      
-      // Check by MIME type first, then fall back to extension
-      const ext = file.name.split('.').pop()?.toLowerCase() || '';
-      const isValidType = validTypes.includes(file.type) || validExtensions.includes(ext);
-      
-      if (!isValidType) {
-        toast({
-          title: "Invalid file type",
-          description: `${file.name} is not a supported file format`,
-          variant: "destructive",
-        });
-        continue;
-      }
+        img.onload = () => {
+          resolve({
+            width: img.width,
+            height: img.height,
+            format: file.type.split("/")[1].toUpperCase(),
+            size: file.size,
+          });
+          URL.revokeObjectURL(url);
+        };
 
-      if (file.size > 50 * 1024 * 1024) { // 50MB limit
-        toast({
-          title: "File too large",
-          description: `${file.name} exceeds 50MB limit`,
-          variant: "destructive",
-        });
-        continue;
-      }
+        img.onerror = () => {
+          // Fallback if image fails to load
+          URL.revokeObjectURL(url);
+          const ext = file.name.split(".").pop()?.toUpperCase() || "FILE";
+          resolve({
+            width: 0,
+            height: 0,
+            format: ext,
+            size: file.size,
+          });
+        };
 
-      const preview = URL.createObjectURL(file);
-      const metadata = await extractImageMetadata(file);
-
-      newLogos.push({
-        file,
-        preview,
-        description: '',
-        ownershipDescription: '',
-        intendedUse: '',
-        copyrightStatus: 'none',
-        copyrightAppNumber: '',
-        trademarkStatus: 'none',
-        trademarkAppNumber: '',
-        patentStatus: 'none',
-        patentAppNumber: '',
-        metadata,
+        img.src = url;
       });
-    }
+    },
+    []
+  );
 
-    setLogos(prev => [...prev, ...newLogos]);
-  }, [toast, extractImageMetadata]);
+  const handleFiles = useCallback(
+    async (files: FileList | null) => {
+      if (!files) return;
+
+      const newLogos: UploadedLogo[] = [];
+      const validTypes = [
+        "image/png",
+        "image/jpeg",
+        "image/jpg",
+        "image/svg+xml",
+        "image/gif",
+        "image/webp",
+        "image/tiff",
+        "image/tif",
+        "application/pdf",
+        "text/plain",
+        "application/json",
+        "application/zip",
+        "application/x-zip-compressed",
+        "application/x-rar-compressed",
+        "application/postscript",
+        "image/vnd.adobe.photoshop",
+        "image/eps",
+        "application/eps",
+        "application/octet-stream",
+      ];
+
+      // Valid extensions as fallback when MIME type is empty or generic
+      const validExtensions = [
+        "png",
+        "jpg",
+        "jpeg",
+        "svg",
+        "gif",
+        "webp",
+        "tiff",
+        "tif",
+        "pdf",
+        "txt",
+        "json",
+        "zip",
+        "rar",
+        "ai",
+        "psd",
+        "eps",
+      ];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+
+        // Skip hidden system files (macOS .DS_Store, Windows Thumbs.db, etc.)
+        if (file.name.startsWith(".") || file.name === "Thumbs.db" || file.name === "desktop.ini") {
+          continue; // Silently skip system files
+        }
+
+        // Check by MIME type first, then fall back to extension
+        const ext = file.name.split(".").pop()?.toLowerCase() || "";
+        const isValidType = validTypes.includes(file.type) || validExtensions.includes(ext);
+
+        if (!isValidType) {
+          toast({
+            title: "Invalid file type",
+            description: `${file.name} is not a supported file format`,
+            variant: "destructive",
+          });
+          continue;
+        }
+
+        if (file.size > 50 * 1024 * 1024) {
+          // 50MB limit
+          toast({
+            title: "File too large",
+            description: `${file.name} exceeds 50MB limit`,
+            variant: "destructive",
+          });
+          continue;
+        }
+
+        const preview = URL.createObjectURL(file);
+        const metadata = await extractImageMetadata(file);
+
+        newLogos.push({
+          file,
+          preview,
+          description: "",
+          ownershipDescription: "",
+          intendedUse: "",
+          copyrightStatus: "none",
+          copyrightAppNumber: "",
+          trademarkStatus: "none",
+          trademarkAppNumber: "",
+          patentStatus: "none",
+          patentAppNumber: "",
+          metadata,
+        });
+      }
+
+      setLogos((prev) => [...prev, ...newLogos]);
+    },
+    [toast, extractImageMetadata]
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -195,14 +252,17 @@ export default function Upload() {
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    handleFiles(e.dataTransfer.files);
-  }, [handleFiles]);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      handleFiles(e.dataTransfer.files);
+    },
+    [handleFiles]
+  );
 
   const removeLogo = useCallback((index: number) => {
-    setLogos(prev => {
+    setLogos((prev) => {
       const updated = [...prev];
       URL.revokeObjectURL(updated[index].preview);
       updated.splice(index, 1);
@@ -212,7 +272,7 @@ export default function Upload() {
 
   const updateDescription = useCallback((index: number, description: string) => {
     if (description.length > 200) return;
-    setLogos(prev => {
+    setLogos((prev) => {
       const updated = [...prev];
       updated[index].description = description;
       return updated;
@@ -222,14 +282,14 @@ export default function Upload() {
   const uploadMutation = useMutation({
     mutationFn: async () => {
       if (!companyName.trim()) {
-        throw new Error('Please enter your company name');
+        throw new Error("Please enter your company name");
       }
 
       const formData = new FormData();
-      formData.append('companyName', companyName.trim());
+      formData.append("companyName", companyName.trim());
       logos.forEach((logo, index) => {
         if (logo.file) {
-          formData.append('logos', logo.file);
+          formData.append("logos", logo.file);
         } else if (logo.imageUrl) {
           // For URL-based logos, send the URL as a separate field
           formData.append(`imageUrl_${index}`, logo.imageUrl);
@@ -245,7 +305,7 @@ export default function Upload() {
         formData.append(`patent_app_${index}`, logo.patentAppNumber);
       });
 
-      return await uploadFormData('/api/logos/upload', formData);
+      return await uploadFormData("/api/logos/upload", formData);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
@@ -306,7 +366,8 @@ export default function Upload() {
         <div className="mb-8">
           <h1 className="text-3xl font-semibold mb-2">Register Logo Ownership</h1>
           <p className="text-muted-foreground">
-            Register your logo metadata and ownership claims. Files will be stored in your personal .solturio.sol wallet.
+            Register your logo metadata and ownership claims. Files will be stored in your personal
+            .solturio.sol wallet.
           </p>
         </div>
 
@@ -317,8 +378,9 @@ export default function Upload() {
             <div>
               <h3 className="font-medium mb-1">How It Works</h3>
               <p className="text-sm text-muted-foreground">
-                Solturio stores only JSON metadata with ownership claims, timestamps, and IP protection information.
-                Your actual image files will be stored in your personal .solturio.sol wallet for complete control.
+                Solturio stores only JSON metadata with ownership claims, timestamps, and IP
+                protection information. Your actual image files will be stored in your personal
+                .solturio.sol wallet for complete control.
               </p>
             </div>
           </div>
@@ -347,7 +409,7 @@ export default function Upload() {
         {/* Upload Zone */}
         <Card
           className={`p-12 mb-8 border-2 border-dashed transition-colors ${
-            isDragging ? 'border-primary bg-primary/5' : 'border-border'
+            isDragging ? "border-primary bg-primary/5" : "border-border"
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -355,9 +417,7 @@ export default function Upload() {
         >
           <div className="text-center">
             <UploadIcon className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">
-              Select logos to register
-            </h3>
+            <h3 className="text-lg font-semibold mb-2">Select logos to register</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Upload files to extract metadata and register ownership
             </p>
@@ -373,7 +433,7 @@ export default function Upload() {
             {isPremium && (
               <input
                 type="file"
-                // @ts-ignore - webkitdirectory is non-standard but widely supported
+                // @ts-expect-error - webkitdirectory is non-standard but widely supported
                 webkitdirectory=""
                 directory=""
                 multiple
@@ -386,20 +446,28 @@ export default function Upload() {
             <div className="flex gap-3 justify-center">
               <Label htmlFor="file-upload">
                 <Button variant="outline" asChild>
-                  <span><UploadIcon className="w-4 h-4 mr-2" />Choose Files</span>
+                  <span>
+                    <UploadIcon className="w-4 h-4 mr-2" />
+                    Choose Files
+                  </span>
                 </Button>
               </Label>
               {isPremium && (
                 <Label htmlFor="folder-upload">
                   <Button variant="outline" asChild>
-                    <span><FolderOpen className="w-4 h-4 mr-2" />Upload Folder</span>
+                    <span>
+                      <FolderOpen className="w-4 h-4 mr-2" />
+                      Upload Folder
+                    </span>
                   </Button>
                 </Label>
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-4">
               Supports PNG, JPG, SVG, GIF, WebP, PDF, TXT, ZIP, AI, PSD, EPS • Max 50MB per file
-              {isPremium && <span className="block mt-1 text-primary">Premium: Folder upload enabled</span>}
+              {isPremium && (
+                <span className="block mt-1 text-primary">Premium: Folder upload enabled</span>
+              )}
             </p>
           </div>
         </Card>
@@ -409,7 +477,8 @@ export default function Upload() {
           <div>
             <h3 className="text-lg font-semibold mb-2">Or Provide Image URL</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              If your logo is already hosted online (e.g., in your .solturio.sol wallet or IPFS), provide the URL
+              If your logo is already hosted online (e.g., in your .solturio.sol wallet or IPFS),
+              provide the URL
             </p>
             <div className="flex gap-2">
               <Input
@@ -425,32 +494,35 @@ export default function Upload() {
                 onClick={() => {
                   if (imageUrlInput) {
                     // Add URL-based logo registration
-                    const fileName = imageUrlInput.split('/').pop() || 'image.png';
-                    setLogos(prev => [...prev, {
-                      imageUrl: imageUrlInput,
-                      preview: imageUrlInput,
-                      description: '',
-                      ownershipDescription: '',
-                      intendedUse: '',
-                      copyrightStatus: 'none',
-                      copyrightAppNumber: '',
-                      trademarkStatus: 'none',
-                      trademarkAppNumber: '',
-                      patentStatus: 'none',
-                      patentAppNumber: '',
-                      metadata: {
-                        width: 0, // Will be determined by backend
-                        height: 0,
-                        format: fileName.split('.').pop()?.toUpperCase() || 'PNG',
-                        size: 0,
-                      }
-                    }]);
-                    
+                    const fileName = imageUrlInput.split("/").pop() || "image.png";
+                    setLogos((prev) => [
+                      ...prev,
+                      {
+                        imageUrl: imageUrlInput,
+                        preview: imageUrlInput,
+                        description: "",
+                        ownershipDescription: "",
+                        intendedUse: "",
+                        copyrightStatus: "none",
+                        copyrightAppNumber: "",
+                        trademarkStatus: "none",
+                        trademarkAppNumber: "",
+                        patentStatus: "none",
+                        patentAppNumber: "",
+                        metadata: {
+                          width: 0, // Will be determined by backend
+                          height: 0,
+                          format: fileName.split(".").pop()?.toUpperCase() || "PNG",
+                          size: 0,
+                        },
+                      },
+                    ]);
+
                     toast({
                       title: "URL Added",
                       description: `Added ${fileName} from URL`,
                     });
-                    setImageUrlInput('');
+                    setImageUrlInput("");
                   }
                 }}
                 data-testid="button-add-url"
@@ -465,9 +537,7 @@ export default function Upload() {
         {logos.length > 0 && (
           <>
             <div className="mb-8">
-              <h2 className="text-2xl font-semibold mb-6">
-                Uploaded Logos ({logos.length})
-              </h2>
+              <h2 className="text-2xl font-semibold mb-6">Uploaded Logos ({logos.length})</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {logos.map((logo, index) => (
                   <Card key={index} className="p-4 relative" data-testid={`logo-card-${index}`}>
@@ -480,19 +550,24 @@ export default function Upload() {
                     >
                       <X className="w-3 h-3" />
                     </Button>
-                    
+
                     <div className="aspect-square mb-3 bg-muted rounded-md flex items-center justify-center overflow-hidden">
                       <img
                         src={logo.preview}
-                        alt={logo.file?.name || 'Logo'}
+                        alt={logo.file?.name || "Logo"}
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    
-                    <p className="text-sm font-medium truncate mb-2" title={logo.file?.name || logo.imageUrl}>
-                      {logo.file?.name || (logo.imageUrl && logo.imageUrl.split('/').pop()) || 'Image'}
+
+                    <p
+                      className="text-sm font-medium truncate mb-2"
+                      title={logo.file?.name || logo.imageUrl}
+                    >
+                      {logo.file?.name ||
+                        (logo.imageUrl && logo.imageUrl.split("/").pop()) ||
+                        "Image"}
                     </p>
-                    
+
                     {logo.metadata && (
                       <div className="text-xs text-muted-foreground mb-3 space-y-1">
                         <div>
@@ -503,7 +578,7 @@ export default function Upload() {
                         </div>
                       </div>
                     )}
-                    
+
                     <div>
                       <Label htmlFor={`desc-${index}`} className="text-xs mb-1">
                         Brief Description

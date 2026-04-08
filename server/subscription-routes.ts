@@ -3,19 +3,19 @@
  * REGULATORY: Non-refundable service fees, not custody
  */
 
-import { Router } from 'express';
-import { isAuthenticated } from './replitAuth';
-import { storage } from './storage';
+import { Router } from "express";
+import { isAuthenticated } from "./replitAuth";
+import { storage } from "./storage";
 import {
   checkFreeAccess,
   getSubscriptionPricing,
   activateAccount,
   renewSubscription,
   checkSubscriptionStatus,
-} from './subscription-service';
-import { isAdminEmail, ADMIN_EMAILS } from '@shared/pricing';
-import { awardManualReward } from './rewards-service';
-import { z } from 'zod';
+} from "./subscription-service";
+import { isAdminEmail, ADMIN_EMAILS } from "@shared/pricing";
+import { awardManualReward } from "./rewards-service";
+import { z } from "zod";
 
 export const subscriptionRouter = Router();
 
@@ -23,7 +23,7 @@ export const subscriptionRouter = Router();
  * GET /subscription/pricing
  * Get current subscription pricing (promo vs standard)
  */
-subscriptionRouter.get('/subscription/pricing', async (req, res) => {
+subscriptionRouter.get("/subscription/pricing", async (req, res) => {
   try {
     const pricing = await getSubscriptionPricing();
     res.json({
@@ -40,7 +40,7 @@ subscriptionRouter.get('/subscription/pricing', async (req, res) => {
       },
     });
   } catch (error: any) {
-    console.error('Get pricing error:', error);
+    console.error("Get pricing error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -49,16 +49,16 @@ subscriptionRouter.get('/subscription/pricing', async (req, res) => {
  * GET /subscription/status
  * Check current user's subscription status
  */
-subscriptionRouter.get('/subscription/status', isAuthenticated, async (req: any, res) => {
+subscriptionRouter.get("/subscription/status", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
+      return res.status(401).json({ success: false, error: "Not authenticated" });
     }
 
     const user = await storage.getUser(userId);
     if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
+      return res.status(404).json({ success: false, error: "User not found" });
     }
 
     // Check if admin
@@ -66,15 +66,15 @@ subscriptionRouter.get('/subscription/status', isAuthenticated, async (req: any,
     if (isAdmin) {
       return res.json({
         success: true,
-        status: 'admin',
+        status: "admin",
         isActive: true,
         isAdmin: true,
-        message: 'Admin account - unlimited free access',
+        message: "Admin account - unlimited free access",
       });
     }
 
     const status = await checkSubscriptionStatus(userId);
-    
+
     res.json({
       success: true,
       ...status,
@@ -84,7 +84,7 @@ subscriptionRouter.get('/subscription/status', isAuthenticated, async (req: any,
       wasPromoPrice: user.wasPromoPrice,
     });
   } catch (error: any) {
-    console.error('Check status error:', error);
+    console.error("Check status error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -93,23 +93,23 @@ subscriptionRouter.get('/subscription/status', isAuthenticated, async (req: any,
  * POST /subscription/activate
  * Activate account after $CATH payment
  */
-subscriptionRouter.post('/subscription/activate', isAuthenticated, async (req: any, res) => {
+subscriptionRouter.post("/subscription/activate", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
+      return res.status(401).json({ success: false, error: "Not authenticated" });
     }
 
     const schema = z.object({
-      paymentTxHash: z.string().min(50, 'Invalid transaction hash'),
+      paymentTxHash: z.string().min(50, "Invalid transaction hash"),
       cathAmountPaid: z.number().positive(),
     });
 
     const parsed = schema.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Invalid request', 
+      return res.status(400).json({
+        success: false,
+        error: "Invalid request",
         details: parsed.error.issues,
       });
     }
@@ -121,8 +121,8 @@ subscriptionRouter.post('/subscription/activate', isAuthenticated, async (req: a
     if (isAdminEmail(user?.email)) {
       return res.json({
         success: true,
-        accountStatus: 'admin',
-        message: 'Admin accounts do not require payment',
+        accountStatus: "admin",
+        message: "Admin accounts do not require payment",
       });
     }
 
@@ -134,7 +134,7 @@ subscriptionRouter.post('/subscription/activate', isAuthenticated, async (req: a
         accountStatus: result.accountStatus,
         subscriptionExpiresAt: result.subscriptionExpiresAt,
         rewardsEarned: result.rewardsEarned,
-        message: 'Account activated successfully! Welcome to Solturio.',
+        message: "Account activated successfully! Welcome to Solturio.",
       });
     } else {
       res.status(400).json({
@@ -144,7 +144,7 @@ subscriptionRouter.post('/subscription/activate', isAuthenticated, async (req: a
       });
     }
   } catch (error: any) {
-    console.error('Activate error:', error);
+    console.error("Activate error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -153,23 +153,23 @@ subscriptionRouter.post('/subscription/activate', isAuthenticated, async (req: a
  * POST /subscription/renew
  * Renew subscription with $CATH payment
  */
-subscriptionRouter.post('/subscription/renew', isAuthenticated, async (req: any, res) => {
+subscriptionRouter.post("/subscription/renew", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
+      return res.status(401).json({ success: false, error: "Not authenticated" });
     }
 
     const schema = z.object({
-      paymentTxHash: z.string().min(50, 'Invalid transaction hash'),
+      paymentTxHash: z.string().min(50, "Invalid transaction hash"),
       cathAmountPaid: z.number().positive(),
     });
 
     const parsed = schema.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Invalid request', 
+      return res.status(400).json({
+        success: false,
+        error: "Invalid request",
         details: parsed.error.issues,
       });
     }
@@ -183,7 +183,7 @@ subscriptionRouter.post('/subscription/renew', isAuthenticated, async (req: any,
         success: true,
         accountStatus: result.accountStatus,
         subscriptionExpiresAt: result.subscriptionExpiresAt,
-        message: 'Subscription renewed successfully!',
+        message: "Subscription renewed successfully!",
       });
     } else {
       res.status(400).json({
@@ -192,7 +192,7 @@ subscriptionRouter.post('/subscription/renew', isAuthenticated, async (req: any,
       });
     }
   } catch (error: any) {
-    console.error('Renew error:', error);
+    console.error("Renew error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -201,25 +201,26 @@ subscriptionRouter.post('/subscription/renew', isAuthenticated, async (req: any,
  * GET /subscription/payment-info
  * Get payment information for account activation
  */
-subscriptionRouter.get('/subscription/payment-info', isAuthenticated, async (req: any, res) => {
+subscriptionRouter.get("/subscription/payment-info", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
+      return res.status(401).json({ success: false, error: "Not authenticated" });
     }
 
     const pricing = await getSubscriptionPricing();
-    const platformWallet = process.env.PLATFORM_REVENUE_WALLET || '';
+    const platformWallet = process.env.PLATFORM_REVENUE_WALLET || "";
 
     res.json({
       recipientWallet: platformWallet,
-      cathAmount: pricing.cathAmount?.toFixed(2) || '0',
-      solEquivalent: pricing.solEquivalent?.toFixed(2) || '0.14',
+      cathAmount: pricing.cathAmount?.toFixed(2) || "0",
+      solEquivalent: pricing.solEquivalent?.toFixed(2) || "0.14",
       isPromo: pricing.isPromo,
-      instructions: 'Send the exact amount of $CATH tokens to the platform wallet, then verify your transaction.',
+      instructions:
+        "Send the exact amount of $CATH tokens to the platform wallet, then verify your transaction.",
     });
   } catch (error: any) {
-    console.error('Get payment info error:', error);
+    console.error("Get payment info error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -228,21 +229,21 @@ subscriptionRouter.get('/subscription/payment-info', isAuthenticated, async (req
  * POST /subscription/verify-payment
  * Verify payment and activate account
  */
-subscriptionRouter.post('/subscription/verify-payment', isAuthenticated, async (req: any, res) => {
+subscriptionRouter.post("/subscription/verify-payment", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
+      return res.status(401).json({ success: false, error: "Not authenticated" });
     }
 
     const { transactionSignature } = req.body;
     if (!transactionSignature || transactionSignature.length < 50) {
-      return res.status(400).json({ success: false, error: 'Invalid transaction signature' });
+      return res.status(400).json({ success: false, error: "Invalid transaction signature" });
     }
 
     // Get pricing to know expected amount
     const pricing = await getSubscriptionPricing();
-    
+
     // Activate account with payment verification
     const result = await activateAccount(userId, transactionSignature, pricing.cathAmount || 0);
 
@@ -252,16 +253,16 @@ subscriptionRouter.post('/subscription/verify-payment', isAuthenticated, async (
         accountStatus: result.accountStatus,
         subscriptionExpiresAt: result.subscriptionExpiresAt,
         rewardsEarned: result.rewardsEarned,
-        message: 'Account activated successfully!',
+        message: "Account activated successfully!",
       });
     } else {
       res.status(400).json({
         success: false,
-        error: result.error || 'Payment verification failed',
+        error: result.error || "Payment verification failed",
       });
     }
   } catch (error: any) {
-    console.error('Verify payment error:', error);
+    console.error("Verify payment error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -270,11 +271,11 @@ subscriptionRouter.post('/subscription/verify-payment', isAuthenticated, async (
  * GET /subscription/check-access
  * Check if user can create new collections (active subscription required)
  */
-subscriptionRouter.get('/subscription/check-access', isAuthenticated, async (req: any, res) => {
+subscriptionRouter.get("/subscription/check-access", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user?.claims?.sub;
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
+      return res.status(401).json({ success: false, error: "Not authenticated" });
     }
 
     // Check for admin free access
@@ -283,7 +284,7 @@ subscriptionRouter.get('/subscription/check-access', isAuthenticated, async (req
       return res.json({
         success: true,
         canCreateCollection: true,
-        reason: 'admin',
+        reason: "admin",
       });
     }
 
@@ -292,13 +293,13 @@ subscriptionRouter.get('/subscription/check-access', isAuthenticated, async (req
     res.json({
       success: true,
       canCreateCollection: status.isActive,
-      reason: status.isActive ? 'active_subscription' : 'subscription_required',
+      reason: status.isActive ? "active_subscription" : "subscription_required",
       status: status.status,
       daysRemaining: status.daysRemaining,
       expiresAt: status.expiresAt,
     });
   } catch (error: any) {
-    console.error('Check access error:', error);
+    console.error("Check access error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -314,14 +315,14 @@ async function requireAdmin(req: any, res: any, next: any) {
   try {
     const userId = req.user?.claims?.sub;
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
+      return res.status(401).json({ success: false, error: "Not authenticated" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !isAdminEmail(user.email)) {
-      return res.status(403).json({ success: false, error: 'Admin access required' });
+      return res.status(403).json({ success: false, error: "Admin access required" });
     }
-    
+
     next();
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
@@ -332,139 +333,161 @@ async function requireAdmin(req: any, res: any, next: any) {
  * GET /admin/subscriptions/users
  * Get all users with subscription data (admin only)
  */
-subscriptionRouter.get('/admin/subscriptions/users', isAuthenticated, requireAdmin, async (req: any, res) => {
-  try {
-    const users = await storage.getAllUsers();
-    
-    const subscriptionUsers = users.map(user => ({
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      accountStatus: user.accountStatus || 'pending',
-      subscriptionExpiresAt: user.subscriptionExpiresAt,
-      soltBalance: user.sltrBalance || '0',
-      createdAt: user.createdAt,
-    }));
-    
-    res.json(subscriptionUsers);
-  } catch (error: any) {
-    console.error('Get subscription users error:', error);
-    res.status(500).json({ success: false, error: error.message });
+subscriptionRouter.get(
+  "/admin/subscriptions/users",
+  isAuthenticated,
+  requireAdmin,
+  async (req: any, res) => {
+    try {
+      const users = await storage.getAllUsers();
+
+      const subscriptionUsers = users.map((user) => ({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        accountStatus: user.accountStatus || "pending",
+        subscriptionExpiresAt: user.subscriptionExpiresAt,
+        soltBalance: user.sltrBalance || "0",
+        createdAt: user.createdAt,
+      }));
+
+      res.json(subscriptionUsers);
+    } catch (error: any) {
+      console.error("Get subscription users error:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
   }
-});
+);
 
 /**
  * POST /admin/subscriptions/grant-free
  * Grant admin/free access to a user
  */
-subscriptionRouter.post('/admin/subscriptions/grant-free', isAuthenticated, requireAdmin, async (req: any, res) => {
-  try {
-    const { userId } = req.body;
-    if (!userId) {
-      return res.status(400).json({ success: false, error: 'User ID required' });
+subscriptionRouter.post(
+  "/admin/subscriptions/grant-free",
+  isAuthenticated,
+  requireAdmin,
+  async (req: any, res) => {
+    try {
+      const { userId } = req.body;
+      if (!userId) {
+        return res.status(400).json({ success: false, error: "User ID required" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ success: false, error: "User not found" });
+      }
+
+      await storage.updateUser(userId, {
+        accountStatus: "admin",
+      });
+
+      res.json({ success: true, message: "Admin access granted" });
+    } catch (error: any) {
+      console.error("Grant free access error:", error);
+      res.status(500).json({ success: false, error: error.message });
     }
-    
-    const user = await storage.getUser(userId);
-    if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
-    }
-    
-    await storage.updateUser(userId, {
-      accountStatus: 'admin',
-    });
-    
-    res.json({ success: true, message: 'Admin access granted' });
-  } catch (error: any) {
-    console.error('Grant free access error:', error);
-    res.status(500).json({ success: false, error: error.message });
   }
-});
+);
 
 /**
  * POST /admin/subscriptions/extend
  * Extend a user's subscription by specified days
  */
-subscriptionRouter.post('/admin/subscriptions/extend', isAuthenticated, requireAdmin, async (req: any, res) => {
-  try {
-    const { userId, days } = req.body;
-    if (!userId || !days) {
-      return res.status(400).json({ success: false, error: 'User ID and days required' });
+subscriptionRouter.post(
+  "/admin/subscriptions/extend",
+  isAuthenticated,
+  requireAdmin,
+  async (req: any, res) => {
+    try {
+      const { userId, days } = req.body;
+      if (!userId || !days) {
+        return res.status(400).json({ success: false, error: "User ID and days required" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ success: false, error: "User not found" });
+      }
+
+      // Calculate new expiration date
+      const currentExpiry = user.subscriptionExpiresAt
+        ? new Date(user.subscriptionExpiresAt)
+        : new Date();
+      const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
+      const newExpiry = new Date(baseDate.getTime() + days * 24 * 60 * 60 * 1000);
+
+      await storage.updateUser(userId, {
+        accountStatus: "active",
+        subscriptionExpiresAt: newExpiry,
+      });
+
+      res.json({
+        success: true,
+        message: `Subscription extended by ${days} days`,
+        newExpiresAt: newExpiry.toISOString(),
+      });
+    } catch (error: any) {
+      console.error("Extend subscription error:", error);
+      res.status(500).json({ success: false, error: error.message });
     }
-    
-    const user = await storage.getUser(userId);
-    if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' });
-    }
-    
-    // Calculate new expiration date
-    const currentExpiry = user.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt) : new Date();
-    const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
-    const newExpiry = new Date(baseDate.getTime() + (days * 24 * 60 * 60 * 1000));
-    
-    await storage.updateUser(userId, {
-      accountStatus: 'active',
-      subscriptionExpiresAt: newExpiry,
-    });
-    
-    res.json({ 
-      success: true, 
-      message: `Subscription extended by ${days} days`,
-      newExpiresAt: newExpiry.toISOString(),
-    });
-  } catch (error: any) {
-    console.error('Extend subscription error:', error);
-    res.status(500).json({ success: false, error: error.message });
   }
-});
+);
 
 /**
  * POST /admin/subscriptions/award-rewards
  * Manually award SOLT rewards to a user
  * SECURITY: Uses rewards-service to enforce pool cap and audit logging
  */
-subscriptionRouter.post('/admin/subscriptions/award-rewards', isAuthenticated, requireAdmin, async (req: any, res) => {
-  try {
-    const adminUserId = req.user?.claims?.sub;
-    const { userId, amount, reason } = req.body;
-    
-    if (!userId || !amount) {
-      return res.status(400).json({ success: false, error: 'User ID and amount required' });
-    }
-    
-    const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      return res.status(400).json({ success: false, error: 'Amount must be a positive number' });
-    }
-    
-    // Use rewards service for proper pool cap enforcement and audit logging
-    const result = await awardManualReward(
-      userId,
-      parsedAmount,
-      reason || 'admin_manual',
-      adminUserId
-    );
-    
-    if (!result.success) {
-      return res.status(400).json({ 
-        success: false, 
-        error: result.error || 'Failed to award rewards',
+subscriptionRouter.post(
+  "/admin/subscriptions/award-rewards",
+  isAuthenticated,
+  requireAdmin,
+  async (req: any, res) => {
+    try {
+      const adminUserId = req.user?.claims?.sub;
+      const { userId, amount, reason } = req.body;
+
+      if (!userId || !amount) {
+        return res.status(400).json({ success: false, error: "User ID and amount required" });
+      }
+
+      const parsedAmount = parseFloat(amount);
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        return res.status(400).json({ success: false, error: "Amount must be a positive number" });
+      }
+
+      // Use rewards service for proper pool cap enforcement and audit logging
+      const result = await awardManualReward(
+        userId,
+        parsedAmount,
+        reason || "admin_manual",
+        adminUserId
+      );
+
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          error: result.error || "Failed to award rewards",
+        });
+      }
+
+      res.json({
+        success: true,
+        message: `Awarded ${result.finalAmount} SOLT to user`,
+        requestedAmount: parsedAmount,
+        awardedAmount: result.finalAmount,
+        newBalance: result.newBalance,
+        reason: reason || "admin_manual",
       });
+    } catch (error: any) {
+      console.error("Award rewards error:", error);
+      res.status(500).json({ success: false, error: error.message });
     }
-    
-    res.json({ 
-      success: true, 
-      message: `Awarded ${result.finalAmount} SOLT to user`,
-      requestedAmount: parsedAmount,
-      awardedAmount: result.finalAmount,
-      newBalance: result.newBalance,
-      reason: reason || 'admin_manual',
-    });
-  } catch (error: any) {
-    console.error('Award rewards error:', error);
-    res.status(500).json({ success: false, error: error.message });
   }
-});
+);
 
 /**
  * Middleware to require active subscription
@@ -473,9 +496,9 @@ export async function requireActiveSubscription(req: any, res: any, next: any) {
   try {
     const userId = req.user?.claims?.sub;
     if (!userId) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Not authenticated',
+      return res.status(401).json({
+        success: false,
+        error: "Not authenticated",
         requiresSubscription: true,
       });
     }
@@ -490,7 +513,7 @@ export async function requireActiveSubscription(req: any, res: any, next: any) {
     if (!status.isActive) {
       return res.status(403).json({
         success: false,
-        error: 'Active subscription required',
+        error: "Active subscription required",
         requiresSubscription: true,
         currentStatus: status.status,
       });
@@ -498,7 +521,7 @@ export async function requireActiveSubscription(req: any, res: any, next: any) {
 
     next();
   } catch (error: any) {
-    console.error('Subscription middleware error:', error);
-    res.status(500).json({ success: false, error: 'Server error' });
+    console.error("Subscription middleware error:", error);
+    res.status(500).json({ success: false, error: "Server error" });
   }
 }

@@ -7,7 +7,11 @@
 import { Router } from "express";
 import { storage } from "./storage";
 import { isAuthenticated } from "./replitAuth";
-import { registerIPOnChain, storeIPFSMetadataOnChain, verifyTransactionOnChain } from "./sc-integration";
+import {
+  registerIPOnChain,
+  storeIPFSMetadataOnChain,
+  verifyTransactionOnChain,
+} from "./sc-integration";
 import { formatError, formatSuccess } from "./error-handler";
 import { auditLogger } from "./audit-logger";
 import { validateRequest } from "./validation";
@@ -69,7 +73,7 @@ ipRegistrationRouter.post("/ip/register-on-chain", isAuthenticated, async (req: 
     // Verify payment on-chain (CRITICAL SECURITY FIX)
     const paymentAmount = paymentTier === "standard" ? BigInt(100_000_000) : BigInt(150_000_000);
     const txVerification = await verifyTransactionOnChain(paymentTxHash, paymentAmount);
-    
+
     if (!txVerification.valid) {
       auditLogger.log({
         action: "PAYMENT_VERIFICATION_FAILED",
@@ -112,13 +116,18 @@ ipRegistrationRouter.post("/ip/register-on-chain", isAuthenticated, async (req: 
       details: { logoId, scTxHash: scResult.blockchainTxHash },
     });
 
-    return res.json(formatSuccess({
-      registered: true,
-      logoId,
-      blockchainTxHash: scResult.blockchainTxHash,
-      timestamp: scResult.timestamp,
-      explorer: scResult.explorer,
-    }, requestId));
+    return res.json(
+      formatSuccess(
+        {
+          registered: true,
+          logoId,
+          blockchainTxHash: scResult.blockchainTxHash,
+          timestamp: scResult.timestamp,
+          explorer: scResult.explorer,
+        },
+        requestId
+      )
+    );
   } catch (error: any) {
     console.error("Error registering IP:", error);
     auditLogger.log({
@@ -173,11 +182,16 @@ ipRegistrationRouter.post("/ip/store-ipfs-metadata", isAuthenticated, async (req
       userId,
     });
 
-    return res.json(formatSuccess({
-      stored: true,
-      ipfsHash,
-      metadata: scResult.proof,
-    }, requestId));
+    return res.json(
+      formatSuccess(
+        {
+          stored: true,
+          ipfsHash,
+          metadata: scResult.proof,
+        },
+        requestId
+      )
+    );
   } catch (error: any) {
     console.error("Error storing IPFS metadata:", error);
     res.status(500).json(formatError(error, requestId));

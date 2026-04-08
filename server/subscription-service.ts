@@ -4,22 +4,18 @@
  * REGULATORY: Non-refundable service fee, not custody
  */
 
-import { storage } from './storage';
-import { 
-  isAdminEmail, 
-  getCurrentSubscriptionPricing,
-  TOKEN_MINTS 
-} from '@shared/pricing';
-import { calculateCathForSubscription } from './price-oracle';
-import { awardReward, generateReferralCode, processReferralReward } from './rewards-service';
-import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
+import { storage } from "./storage";
+import { isAdminEmail, getCurrentSubscriptionPricing, TOKEN_MINTS } from "@shared/pricing";
+import { calculateCathForSubscription } from "./price-oracle";
+import { awardReward, generateReferralCode, processReferralReward } from "./rewards-service";
+import { Connection, PublicKey, clusterApiUrl } from "@solana/web3.js";
 
 const CATH_MINT = TOKEN_MINTS.CATH;
-const PLATFORM_CATH_WALLET = process.env.PLATFORM_REVENUE_WALLET || '';
+const PLATFORM_CATH_WALLET = process.env.PLATFORM_REVENUE_WALLET || "";
 
 function getSolanaConnection(): Connection {
-  const rpcUrl = process.env.SOLANA_RPC_URL || clusterApiUrl('mainnet-beta');
-  return new Connection(rpcUrl, 'confirmed');
+  const rpcUrl = process.env.SOLANA_RPC_URL || clusterApiUrl("mainnet-beta");
+  return new Connection(rpcUrl, "confirmed");
 }
 
 export interface ActivationResult {
@@ -36,19 +32,19 @@ export interface ActivationResult {
 export async function checkFreeAccess(userId: string): Promise<boolean> {
   const user = await storage.getUser(userId);
   if (!user) return false;
-  
+
   // Admin emails get free access
   if (isAdminEmail(user.email)) {
     // Auto-activate admin accounts
-    if (user.accountStatus !== 'admin') {
+    if (user.accountStatus !== "admin") {
       await storage.updateUser(userId, {
-        accountStatus: 'admin',
+        accountStatus: "admin",
         isAdmin: true,
       });
     }
     return true;
   }
-  
+
   return user.isAdmin === true;
 }
 
@@ -58,7 +54,7 @@ export async function checkFreeAccess(userId: string): Promise<boolean> {
 export async function getSubscriptionPricing() {
   const cathCalc = await calculateCathForSubscription();
   const pricing = getCurrentSubscriptionPricing();
-  
+
   return {
     ...cathCalc,
     durationDays: pricing.durationDays,
@@ -78,7 +74,7 @@ async function isTransactionUsed(txHash: string): Promise<boolean> {
     });
     return result.rows.length > 0;
   } catch (error) {
-    console.error('Check transaction used error:', error);
+    console.error("Check transaction used error:", error);
     // Fail safe - assume used if we can't check
     return true;
   }
@@ -88,9 +84,9 @@ async function isTransactionUsed(txHash: string): Promise<boolean> {
  * Mark transaction as used (replay protection)
  */
 async function markTransactionUsed(
-  txHash: string, 
-  userId: string, 
-  purpose: string, 
+  txHash: string,
+  userId: string,
+  purpose: string,
   amount: string
 ): Promise<void> {
   try {
@@ -100,8 +96,8 @@ async function markTransactionUsed(
       args: [txHash, userId, purpose, amount],
     });
   } catch (error) {
-    console.error('Mark transaction used error:', error);
-    throw new Error('Failed to record transaction');
+    console.error("Mark transaction used error:", error);
+    throw new Error("Failed to record transaction");
   }
 }
 
@@ -118,13 +114,13 @@ export async function verifyCathPayment(
   try {
     // SECURITY: Check replay attack - transaction already used?
     if (await isTransactionUsed(txHash)) {
-      return { valid: false, error: 'Transaction already used' };
+      return { valid: false, error: "Transaction already used" };
     }
 
     // SECURITY: Validate platform revenue wallet is configured
-    if (!PLATFORM_CATH_WALLET || PLATFORM_CATH_WALLET === 'PLACEHOLDER_REVENUE_WALLET') {
-      console.error('Platform revenue wallet not configured');
-      return { valid: false, error: 'Payment system not configured' };
+    if (!PLATFORM_CATH_WALLET || PLATFORM_CATH_WALLET === "PLACEHOLDER_REVENUE_WALLET") {
+      console.error("Platform revenue wallet not configured");
+      return { valid: false, error: "Payment system not configured" };
     }
 
     const connection = getSolanaConnection();
@@ -133,11 +129,11 @@ export async function verifyCathPayment(
     });
 
     if (!tx || !tx.transaction) {
-      return { valid: false, error: 'Transaction not found' };
+      return { valid: false, error: "Transaction not found" };
     }
 
     if (tx.meta?.err) {
-      return { valid: false, error: 'Transaction failed on-chain' };
+      return { valid: false, error: "Transaction failed on-chain" };
     }
 
     // Find SPL token transfer instruction with full validation
@@ -146,10 +142,10 @@ export async function verifyCathPayment(
     let actualAmount = 0;
 
     for (const ix of instructions) {
-      if ('parsed' in ix && ix.program === 'spl-token') {
+      if ("parsed" in ix && ix.program === "spl-token") {
         const parsed = ix.parsed as any;
-        
-        if (parsed.type === 'transferChecked' || parsed.type === 'transfer') {
+
+        if (parsed.type === "transferChecked" || parsed.type === "transfer") {
           // SECURITY: Verify it's CATH token
           if (parsed.info?.mint && parsed.info.mint !== CATH_MINT) {
             continue;
@@ -176,15 +172,16 @@ export async function verifyCathPayment(
           }
 
           // Get amount
-          const amount = parsed.info?.tokenAmount?.uiAmount || 
-                        parseFloat(parsed.info?.amount || '0') / 1e9;
-          
-          if (amount >= expectedAmount * 0.99) { // Allow 1% slippage
+          const amount =
+            parsed.info?.tokenAmount?.uiAmount || parseFloat(parsed.info?.amount || "0") / 1e9;
+
+          if (amount >= expectedAmount * 0.99) {
+            // Allow 1% slippage
             foundValidTransfer = true;
             actualAmount = amount;
-            
+
             // SECURITY: Mark transaction as used to prevent replay
-            await markTransactionUsed(txHash, userId, 'subscription', amount.toString());
+            await markTransactionUsed(txHash, userId, "subscription", amount.toString());
             break;
           }
         }
@@ -192,12 +189,12 @@ export async function verifyCathPayment(
     }
 
     if (!foundValidTransfer) {
-      return { valid: false, error: 'No valid CATH transfer to platform wallet found' };
+      return { valid: false, error: "No valid CATH transfer to platform wallet found" };
     }
 
     return { valid: true, actualAmount };
   } catch (error: any) {
-    console.error('Payment verification error:', error);
+    console.error("Payment verification error:", error);
     return { valid: false, error: error.message };
   }
 }
@@ -213,13 +210,13 @@ export async function activateAccount(
   try {
     const user = await storage.getUser(userId);
     if (!user) {
-      return { success: false, accountStatus: 'unknown', error: 'User not found' };
+      return { success: false, accountStatus: "unknown", error: "User not found" };
     }
 
     // Check if already active
-    if (user.accountStatus === 'active' || user.accountStatus === 'admin') {
-      return { 
-        success: true, 
+    if (user.accountStatus === "active" || user.accountStatus === "admin") {
+      return {
+        success: true,
         accountStatus: user.accountStatus,
         subscriptionExpiresAt: user.subscriptionExpiresAt || undefined,
       };
@@ -227,10 +224,15 @@ export async function activateAccount(
 
     // Verify payment (includes replay protection)
     const pricing = await getSubscriptionPricing();
-    const verification = await verifyCathPayment(paymentTxHash, pricing.cathAmount, user.walletAddress || '', userId);
-    
+    const verification = await verifyCathPayment(
+      paymentTxHash,
+      pricing.cathAmount,
+      user.walletAddress || "",
+      userId
+    );
+
     if (!verification.valid) {
-      return { success: false, accountStatus: 'pending', error: verification.error };
+      return { success: false, accountStatus: "pending", error: verification.error };
     }
 
     // Calculate expiration
@@ -242,7 +244,7 @@ export async function activateAccount(
 
     // Update user account
     await storage.updateUser(userId, {
-      accountStatus: 'active',
+      accountStatus: "active",
       subscriptionExpiresAt: expiresAt,
       subscriptionPaymentTx: paymentTxHash,
       subscriptionPaidAt: new Date(),
@@ -253,10 +255,10 @@ export async function activateAccount(
 
     // Award activation rewards
     let totalRewards = 0;
-    
+
     // Award wallet connected if they have a wallet
     if (user.walletAddress) {
-      const reward = await awardReward(userId, 'wallet_connected');
+      const reward = await awardReward(userId, "wallet_connected");
       if (reward.success) totalRewards += reward.finalAmount;
     }
 
@@ -267,13 +269,13 @@ export async function activateAccount(
 
     return {
       success: true,
-      accountStatus: 'active',
+      accountStatus: "active",
       subscriptionExpiresAt: expiresAt,
       rewardsEarned: totalRewards,
     };
   } catch (error: any) {
-    console.error('Activate account error:', error);
-    return { success: false, accountStatus: 'error', error: error.message };
+    console.error("Activate account error:", error);
+    return { success: false, accountStatus: "error", error: error.message };
   }
 }
 
@@ -288,40 +290,40 @@ export async function checkSubscriptionStatus(userId: string): Promise<{
 }> {
   const user = await storage.getUser(userId);
   if (!user) {
-    return { status: 'unknown', isActive: false };
+    return { status: "unknown", isActive: false };
   }
 
   // Admin always active
-  if (user.accountStatus === 'admin' || user.isAdmin) {
-    return { status: 'admin', isActive: true };
+  if (user.accountStatus === "admin" || user.isAdmin) {
+    return { status: "admin", isActive: true };
   }
 
   // Check expiration
-  if (user.accountStatus === 'active' && user.subscriptionExpiresAt) {
+  if (user.accountStatus === "active" && user.subscriptionExpiresAt) {
     const now = new Date();
     const expiresAt = new Date(user.subscriptionExpiresAt);
-    
+
     if (now > expiresAt) {
       // Subscription expired - update status
-      await storage.updateUser(userId, { accountStatus: 'expired' });
-      return { 
-        status: 'expired', 
-        isActive: false, 
+      await storage.updateUser(userId, { accountStatus: "expired" });
+      return {
+        status: "expired",
+        isActive: false,
         expiresAt,
         daysRemaining: 0,
       };
     }
 
     const daysRemaining = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    return { 
-      status: 'active', 
-      isActive: true, 
+    return {
+      status: "active",
+      isActive: true,
       expiresAt,
       daysRemaining,
     };
   }
 
-  return { status: user.accountStatus || 'pending', isActive: false };
+  return { status: user.accountStatus || "pending", isActive: false };
 }
 
 /**
@@ -335,15 +337,24 @@ export async function renewSubscription(
   try {
     const user = await storage.getUser(userId);
     if (!user) {
-      return { success: false, accountStatus: 'unknown', error: 'User not found' };
+      return { success: false, accountStatus: "unknown", error: "User not found" };
     }
 
     // Verify payment (includes replay protection)
     const pricing = await getSubscriptionPricing();
-    const verification = await verifyCathPayment(paymentTxHash, pricing.cathAmount, user.walletAddress || '', userId);
-    
+    const verification = await verifyCathPayment(
+      paymentTxHash,
+      pricing.cathAmount,
+      user.walletAddress || "",
+      userId
+    );
+
     if (!verification.valid) {
-      return { success: false, accountStatus: user.accountStatus || 'unknown', error: verification.error };
+      return {
+        success: false,
+        accountStatus: user.accountStatus || "unknown",
+        error: verification.error,
+      };
     }
 
     // Calculate new expiration (extend from current or from now)
@@ -359,7 +370,7 @@ export async function renewSubscription(
 
     // Update user
     await storage.updateUser(userId, {
-      accountStatus: 'active',
+      accountStatus: "active",
       subscriptionExpiresAt: expiresAt,
       subscriptionPaymentTx: paymentTxHash,
       subscriptionPaidAt: new Date(),
@@ -368,11 +379,11 @@ export async function renewSubscription(
 
     return {
       success: true,
-      accountStatus: 'active',
+      accountStatus: "active",
       subscriptionExpiresAt: expiresAt,
     };
   } catch (error: any) {
-    console.error('Renew subscription error:', error);
-    return { success: false, accountStatus: 'error', error: error.message };
+    console.error("Renew subscription error:", error);
+    return { success: false, accountStatus: "error", error: error.message };
   }
 }

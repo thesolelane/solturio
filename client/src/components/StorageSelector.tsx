@@ -5,16 +5,16 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { 
-  HardDrive, 
-  Cloud, 
-  Globe, 
-  Infinity, 
-  DollarSign, 
+import {
+  HardDrive,
+  Cloud,
+  Globe,
+  Infinity,
+  DollarSign,
   CheckCircle2,
   AlertCircle,
   Loader2,
-  ExternalLink
+  ExternalLink,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -125,7 +125,7 @@ export function StorageSelector({ value, onChange, fileSize }: StorageSelectorPr
         statusMessage = isConfigured ? "Ready" : "Not configured";
       } else if (option.id === "arweave") {
         isConfigured = storageStatus.arweave?.configured;
-        statusMessage = isConfigured 
+        statusMessage = isConfigured
           ? `Balance: ${storageStatus.arweave.balance || "0"} AR`
           : "Not configured";
       } else if (option.id === "both") {
@@ -138,8 +138,8 @@ export function StorageSelector({ value, onChange, fileSize }: StorageSelectorPr
 
     return (
       <div className="relative">
-        <RadioGroupItem 
-          value={option.id} 
+        <RadioGroupItem
+          value={option.id}
           id={option.id}
           className="peer sr-only"
           disabled={!isConfigured}
@@ -148,9 +148,10 @@ export function StorageSelector({ value, onChange, fileSize }: StorageSelectorPr
           htmlFor={option.id}
           className={`
             flex flex-col p-4 rounded-lg border-2 cursor-pointer transition-all
-            ${isSelected 
-              ? "border-primary bg-primary/5" 
-              : "border-muted hover:border-muted-foreground/50"
+            ${
+              isSelected
+                ? "border-primary bg-primary/5"
+                : "border-muted hover:border-muted-foreground/50"
             }
             ${!isConfigured ? "opacity-50 cursor-not-allowed" : ""}
             peer-focus-visible:ring-2 peer-focus-visible:ring-primary
@@ -158,10 +159,12 @@ export function StorageSelector({ value, onChange, fileSize }: StorageSelectorPr
         >
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className={`
+              <div
+                className={`
                 p-2 rounded-lg
                 ${isSelected ? "bg-primary text-primary-foreground" : "bg-muted"}
-              `}>
+              `}
+              >
                 <Icon className="w-5 h-5" />
               </div>
               <div>
@@ -169,9 +172,7 @@ export function StorageSelector({ value, onChange, fileSize }: StorageSelectorPr
                 <div className="text-sm text-muted-foreground">{option.description}</div>
               </div>
             </div>
-            {isSelected && (
-              <CheckCircle2 className="w-5 h-5 text-primary" />
-            )}
+            {isSelected && <CheckCircle2 className="w-5 h-5 text-primary" />}
           </div>
 
           <div className="space-y-2">
@@ -180,9 +181,7 @@ export function StorageSelector({ value, onChange, fileSize }: StorageSelectorPr
                 <DollarSign className="w-3 h-3" />
                 {option.cost}
               </Badge>
-              <Badge variant="outline">
-                {option.persistence}
-              </Badge>
+              <Badge variant="outline">{option.persistence}</Badge>
               {isConfigured ? (
                 <Badge variant="outline" className="gap-1 text-green-600">
                   <CheckCircle2 className="w-3 h-3" />
@@ -221,9 +220,7 @@ export function StorageSelector({ value, onChange, fileSize }: StorageSelectorPr
   return (
     <div className="space-y-4">
       <RadioGroup value={value} onValueChange={(v) => onChange(v as StorageType)}>
-        <div className="grid gap-4">
-          {storageOptions.map(renderStorageOption)}
-        </div>
+        <div className="grid gap-4">{storageOptions.map(renderStorageOption)}</div>
       </RadioGroup>
 
       {estimatedCost && (value === "arweave" || value === "both") && (
@@ -242,16 +239,12 @@ export function StorageSelector({ value, onChange, fileSize }: StorageSelectorPr
           <AlertDescription>
             <div className="space-y-2">
               <p className="font-medium">Storage Configuration Required</p>
-              <p className="text-sm">
-                To use decentralized storage, you need to configure:
-              </p>
+              <p className="text-sm">To use decentralized storage, you need to configure:</p>
               <ul className="text-sm space-y-1 ml-4">
                 {!storageStatus.ipfs?.configured && (
                   <li>• IPFS: Add PINATA_API_KEY and PINATA_SECRET_KEY</li>
                 )}
-                {!storageStatus.arweave?.configured && (
-                  <li>• Arweave: Add ARWEAVE_WALLET_KEY</li>
-                )}
+                {!storageStatus.arweave?.configured && <li>• Arweave: Add ARWEAVE_WALLET_KEY</li>}
               </ul>
               <div className="flex gap-2 mt-3">
                 <Button size="sm" variant="outline" asChild>
@@ -261,7 +254,11 @@ export function StorageSelector({ value, onChange, fileSize }: StorageSelectorPr
                   </a>
                 </Button>
                 <Button size="sm" variant="outline" asChild>
-                  <a href="https://www.arweave.org/wallet" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href="https://www.arweave.org/wallet"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <ExternalLink className="w-3 h-3 mr-1" />
                     Get Arweave Wallet
                   </a>

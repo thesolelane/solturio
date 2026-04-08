@@ -19,11 +19,13 @@ challengeRouter.get("/security/challenge", isAuthenticated, async (req: any, res
     const userId = req.user.claims.sub;
     const challenge = generateChallenge(userId);
 
-    return res.json(formatSuccess({
-      challenge,
-      message: "Sign this challenge with your wallet private key",
-      expiresIn: 300, // 5 minutes
-    }));
+    return res.json(
+      formatSuccess({
+        challenge,
+        message: "Sign this challenge with your wallet private key",
+        expiresIn: 300, // 5 minutes
+      })
+    );
   } catch (error: any) {
     res.status(500).json(formatError(error));
   }
@@ -55,10 +57,12 @@ challengeRouter.post("/security/verify-challenge", isAuthenticated, async (req: 
       });
     }
 
-    return res.json(formatSuccess({
-      verified: true,
-      message: "Challenge verified successfully",
-    }));
+    return res.json(
+      formatSuccess({
+        verified: true,
+        message: "Challenge verified successfully",
+      })
+    );
   } catch (error: any) {
     res.status(500).json(formatError(error));
   }

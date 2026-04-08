@@ -41,7 +41,7 @@ export async function verifyTokenLogo(request: VerificationRequest): Promise<Ver
     let fileHash = request.logoHash;
     if (request.logoUrl && !fileHash) {
       // In production, would fetch the image and hash it
-      fileHash = createHash('sha256').update(request.logoUrl).digest('hex');
+      fileHash = createHash("sha256").update(request.logoUrl).digest("hex");
     }
 
     if (!fileHash) {
@@ -53,8 +53,8 @@ export async function verifyTokenLogo(request: VerificationRequest): Promise<Ver
     }
 
     // Search for logos with matching hash
-    const allLogos = await storage.getLogosByFileHash?.(fileHash) || [];
-    
+    const allLogos = (await storage.getLogosByFileHash?.(fileHash)) || [];
+
     if (allLogos.length === 0) {
       return {
         verified: false,
@@ -65,23 +65,23 @@ export async function verifyTokenLogo(request: VerificationRequest): Promise<Ver
     }
 
     // Get the earliest registration (true owner)
-    const originalLogo = allLogos.sort((a, b) => 
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    const originalLogo = allLogos.sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     )[0];
 
     // Get authorized usages for this logo
     const authorizedUsages = await storage.getAuthorizedUsagesByLogoId(originalLogo.id);
-    
+
     // Check if this token/chain is authorized
-    const isAuthorized = authorizedUsages.some(usage => 
-      usage.platform === 'dex' && 
-      usage.url.includes(request.tokenAddress) &&
-      usage.isActive
+    const isAuthorized = authorizedUsages.some(
+      (usage) =>
+        usage.platform === "dex" && usage.url.includes(request.tokenAddress) && usage.isActive
     );
 
     // Get collection for company name
-    const collection = originalLogo.collectionId ? 
-      await storage.getCollection(originalLogo.collectionId) : null;
+    const collection = originalLogo.collectionId
+      ? await storage.getCollection(originalLogo.collectionId)
+      : null;
 
     return {
       verified: true,
@@ -97,7 +97,9 @@ export async function verifyTokenLogo(request: VerificationRequest): Promise<Ver
         transactionHash: originalLogo.transactionHash,
         certificateUrl: `https://solturio.app/api/logos/${originalLogo.id}/certificate`,
       },
-      warning: isAuthorized ? undefined : "Logo registered but not authorized for this token address",
+      warning: isAuthorized
+        ? undefined
+        : "Logo registered but not authorized for this token address",
       reportUrl: isAuthorized ? undefined : `https://solturio.app/report-fraud/${originalLogo.id}`,
     };
   } catch (error) {
@@ -134,9 +136,9 @@ export async function reportCopycat(data: {
   reporterEmail?: string;
 }): Promise<{ reportId: string; status: string }> {
   // Store the report
-  const reportId = createHash('sha256')
+  const reportId = createHash("sha256")
     .update(`${data.originalLogoId}-${data.fraudulentTokenAddress}-${Date.now()}`)
-    .digest('hex')
+    .digest("hex")
     .slice(0, 16);
 
   // In production, this would:
@@ -158,7 +160,7 @@ export async function bulkVerifyLogos(
   logos: Array<{ hash: string; url?: string }>
 ): Promise<Map<string, boolean>> {
   const results = new Map<string, boolean>();
-  
+
   for (const logo of logos) {
     const verification = await verifyTokenLogo({
       tokenAddress: "",
@@ -166,10 +168,10 @@ export async function bulkVerifyLogos(
       logoHash: logo.hash,
       logoUrl: logo.url,
     });
-    
+
     results.set(logo.hash, verification.legitimate);
   }
-  
+
   return results;
 }
 

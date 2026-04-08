@@ -1,19 +1,19 @@
-import axios from 'axios';
-import FormData from 'form-data';
-import { createHash } from 'crypto';
+import axios from "axios";
+import FormData from "form-data";
+import { createHash } from "crypto";
 
 // IPFS configuration - uses Pinata for reliable pinning
 // User will need to provide their own Pinata keys for production
-const PINATA_API_KEY = process.env.PINATA_API_KEY || '';
-const PINATA_SECRET_KEY = process.env.PINATA_SECRET_KEY || '';
-const PINATA_JWT = process.env.PINATA_JWT || '';
+const PINATA_API_KEY = process.env.PINATA_API_KEY || "";
+const PINATA_SECRET_KEY = process.env.PINATA_SECRET_KEY || "";
+const PINATA_JWT = process.env.PINATA_JWT || "";
 
 // Public IPFS gateways for retrieval
 const IPFS_GATEWAYS = [
-  'https://gateway.pinata.cloud/ipfs/',
-  'https://ipfs.io/ipfs/',
-  'https://cloudflare-ipfs.com/ipfs/',
-  'https://gateway.ipfs.io/ipfs/',
+  "https://gateway.pinata.cloud/ipfs/",
+  "https://ipfs.io/ipfs/",
+  "https://cloudflare-ipfs.com/ipfs/",
+  "https://gateway.ipfs.io/ipfs/",
 ];
 
 interface IPFSUploadResult {
@@ -38,7 +38,7 @@ export async function uploadToIPFS(
 ): Promise<IPFSUploadResult> {
   // If no Pinata credentials, return mock data for development
   if (!PINATA_API_KEY || !PINATA_SECRET_KEY) {
-    const mockHash = createHash('sha256').update(buffer).digest('hex');
+    const mockHash = createHash("sha256").update(buffer).digest("hex");
     return {
       ipfsHash: `Qm${mockHash.substring(0, 44)}`, // Mock IPFS hash format
       pinSize: buffer.length,
@@ -49,28 +49,24 @@ export async function uploadToIPFS(
 
   try {
     const formData = new FormData();
-    formData.append('file', buffer, fileName);
+    formData.append("file", buffer, fileName);
 
     if (metadata) {
       const pinataMetadata = JSON.stringify({
         name: metadata.name,
         keyvalues: metadata.keyvalues || {},
       });
-      formData.append('pinataMetadata', pinataMetadata);
+      formData.append("pinataMetadata", pinataMetadata);
     }
 
-    const response = await axios.post(
-      'https://api.pinata.cloud/pinning/pinFileToIPFS',
-      formData,
-      {
-        headers: {
-          ...formData.getHeaders(),
-          'pinata_api_key': PINATA_API_KEY,
-          'pinata_secret_api_key': PINATA_SECRET_KEY,
-        },
-        maxBodyLength: Infinity,
-      }
-    );
+    const response = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", formData, {
+      headers: {
+        ...formData.getHeaders(),
+        pinata_api_key: PINATA_API_KEY,
+        pinata_secret_api_key: PINATA_SECRET_KEY,
+      },
+      maxBodyLength: Infinity,
+    });
 
     return {
       ipfsHash: response.data.IpfsHash,
@@ -79,7 +75,7 @@ export async function uploadToIPFS(
       gatewayUrl: `${IPFS_GATEWAYS[0]}${response.data.IpfsHash}`,
     };
   } catch (error: any) {
-    console.error('IPFS upload failed:', error.response?.data || error.message);
+    console.error("IPFS upload failed:", error.response?.data || error.message);
     throw new Error(`Failed to upload to IPFS: ${error.message}`);
   }
 }
@@ -94,7 +90,7 @@ export async function uploadJSONToIPFS(
   // If no Pinata credentials, return mock data for development
   if (!PINATA_API_KEY || !PINATA_SECRET_KEY) {
     const jsonString = JSON.stringify(data);
-    const mockHash = createHash('sha256').update(jsonString).digest('hex');
+    const mockHash = createHash("sha256").update(jsonString).digest("hex");
     return {
       ipfsHash: `Qm${mockHash.substring(0, 44)}`,
       pinSize: jsonString.length,
@@ -104,17 +100,13 @@ export async function uploadJSONToIPFS(
   }
 
   try {
-    const response = await axios.post(
-      'https://api.pinata.cloud/pinning/pinJSONToIPFS',
-      data,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'pinata_api_key': PINATA_API_KEY,
-          'pinata_secret_api_key': PINATA_SECRET_KEY,
-        },
-      }
-    );
+    const response = await axios.post("https://api.pinata.cloud/pinning/pinJSONToIPFS", data, {
+      headers: {
+        "Content-Type": "application/json",
+        pinata_api_key: PINATA_API_KEY,
+        pinata_secret_api_key: PINATA_SECRET_KEY,
+      },
+    });
 
     return {
       ipfsHash: response.data.IpfsHash,
@@ -123,7 +115,7 @@ export async function uploadJSONToIPFS(
       gatewayUrl: `${IPFS_GATEWAYS[0]}${response.data.IpfsHash}`,
     };
   } catch (error: any) {
-    console.error('IPFS JSON upload failed:', error.response?.data || error.message);
+    console.error("IPFS JSON upload failed:", error.response?.data || error.message);
     throw new Error(`Failed to upload JSON to IPFS: ${error.message}`);
   }
 }
@@ -138,7 +130,7 @@ export async function getFromIPFS(ipfsHash: string): Promise<Buffer> {
   for (const gateway of IPFS_GATEWAYS) {
     try {
       const response = await axios.get(`${gateway}${ipfsHash}`, {
-        responseType: 'arraybuffer',
+        responseType: "arraybuffer",
         timeout: 30000, // 30 second timeout
       });
       return Buffer.from(response.data);
@@ -149,7 +141,7 @@ export async function getFromIPFS(ipfsHash: string): Promise<Buffer> {
     }
   }
 
-  throw new Error(`Failed to retrieve from IPFS: ${lastError?.message || 'All gateways failed'}`);
+  throw new Error(`Failed to retrieve from IPFS: ${lastError?.message || "All gateways failed"}`);
 }
 
 /**
@@ -158,7 +150,7 @@ export async function getFromIPFS(ipfsHash: string): Promise<Buffer> {
 export function verifyIPFSContent(buffer: Buffer, expectedHash: string): boolean {
   // For IPFS CIDs, we would need to decode the multihash
   // For simplicity, we'll use SHA-256 verification
-  const actualHash = createHash('sha256').update(buffer).digest('hex');
+  const actualHash = createHash("sha256").update(buffer).digest("hex");
   return actualHash === expectedHash;
 }
 
@@ -178,40 +170,54 @@ export function generateLogoMetadata(logo: {
   return {
     name: logo.fileName,
     description: logo.description,
-    image: '', // Will be filled with IPFS hash
+    image: "", // Will be filled with IPFS hash
     attributes: [
       {
-        trait_type: 'Owner',
+        trait_type: "Owner",
         value: logo.userId,
       },
       {
-        trait_type: 'Registration Date',
+        trait_type: "Registration Date",
         value: logo.timestamp.toISOString(),
       },
       {
-        trait_type: 'Ownership Claim',
+        trait_type: "Ownership Claim",
         value: logo.ownershipDescription,
       },
-      ...(logo.copyrightStatus && logo.copyrightStatus !== 'none' ? [{
-        trait_type: 'Copyright Status',
-        value: logo.copyrightStatus,
-      }] : []),
-      ...(logo.trademarkStatus && logo.trademarkStatus !== 'none' ? [{
-        trait_type: 'Trademark Status',
-        value: logo.trademarkStatus,
-      }] : []),
-      ...(logo.patentStatus && logo.patentStatus !== 'none' ? [{
-        trait_type: 'Patent Status',
-        value: logo.patentStatus,
-      }] : []),
+      ...(logo.copyrightStatus && logo.copyrightStatus !== "none"
+        ? [
+            {
+              trait_type: "Copyright Status",
+              value: logo.copyrightStatus,
+            },
+          ]
+        : []),
+      ...(logo.trademarkStatus && logo.trademarkStatus !== "none"
+        ? [
+            {
+              trait_type: "Trademark Status",
+              value: logo.trademarkStatus,
+            },
+          ]
+        : []),
+      ...(logo.patentStatus && logo.patentStatus !== "none"
+        ? [
+            {
+              trait_type: "Patent Status",
+              value: logo.patentStatus,
+            },
+          ]
+        : []),
     ],
     properties: {
-      category: 'intellectual-property',
+      category: "intellectual-property",
       files: [],
-      creators: [{
-        address: logo.userId,
-        share: 100,
-      }],
+      creators: [
+        {
+          address: logo.userId,
+          share: 100,
+        },
+      ],
     },
   };
 }

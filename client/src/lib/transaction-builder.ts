@@ -37,9 +37,9 @@ export async function submitDualSignatureTransaction(
   try {
     const encoder = new TextEncoder();
     const messageBytes = encoder.encode(JSON.stringify(instruction));
-    
+
     const signature = await walletSignFn(messageBytes);
-    
+
     const response = await fetch("/api/github/submit-signed", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -52,7 +52,7 @@ export async function submitDualSignatureTransaction(
     });
 
     const result = await response.json();
-    
+
     if (!response.ok) {
       return { success: false, error: result.error || "Transaction failed" };
     }
@@ -69,9 +69,9 @@ export async function submitDualSignatureTransaction(
 export function parseInstructionFromUrl(): OnChainInstruction | null {
   const params = new URLSearchParams(window.location.search);
   const instructionParam = params.get("github_instruction");
-  
+
   if (!instructionParam) return null;
-  
+
   try {
     const decoded = decodeURIComponent(instructionParam);
     return JSON.parse(decoded) as OnChainInstruction;
@@ -80,9 +80,7 @@ export function parseInstructionFromUrl(): OnChainInstruction | null {
   }
 }
 
-export function formatAccountsForDisplay(
-  accounts: OnChainInstruction["accounts"]
-): string[] {
+export function formatAccountsForDisplay(accounts: OnChainInstruction["accounts"]): string[] {
   return accounts.map((acc) => {
     const signerIcon = acc.isSigner ? "[S]" : "";
     const writableIcon = acc.isWritable ? "[W]" : "";
@@ -98,6 +96,6 @@ export function getInstructionDescription(instruction: string): string {
     register_code: "Register code repository on-chain",
     link_wallet: "Link wallet to GitHub account",
   };
-  
+
   return descriptions[instruction] || instruction;
 }

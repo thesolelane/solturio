@@ -46,7 +46,8 @@ licensesRouter.post("/licenses/create", isAuthenticated, async (req: any, res) =
       });
     }
 
-    const { logoId, licenseType, paymentStructure, totalAmount, termsIpfsUri, nonce, timestamp } = validation.data;
+    const { logoId, licenseType, paymentStructure, totalAmount, termsIpfsUri, nonce, timestamp } =
+      validation.data;
 
     // Get logo to verify ownership
     const logo = await storage.getLogoById(logoId);
@@ -70,13 +71,23 @@ licensesRouter.post("/licenses/create", isAuthenticated, async (req: any, res) =
 
     // Store license in database
     const licenseId = Math.random().toString(36).substring(7);
-    await (storage as any).$client?.query(
-      `INSERT INTO licenses (id, logo_id, issuer_id, type, structure, amount, terms_ipfs, created_at)
+    await (storage as any).$client
+      ?.query(
+        `INSERT INTO licenses (id, logo_id, issuer_id, type, structure, amount, terms_ipfs, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
-      [licenseId, logoId, userId, licenseType, paymentStructure, totalAmount.toString(), termsIpfsUri]
-    ).catch(() => {
-      // Silently fail if table doesn't exist - will be created by migration
-    });
+        [
+          licenseId,
+          logoId,
+          userId,
+          licenseType,
+          paymentStructure,
+          totalAmount.toString(),
+          termsIpfsUri,
+        ]
+      )
+      .catch(() => {
+        // Silently fail if table doesn't exist - will be created by migration
+      });
 
     auditLogger.log({
       action: "LICENSE_CREATED",
@@ -88,15 +99,20 @@ licensesRouter.post("/licenses/create", isAuthenticated, async (req: any, res) =
       details: { licenseId, logoId },
     });
 
-    return res.json(formatSuccess({
-      licenseId,
-      logoId,
-      status: "created",
-      licenseType,
-      totalAmount,
-      paymentStructure,
-      created_at: new Date().toISOString()
-    }, requestId));
+    return res.json(
+      formatSuccess(
+        {
+          licenseId,
+          logoId,
+          status: "created",
+          licenseType,
+          totalAmount,
+          paymentStructure,
+          created_at: new Date().toISOString(),
+        },
+        requestId
+      )
+    );
   } catch (error: any) {
     console.error("Error creating license:", error);
     auditLogger.log({
@@ -130,7 +146,9 @@ licensesRouter.post("/licenses/:licenseId/pay", isAuthenticated, async (req: any
     // Verify payment on-chain
     const paymentResult = await verifyPaymentPhase1(paymentTxHash, "LOGO_REGISTRATION");
     if (!paymentResult.valid) {
-      return res.status(402).json({ error: "Payment verification failed", details: paymentResult.error });
+      return res
+        .status(402)
+        .json({ error: "Payment verification failed", details: paymentResult.error });
     }
 
     // Log payment
@@ -147,7 +165,7 @@ licensesRouter.post("/licenses/:licenseId/pay", isAuthenticated, async (req: any
       paymentNumber,
       amountPaid: amount,
       paymentTxHash,
-      status: "confirmed"
+      status: "confirmed",
     });
   } catch (error: any) {
     console.error("Error processing license payment:", error);
@@ -164,10 +182,12 @@ licensesRouter.get("/licenses/created", isAuthenticated, async (req: any, res) =
     const userId = req.user.claims.sub;
 
     // Query from database
-    const result = await (storage as any).$client?.query(
-      `SELECT id, logo_id, type, amount, paid, status, created_at FROM licenses WHERE issuer_id = $1 ORDER BY created_at DESC`,
-      [userId]
-    ).catch(() => ({ rows: [] }));
+    const result = await (storage as any).$client
+      ?.query(
+        `SELECT id, logo_id, type, amount, paid, status, created_at FROM licenses WHERE issuer_id = $1 ORDER BY created_at DESC`,
+        [userId]
+      )
+      .catch(() => ({ rows: [] }));
 
     return res.json(result?.rows || []);
   } catch (error: any) {
@@ -185,10 +205,12 @@ licensesRouter.get("/licenses/active", isAuthenticated, async (req: any, res) =>
     const userId = req.user.claims.sub;
 
     // Query from database
-    const result = await (storage as any).$client?.query(
-      `SELECT id, issuer_id, logo_id, type, amount, paid FROM licenses WHERE status = 'active' ORDER BY created_at DESC`,
-      []
-    ).catch(() => ({ rows: [] }));
+    const result = await (storage as any).$client
+      ?.query(
+        `SELECT id, issuer_id, logo_id, type, amount, paid FROM licenses WHERE status = 'active' ORDER BY created_at DESC`,
+        []
+      )
+      .catch(() => ({ rows: [] }));
 
     return res.json(result?.rows || []);
   } catch (error: any) {
@@ -206,10 +228,9 @@ licensesRouter.get("/licenses/:licenseId/verify", isAuthenticated, async (req: a
     const { licenseId } = req.params;
 
     // Query from database
-    const result = await (storage as any).$client?.query(
-      `SELECT * FROM licenses WHERE id = $1`,
-      [licenseId]
-    ).catch(() => ({ rows: [] }));
+    const result = await (storage as any).$client
+      ?.query(`SELECT * FROM licenses WHERE id = $1`, [licenseId])
+      .catch(() => ({ rows: [] }));
 
     const license = result?.rows?.[0];
     if (!license) {
@@ -222,7 +243,7 @@ licensesRouter.get("/licenses/:licenseId/verify", isAuthenticated, async (req: a
       issuer: license.issuer_id,
       status: license.status,
       blockchainTxHash: license.tx_hash,
-      created_at: license.created_at
+      created_at: license.created_at,
     });
   } catch (error: any) {
     console.error("Error verifying license:", error);

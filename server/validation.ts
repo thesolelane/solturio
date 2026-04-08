@@ -8,7 +8,11 @@ import { z } from "zod";
 
 // Standard validation schemas for common operations
 export const nonceTimestampSchema = z.object({
-  nonce: z.string().regex(/^[a-f0-9]{64}$/, "Invalid nonce format").min(64).max(64),
+  nonce: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/, "Invalid nonce format")
+    .min(64)
+    .max(64),
   timestamp: z.number().int().positive(),
 });
 
@@ -39,12 +43,15 @@ export const multiSigSchema = z.object({
 });
 
 // Validation utility function
-export function validateRequest<T>(schema: z.ZodSchema<T>, data: unknown): { valid: true; data: T } | { valid: false; errors: Record<string, string> } {
+export function validateRequest<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown
+): { valid: true; data: T } | { valid: false; errors: Record<string, string> } {
   const result = schema.safeParse(data);
   if (!result.success) {
     const errors: Record<string, string> = {};
-    result.error.errors.forEach(err => {
-      const key = err.path.join('.');
+    result.error.errors.forEach((err) => {
+      const key = err.path.join(".");
       errors[key] = err.message;
     });
     return { valid: false, errors };

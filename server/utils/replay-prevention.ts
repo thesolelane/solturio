@@ -3,7 +3,7 @@
  * Phase 1: Critical Security Fix
  */
 
-import crypto from 'crypto';
+import crypto from "crypto";
 
 export interface ReplayCheckResult {
   valid: boolean;
@@ -14,7 +14,7 @@ export interface ReplayCheckResult {
  * Generate a cryptographic nonce (random 32-byte hex string)
  */
 export function generateNonce(): string {
-  return crypto.randomBytes(32).toString('hex');
+  return crypto.randomBytes(32).toString("hex");
 }
 
 /**
@@ -40,20 +40,17 @@ export function isValidTimestamp(timestamp: number): boolean {
  * @param nonce The nonce to check
  * @returns Valid if nonce is fresh and hasn't been used
  */
-export async function checkAndStoreNonce(
-  storage: any,
-  nonce: string
-): Promise<ReplayCheckResult> {
+export async function checkAndStoreNonce(storage: any, nonce: string): Promise<ReplayCheckResult> {
   try {
     // Validate nonce format
     if (!isValidNonce(nonce)) {
-      return { valid: false, reason: 'Invalid nonce format' };
+      return { valid: false, reason: "Invalid nonce format" };
     }
 
     // Check if nonce already exists (replay detected)
     const existingNonce = await storage.getNonceByValue(nonce);
     if (existingNonce) {
-      return { valid: false, reason: 'Replay attack detected: nonce already used' };
+      return { valid: false, reason: "Replay attack detected: nonce already used" };
     }
 
     // Store nonce to prevent future replays
@@ -61,8 +58,8 @@ export async function checkAndStoreNonce(
 
     return { valid: true };
   } catch (error: any) {
-    console.error('Error checking nonce:', error);
-    return { valid: false, reason: 'Nonce verification failed' };
+    console.error("Error checking nonce:", error);
+    return { valid: false, reason: "Nonce verification failed" };
   }
 }
 
@@ -79,26 +76,26 @@ export function validatePaymentRequest(req: any): {
 
   // Check nonce exists and is valid format
   if (!nonce) {
-    return { valid: false, reason: 'Missing nonce in request' };
+    return { valid: false, reason: "Missing nonce in request" };
   }
 
   if (!isValidNonce(nonce)) {
-    return { valid: false, reason: 'Invalid nonce format' };
+    return { valid: false, reason: "Invalid nonce format" };
   }
 
   // Check timestamp exists
   if (!timestamp) {
-    return { valid: false, reason: 'Missing timestamp in request' };
+    return { valid: false, reason: "Missing timestamp in request" };
   }
 
   // Validate timestamp is recent
   if (!isValidTimestamp(timestamp)) {
-    return { valid: false, reason: 'Request expired (timestamp must be within 5 minutes)' };
+    return { valid: false, reason: "Request expired (timestamp must be within 5 minutes)" };
   }
 
   // Check paymentTxHash
-  if (!paymentTxHash || typeof paymentTxHash !== 'string') {
-    return { valid: false, reason: 'Missing or invalid payment transaction hash' };
+  if (!paymentTxHash || typeof paymentTxHash !== "string") {
+    return { valid: false, reason: "Missing or invalid payment transaction hash" };
   }
 
   return { valid: true, nonce, timestamp };

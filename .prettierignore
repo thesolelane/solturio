@@ -1,0 +1,8 @@
+node_modules
+dist
+build
+.local
+attached_assets
+*.md
+*.json
+drizzle

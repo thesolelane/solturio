@@ -8,9 +8,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  ArrowLeft, Music2, Play, Pause, Shield, FileText, 
-  Clock, Disc3, Hash, Volume2, VolumeX, Headphones, Lock
+import {
+  ArrowLeft,
+  Music2,
+  Play,
+  Pause,
+  Shield,
+  FileText,
+  Clock,
+  Disc3,
+  Hash,
+  Volume2,
+  VolumeX,
+  Headphones,
+  Lock,
 } from "lucide-react";
 import type { Track, MasterAccessResponse } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -27,7 +38,7 @@ function MasterPlayer({ playbackUrl, expiresAt }: { playbackUrl: string; expires
     if (isPlaying) {
       masterRef.current.pause();
     } else {
-      masterRef.current.play().catch(e => setError(e.message));
+      masterRef.current.play().catch((e) => setError(e.message));
     }
     setIsPlaying(!isPlaying);
   };
@@ -69,16 +80,18 @@ function MasterPlayer({ playbackUrl, expiresAt }: { playbackUrl: string; expires
             onEnded={handleEnded}
             onError={handleError}
           />
-          <Button 
-            size="icon" 
-            variant="default" 
+          <Button
+            size="icon"
+            variant="default"
             onClick={togglePlay}
             data-testid="button-play-master-audio"
           >
             {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
           </Button>
           <Progress value={progress} className="flex-1" />
-          <Badge variant="secondary" className="text-xs">Master</Badge>
+          <Badge variant="secondary" className="text-xs">
+            Master
+          </Badge>
         </div>
       )}
     </div>
@@ -170,7 +183,9 @@ export default function MusicTrackDetail() {
       <div className="container max-w-5xl mx-auto px-6 py-12 text-center">
         <h1 className="text-2xl font-semibold">Track not found</h1>
         <Link href="/music">
-          <Button variant="outline" className="mt-4">Back to Music</Button>
+          <Button variant="outline" className="mt-4">
+            Back to Music
+          </Button>
         </Link>
       </div>
     );
@@ -195,7 +210,9 @@ export default function MusicTrackDetail() {
         </div>
 
         <div className="flex-1">
-          <h1 className="text-3xl font-semibold" data-testid="text-track-title">{track.title}</h1>
+          <h1 className="text-3xl font-semibold" data-testid="text-track-title">
+            {track.title}
+          </h1>
           <p className="text-xl text-muted-foreground mt-1">{track.artistName}</p>
           {track.featuredArtists && track.featuredArtists.length > 0 && (
             <p className="text-sm text-muted-foreground">
@@ -220,7 +237,9 @@ export default function MusicTrackDetail() {
           {/* Preview Player - Always available */}
           <div className="mt-6 space-y-3">
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">Preview</Badge>
+              <Badge variant="outline" className="text-xs">
+                Preview
+              </Badge>
               <span className="text-xs text-muted-foreground">30s sample</span>
             </div>
             {track.previewUri && track.previewUri !== "ar://PREVIEW_TX" ? (
@@ -262,9 +281,9 @@ export default function MusicTrackDetail() {
               <Headphones className="w-4 h-4" />
               <span className="font-medium">Master Quality</span>
             </div>
-            
+
             {!masterRequested || masterAccessMutation.isPending ? (
-              <Button 
+              <Button
                 variant="secondary"
                 onClick={requestMasterAccess}
                 disabled={masterAccessMutation.isPending}
@@ -274,8 +293,8 @@ export default function MusicTrackDetail() {
                 {masterAccessMutation.isPending ? "Checking license..." : "Play Master"}
               </Button>
             ) : masterAccess?.authorized && masterAccess.playbackUrl ? (
-              <MasterPlayer 
-                playbackUrl={masterAccess.playbackUrl} 
+              <MasterPlayer
+                playbackUrl={masterAccess.playbackUrl}
                 expiresAt={masterAccess.expiresAt!}
               />
             ) : (
@@ -284,13 +303,15 @@ export default function MusicTrackDetail() {
                 <AlertDescription className="flex flex-col gap-2">
                   <span>{masterAccess?.reason}</span>
                   <div className="flex gap-2 mt-2">
-                    <Link href={`/create-license?assetId=${track.assetId || track.id}&assetType=track`}>
+                    <Link
+                      href={`/create-license?assetId=${track.assetId || track.id}&assetType=track`}
+                    >
                       <Button size="sm" variant="default" data-testid="button-purchase-license">
                         Purchase License
                       </Button>
                     </Link>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => {
                         setMasterRequested(false);
@@ -361,7 +382,9 @@ export default function MusicTrackDetail() {
             {track.channels && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Channels:</span>
-                <span>{track.channels === 2 ? "Stereo" : track.channels === 1 ? "Mono" : track.channels}</span>
+                <span>
+                  {track.channels === 2 ? "Stereo" : track.channels === 1 ? "Mono" : track.channels}
+                </span>
               </div>
             )}
             {track.bpm && (

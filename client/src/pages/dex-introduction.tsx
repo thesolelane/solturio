@@ -3,9 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { 
-  Shield, 
-  CheckCircle, 
+import {
+  Shield,
+  CheckCircle,
   TrendingUp,
   Users,
   Zap,
@@ -17,7 +17,7 @@ import {
   Copy,
   Building,
   Target,
-  Award
+  Award,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -103,7 +103,7 @@ async function displayToken(token) {
     showVerifiedBadge();
   }
 }`;
-    
+
     navigator.clipboard.writeText(code);
     setCopiedCode(true);
     toast({
@@ -133,13 +133,13 @@ async function displayToken(token) {
     <div className="container mx-auto p-6 max-w-7xl">
       {/* Hero Section */}
       <div className="text-center mb-12">
-        <Badge className="mb-4" variant="default">For Partners & DEX Platforms</Badge>
-        <h1 className="text-5xl font-bold mb-4">
-          Partner with Solturio: Protect Your Platform
-        </h1>
+        <Badge className="mb-4" variant="default">
+          For Partners & DEX Platforms
+        </Badge>
+        <h1 className="text-5xl font-bold mb-4">Partner with Solturio: Protect Your Platform</h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          Learn how Solturio's free verification API helps DEX platforms and partners
-          protect users from copycat tokens while reducing platform liability.
+          Learn how Solturio's free verification API helps DEX platforms and partners protect users
+          from copycat tokens while reducing platform liability.
         </p>
       </div>
 
@@ -180,8 +180,8 @@ async function displayToken(token) {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Instant API response (under 100ms) verifies if a logo is legitimate or stolen.
-              Check tokens before displaying to users.
+              Instant API response (under 100ms) verifies if a logo is legitimate or stolen. Check
+              tokens before displaying to users.
             </p>
           </CardContent>
         </Card>
@@ -195,8 +195,8 @@ async function displayToken(token) {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Timestamped on Solana blockchain with IPFS permanent storage.
-              Undeniable proof of first registration.
+              Timestamped on Solana blockchain with IPFS permanent storage. Undeniable proof of
+              first registration.
             </p>
           </CardContent>
         </Card>
@@ -210,8 +210,7 @@ async function displayToken(token) {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Automated DMCA notices with blockchain evidence.
-              Protect your platform from liability.
+              Automated DMCA notices with blockchain evidence. Protect your platform from liability.
             </p>
           </CardContent>
         </Card>
@@ -234,8 +233,8 @@ async function displayToken(token) {
               <div className="flex-1">
                 <h3 className="font-semibold mb-1">Projects Register Logos First</h3>
                 <p className="text-sm text-muted-foreground">
-                  Legitimate projects upload logos to Solturio BEFORE launching tokens,
-                  creating blockchain-timestamped proof of ownership.
+                  Legitimate projects upload logos to Solturio BEFORE launching tokens, creating
+                  blockchain-timestamped proof of ownership.
                 </p>
               </div>
             </div>
@@ -247,8 +246,8 @@ async function displayToken(token) {
               <div className="flex-1">
                 <h3 className="font-semibold mb-1">DEXs Verify in Real-time</h3>
                 <p className="text-sm text-muted-foreground">
-                  When new tokens are listed, DEX platforms call our API to check
-                  if the logo is registered and authorized for that token address.
+                  When new tokens are listed, DEX platforms call our API to check if the logo is
+                  registered and authorized for that token address.
                 </p>
               </div>
             </div>
@@ -260,8 +259,8 @@ async function displayToken(token) {
               <div className="flex-1">
                 <h3 className="font-semibold mb-1">Copycats Get Flagged</h3>
                 <p className="text-sm text-muted-foreground">
-                  If a logo is registered but not authorized for the token, users see
-                  a warning. The original owner can file automated DMCA takedowns.
+                  If a logo is registered but not authorized for the token, users see a warning. The
+                  original owner can file automated DMCA takedowns.
                 </p>
               </div>
             </div>
@@ -276,9 +275,7 @@ async function displayToken(token) {
             <Code className="w-6 h-6" />
             Simple API Integration
           </CardTitle>
-          <CardDescription>
-            Add logo verification to your platform in minutes
-          </CardDescription>
+          <CardDescription>Add logo verification to your platform in minutes</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="bg-muted rounded-lg p-4 mb-4">
@@ -459,27 +456,27 @@ else if (result.verified) showVerifiedBadge();`}</code>
             <AccordionItem value="item-1">
               <AccordionTrigger>Is the API really free?</AccordionTrigger>
               <AccordionContent>
-                Yes! Basic verification (checking if a logo is legitimate) is completely free
-                with no API key required. Premium features like bulk verification, webhooks,
-                and priority support are available for enterprise partners.
+                Yes! Basic verification (checking if a logo is legitimate) is completely free with
+                no API key required. Premium features like bulk verification, webhooks, and priority
+                support are available for enterprise partners.
               </AccordionContent>
             </AccordionItem>
-            
+
             <AccordionItem value="item-2">
               <AccordionTrigger>How fast is the verification?</AccordionTrigger>
               <AccordionContent>
-                Our API responds in under 100ms for 99% of requests. We use global CDN
-                caching and optimized database queries to ensure verification doesn't
-                slow down your token display.
+                Our API responds in under 100ms for 99% of requests. We use global CDN caching and
+                optimized database queries to ensure verification doesn't slow down your token
+                display.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-3">
               <AccordionTrigger>What happens to copycat tokens?</AccordionTrigger>
               <AccordionContent>
-                When a copycat is detected, your platform can show a warning to users.
-                The legitimate owner gets notified and can file an automated DMCA takedown.
-                You receive legal documentation to remove the listing if requested.
+                When a copycat is detected, your platform can show a warning to users. The
+                legitimate owner gets notified and can file an automated DMCA takedown. You receive
+                legal documentation to remove the listing if requested.
               </AccordionContent>
             </AccordionItem>
 
@@ -487,17 +484,17 @@ else if (result.verified) showVerifiedBadge();`}</code>
               <AccordionTrigger>How do legitimate projects register?</AccordionTrigger>
               <AccordionContent>
                 Projects upload their logos to Solturio before token launch, creating
-                blockchain-timestamped proof. They get IPFS URLs and verification certificates
-                to use when listing on DEXs. The earlier they register, the stronger their claim.
+                blockchain-timestamped proof. They get IPFS URLs and verification certificates to
+                use when listing on DEXs. The earlier they register, the stronger their claim.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-5">
               <AccordionTrigger>Can this prevent all scams?</AccordionTrigger>
               <AccordionContent>
-                While we can't prevent all scams, we significantly reduce logo-based fraud
-                which accounts for 82% of copycat tokens. Combined with your existing
-                security measures, this creates multiple layers of protection.
+                While we can't prevent all scams, we significantly reduce logo-based fraud which
+                accounts for 82% of copycat tokens. Combined with your existing security measures,
+                this creates multiple layers of protection.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -507,25 +504,23 @@ else if (result.verified) showVerifiedBadge();`}</code>
       {/* CTA */}
       <Card className="bg-primary text-primary-foreground">
         <CardContent className="text-center py-12">
-          <h2 className="text-3xl font-bold mb-4">
-            Ready to Protect Your Users?
-          </h2>
+          <h2 className="text-3xl font-bold mb-4">Ready to Protect Your Users?</h2>
           <p className="text-lg mb-6 opacity-90">
             Join the fight against copycat tokens. Integration takes less than 30 minutes.
           </p>
           <div className="flex gap-4 justify-center">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               variant="secondary"
-              onClick={() => window.open('mailto:partnerships@solturio.app', '_blank')}
+              onClick={() => window.open("mailto:partnerships@solturio.app", "_blank")}
             >
               Contact Partnerships
             </Button>
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               variant="outline"
               className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
-              onClick={() => window.open('https://docs.solturio.app/dex-integration', '_blank')}
+              onClick={() => window.open("https://docs.solturio.app/dex-integration", "_blank")}
             >
               <ExternalLink className="w-4 h-4 mr-2" />
               View Documentation

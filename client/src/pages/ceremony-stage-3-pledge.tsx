@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Shield, Sparkles } from "lucide-react";
@@ -66,27 +73,34 @@ export default function CeremonyStage3Pledge() {
 
             <div className="prose prose-sm max-w-none dark:prose-invert">
               <p className="text-center italic leading-relaxed">
-                "I solemnly acknowledge and accept that the 12-word recovery phrase 
-                about to be revealed to me is the <span className="font-bold not-italic">sole and exclusive</span> means 
-                of accessing my Solturio wallet.
+                "I solemnly acknowledge and accept that the 12-word recovery phrase about to be
+                revealed to me is the{" "}
+                <span className="font-bold not-italic">sole and exclusive</span> means of accessing
+                my Solturio wallet.
               </p>
 
               <p className="text-center italic leading-relaxed">
-                I understand that <span className="font-bold not-italic">no person, organization, or technology</span> can 
-                recover my wallet if I lose this phrase. Not Solturio, not blockchain forensics, 
+                I understand that{" "}
+                <span className="font-bold not-italic">no person, organization, or technology</span>{" "}
+                can recover my wallet if I lose this phrase. Not Solturio, not blockchain forensics,
                 not customer support, and not any government authority.
               </p>
 
               <p className="text-center italic leading-relaxed">
-                I commit to <span className="font-bold not-italic">writing these words on physical paper</span> using 
-                pen and ink, storing this paper in a secure location known only to me, 
-                and <span className="font-bold not-italic">never photographing or digitally recording</span> these words.
+                I commit to{" "}
+                <span className="font-bold not-italic">writing these words on physical paper</span>{" "}
+                using pen and ink, storing this paper in a secure location known only to me, and{" "}
+                <span className="font-bold not-italic">
+                  never photographing or digitally recording
+                </span>{" "}
+                these words.
               </p>
 
               <p className="text-center italic leading-relaxed">
-                I accept <span className="font-bold not-italic">full and complete responsibility</span> for the security 
-                of my recovery phrase and release Solturio from any liability 
-                for losses resulting from my failure to secure it properly."
+                I accept{" "}
+                <span className="font-bold not-italic">full and complete responsibility</span> for
+                the security of my recovery phrase and release Solturio from any liability for
+                losses resulting from my failure to secure it properly."
               </p>
             </div>
           </div>
@@ -114,19 +128,15 @@ export default function CeremonyStage3Pledge() {
                 className="text-sm leading-relaxed cursor-pointer font-semibold"
                 data-testid="label-accept-pledge"
               >
-                I accept this sacred pledge and understand that by checking this box, 
-                I am creating a permanent legal record of my commitment to secure my wallet.
+                I accept this sacred pledge and understand that by checking this box, I am creating
+                a permanent legal record of my commitment to secure my wallet.
               </label>
             </div>
           </div>
         </CardContent>
 
         <CardFooter className="flex justify-between gap-3">
-          <Button
-            variant="outline"
-            onClick={handleGoBack}
-            data-testid="button-go-back"
-          >
+          <Button variant="outline" onClick={handleGoBack} data-testid="button-go-back">
             Go Back
           </Button>
           <Button

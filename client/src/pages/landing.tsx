@@ -18,13 +18,13 @@ export default function Landing() {
           <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
             <div className="flex items-center gap-3">
               {/* Light Mode Logo - Dark colored logo for light backgrounds */}
-              <img 
+              <img
                 src="/solturio-logo-dark.png"
                 alt="Solturio Logo"
                 className="w-14 h-14 object-contain dark:hidden"
               />
               {/* Dark Mode Logo - White colored logo for dark backgrounds */}
-              <img 
+              <img
                 src="/solturio-logo-white.png"
                 alt="Solturio Logo"
                 className="w-14 h-14 object-contain hidden dark:block"
@@ -45,27 +45,25 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto text-center">
           {/* Solturio Logo */}
           <div className="mb-8 flex justify-center">
-            <img 
+            <img
               src="/solturio-logo-dark.png"
               alt="Solturio"
               className="w-48 h-48 object-contain dark:hidden"
             />
-            <img 
+            <img
               src="/solturio-logo-white.png"
               alt="Solturio"
               className="w-48 h-48 object-contain hidden dark:block"
             />
           </div>
-          <h1 className="text-4xl lg:text-5xl font-semibold mb-4">
-            Plant Your Standard on Chain
-          </h1>
+          <h1 className="text-4xl lg:text-5xl font-semibold mb-4">Plant Your Standard on Chain</h1>
           <div className="text-sm text-muted-foreground mb-6 font-medium">
             IP IS A JOURNEY - BLOCKCHAIN IS YOUR BEST FRIEND
           </div>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            <strong>Register First, Use Everywhere.</strong> Create your innovation timeline with immutable blockchain proof. 
-            Protect PFPs, logos, tickers, and evolving digital assets BEFORE posting anywhere. 
-            Gold check verified users get automatic takedown support.
+            <strong>Register First, Use Everywhere.</strong> Create your innovation timeline with
+            immutable blockchain proof. Protect PFPs, logos, tickers, and evolving digital assets
+            BEFORE posting anywhere. Gold check verified users get automatic takedown support.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="gap-2" asChild data-testid="button-get-started">
@@ -127,7 +125,7 @@ export default function Landing() {
               </p>
             </div>
           </div>
-          
+
           <Card className="p-6 bg-primary/5 border-primary/20">
             <div className="text-center">
               <Shield className="w-10 h-10 text-primary mx-auto mb-3" />
@@ -158,16 +156,18 @@ export default function Landing() {
               IP Management Is a Daily Practice, Not a One-Time Activity
             </h2>
             <p className="text-muted-foreground max-w-3xl mx-auto">
-              As recognized by the World Intellectual Property Organization (WIPO), managing IP assets in the digital age 
-              requires daily attention. Solturio makes this journey simple with blockchain-powered innovation timelines.
+              As recognized by the World Intellectual Property Organization (WIPO), managing IP
+              assets in the digital age requires daily attention. Solturio makes this journey simple
+              with blockchain-powered innovation timelines.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <Card className="p-4">
               <h4 className="font-semibold mb-2">Evolving Digital Assets</h4>
               <p className="text-sm text-muted-foreground">
-                Protect constantly changing designs, datasets, and creative works with immutable timestamps
+                Protect constantly changing designs, datasets, and creative works with immutable
+                timestamps
               </p>
             </Card>
             <Card className="p-4">
@@ -203,26 +203,26 @@ export default function Landing() {
               <Lock className="w-8 h-8 text-primary mb-4" />
               <h3 className="text-lg font-semibold mb-2">Immutable Innovation Timeline</h3>
               <p className="text-sm text-muted-foreground">
-                Public blockchain creates tamper-proof evidence of when you first created your IP. 
+                Public blockchain creates tamper-proof evidence of when you first created your IP.
                 Independent from any central authority, accepted globally.
               </p>
             </Card>
-            
+
             <Card className="p-6">
               <Clock className="w-8 h-8 text-primary mb-4" />
               <h3 className="text-lg font-semibold mb-2">Active Takedown Support</h3>
               <p className="text-sm text-muted-foreground">
-                We don't just provide proof - we actively contact platforms on your behalf. 
-                Direct relationships with Twitter/X, DEXs, and social media IP teams.
+                We don't just provide proof - we actively contact platforms on your behalf. Direct
+                relationships with Twitter/X, DEXs, and social media IP teams.
               </p>
             </Card>
-            
+
             <Card className="p-6">
               <CheckCircle2 className="w-8 h-8 text-primary mb-4" />
               <h3 className="text-lg font-semibold mb-2">For Modern Digital Assets</h3>
               <p className="text-sm text-muted-foreground">
-                Perfect for PFPs, evolving designs, community logos, token tickers, and any 
-                digital IP that needs protection in Web2 and Web3.
+                Perfect for PFPs, evolving designs, community logos, token tickers, and any digital
+                IP that needs protection in Web2 and Web3.
               </p>
             </Card>
           </div>
@@ -232,41 +232,51 @@ export default function Landing() {
       {/* Pricing */}
       <section className="py-16 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl font-semibold text-center mb-4">
-            Simple, Transparent Pricing
-          </h2>
+          <h2 className="text-2xl font-semibold text-center mb-4">Simple, Transparent Pricing</h2>
           <p className="text-center text-muted-foreground mb-12">Pay with $CATH - No Fiat</p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <Card className="p-6 border-2 border-primary">
               <div className="text-center">
-                <div className="text-xs font-semibold text-primary mb-2">LAUNCH PROMO - 72% OFF</div>
+                <div className="text-xs font-semibold text-primary mb-2">
+                  LAUNCH PROMO - 72% OFF
+                </div>
                 <h3 className="text-lg font-semibold mb-2">Platform Access</h3>
                 <div className="text-3xl font-bold mb-1">0.14 SOL</div>
                 <div className="text-sm text-muted-foreground mb-1">worth of $CATH</div>
-                <div className="text-sm text-muted-foreground line-through mb-4">0.5 SOL standard</div>
+                <div className="text-sm text-muted-foreground line-through mb-4">
+                  0.5 SOL standard
+                </div>
                 <p className="text-sm text-muted-foreground mb-6">1 Year Full Access</p>
                 <Button className="w-full" asChild data-testid="button-pricing-promo">
                   <a href="/api/login">Get Started</a>
                 </Button>
               </div>
             </Card>
-            
+
             <Card className="p-6 border-2">
               <div className="text-center">
                 <h3 className="text-lg font-semibold mb-2 mt-5">License Smart Contract</h3>
                 <div className="text-3xl font-bold mb-1">0.025 SOL</div>
                 <div className="text-sm text-muted-foreground mb-4">per contract deployment</div>
-                <p className="text-sm text-muted-foreground mb-6">Dual-signature workflow, on-chain proof</p>
-                <Button className="w-full" variant="outline" asChild data-testid="button-pricing-license">
+                <p className="text-sm text-muted-foreground mb-6">
+                  Dual-signature workflow, on-chain proof
+                </p>
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  asChild
+                  data-testid="button-pricing-license"
+                >
                   <a href="/api/login">Learn More</a>
                 </Button>
               </div>
             </Card>
           </div>
-          
+
           <p className="text-center text-xs text-muted-foreground mt-8">
-            All payments are non-refundable service fees. $SOLT utility rewards for platform engagement.
+            All payments are non-refundable service fees. $SOLT utility rewards for platform
+            engagement.
           </p>
         </div>
       </section>

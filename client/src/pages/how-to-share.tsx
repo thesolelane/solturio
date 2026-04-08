@@ -16,13 +16,17 @@ export default function HowToShare() {
       <header className="border-b bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5">
         <div className="h-20 flex items-center px-6 lg:px-8">
           <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3 hover-elevate" data-testid="link-home">
-              <img 
+            <Link
+              href="/"
+              className="flex items-center gap-3 hover-elevate"
+              data-testid="link-home"
+            >
+              <img
                 src="/solturio-logo-light-mode.png"
                 alt="Solturio Logo"
                 className="w-14 h-14 object-contain dark:hidden"
               />
-              <img 
+              <img
                 src="/solturio-logo-dark-mode.png"
                 alt="Solturio Logo"
                 className="w-14 h-14 object-contain hidden dark:block"
@@ -31,7 +35,13 @@ export default function HowToShare() {
                 Solturio
               </span>
             </Link>
-            <Button variant="outline" size="sm" asChild className="gap-2" data-testid="button-back-collections">
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="gap-2"
+              data-testid="button-back-collections"
+            >
               <Link href="/collections">
                 <ArrowLeft className="w-4 h-4" />
                 Back to Collections
@@ -62,7 +72,10 @@ export default function HowToShare() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              When you mint your collection on Solturio, we create <strong>verified versions</strong> of your images with a gold check badge overlay. These images are stored permanently on IPFS (InterPlanetary File System) and cannot be deleted or modified.
+              When you mint your collection on Solturio, we create{" "}
+              <strong>verified versions</strong> of your images with a gold check badge overlay.
+              These images are stored permanently on IPFS (InterPlanetary File System) and cannot be
+              deleted or modified.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-muted/50 rounded-lg p-4">
@@ -104,7 +117,9 @@ export default function HowToShare() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">1</span>
+                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                  1
+                </span>
                 Copy Your IPFS URL
               </CardTitle>
               <CardDescription>
@@ -113,10 +128,24 @@ export default function HowToShare() {
             </CardHeader>
             <CardContent>
               <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                <li>Navigate to <Link href="/collections" className="text-primary underline" data-testid="link-my-collections">My Collections</Link></li>
-                <li>Click on a <strong>minted</strong> collection to expand it</li>
+                <li>
+                  Navigate to{" "}
+                  <Link
+                    href="/collections"
+                    className="text-primary underline"
+                    data-testid="link-my-collections"
+                  >
+                    My Collections
+                  </Link>
+                </li>
+                <li>
+                  Click on a <strong>minted</strong> collection to expand it
+                </li>
                 <li>Scroll down to "Share Verified Images" section</li>
-                <li>Click the <Copy className="w-4 h-4 inline" /> copy button next to the image you want to share</li>
+                <li>
+                  Click the <Copy className="w-4 h-4 inline" /> copy button next to the image you
+                  want to share
+                </li>
               </ol>
               <div className="mt-4 p-3 bg-muted rounded-lg">
                 <p className="text-sm font-medium mb-1">Your URL will look like:</p>
@@ -131,13 +160,13 @@ export default function HowToShare() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">2</span>
+                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                  2
+                </span>
                 <Twitter className="w-5 h-5" />
                 Share on Twitter/X
               </CardTitle>
-              <CardDescription>
-                Use as profile picture or share in posts
-              </CardDescription>
+              <CardDescription>Use as profile picture or share in posts</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -148,7 +177,10 @@ export default function HowToShare() {
                     <li>Right-click the image and "Save Image As..."</li>
                     <li>Go to Twitter Settings &gt; Profile &gt; Edit Profile</li>
                     <li>Upload the saved image as your profile picture</li>
-                    <li><strong>Pin a tweet</strong> with your IPFS URL so others can verify it's the same image</li>
+                    <li>
+                      <strong>Pin a tweet</strong> with your IPFS URL so others can verify it's the
+                      same image
+                    </li>
                   </ol>
                 </div>
                 <div>
@@ -162,7 +194,8 @@ export default function HowToShare() {
                 </div>
                 <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
                   <p className="text-sm">
-                    <strong>Pro Tip:</strong> Put your IPFS link in your Twitter bio! This lets anyone verify your official logo.
+                    <strong>Pro Tip:</strong> Put your IPFS link in your Twitter bio! This lets
+                    anyone verify your official logo.
                   </p>
                 </div>
               </div>
@@ -173,13 +206,13 @@ export default function HowToShare() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">3</span>
+                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                  3
+                </span>
                 <Send className="w-5 h-5" />
                 Share on Telegram
               </CardTitle>
-              <CardDescription>
-                Perfect for token creator groups and announcements
-              </CardDescription>
+              <CardDescription>Perfect for token creator groups and announcements</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -200,7 +233,8 @@ export default function HowToShare() {
                 </div>
                 <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
                   <p className="text-sm">
-                    <strong>Bot Tip:</strong> Our Telegram bot can verify images in real-time! Just forward an image to @SolturioBot and it will check if it's registered.
+                    <strong>Bot Tip:</strong> Our Telegram bot can verify images in real-time! Just
+                    forward an image to @SolturioBot and it will check if it's registered.
                   </p>
                 </div>
               </div>
@@ -211,7 +245,9 @@ export default function HowToShare() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">4</span>
+                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                  4
+                </span>
                 <Image className="w-5 h-5" />
                 Use on DEX Platforms
               </CardTitle>
@@ -222,7 +258,8 @@ export default function HowToShare() {
             <CardContent>
               <div className="space-y-4">
                 <p className="text-muted-foreground">
-                  When listing your token, use your verified IPFS URL as the token logo. This proves you're the original creator and deters copycats.
+                  When listing your token, use your verified IPFS URL as the token logo. This proves
+                  you're the original creator and deters copycats.
                 </p>
                 <div>
                   <h4 className="font-medium mb-2">Steps:</h4>
@@ -235,7 +272,9 @@ export default function HowToShare() {
                 </div>
                 <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
                   <p className="text-sm">
-                    <strong>Important:</strong> Register your logo on Solturio <strong>before</strong> launching your token. This establishes your timestamp of ownership.
+                    <strong>Important:</strong> Register your logo on Solturio{" "}
+                    <strong>before</strong> launching your token. This establishes your timestamp of
+                    ownership.
                   </p>
                 </div>
               </div>
@@ -246,18 +285,19 @@ export default function HowToShare() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">5</span>
+                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+                  5
+                </span>
                 <Globe className="w-5 h-5" />
                 Use on Your Website
               </CardTitle>
-              <CardDescription>
-                Embed the verified image directly from IPFS
-              </CardDescription>
+              <CardDescription>Embed the verified image directly from IPFS</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <p className="text-muted-foreground">
-                  You can embed your verified image directly from IPFS on your website. This loads the image from decentralized storage.
+                  You can embed your verified image directly from IPFS on your website. This loads
+                  the image from decentralized storage.
                 </p>
                 <div>
                   <h4 className="font-medium mb-2">HTML Code:</h4>
@@ -270,9 +310,15 @@ export default function HowToShare() {
                 <div>
                   <h4 className="font-medium mb-2">Alternative Gateways:</h4>
                   <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                    <li><code>https://gateway.pinata.cloud/ipfs/...</code></li>
-                    <li><code>https://cloudflare-ipfs.com/ipfs/...</code></li>
-                    <li><code>https://ipfs.io/ipfs/...</code> (recommended)</li>
+                    <li>
+                      <code>https://gateway.pinata.cloud/ipfs/...</code>
+                    </li>
+                    <li>
+                      <code>https://cloudflare-ipfs.com/ipfs/...</code>
+                    </li>
+                    <li>
+                      <code>https://ipfs.io/ipfs/...</code> (recommended)
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -286,11 +332,15 @@ export default function HowToShare() {
           <div className="space-y-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Can someone else copy my verified image?</CardTitle>
+                <CardTitle className="text-base">
+                  Can someone else copy my verified image?
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  They can download it, but the IPFS hash proves YOU registered it first. The blockchain timestamp is permanent and verifiable. If someone uses your image, you have proof of original ownership.
+                  They can download it, but the IPFS hash proves YOU registered it first. The
+                  blockchain timestamp is permanent and verifiable. If someone uses your image, you
+                  have proof of original ownership.
                 </p>
               </CardContent>
             </Card>
@@ -300,17 +350,23 @@ export default function HowToShare() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  IPFS is decentralized, so occasionally a gateway may be slow. Try a different gateway URL (Pinata, Cloudflare, etc.). Your file is pinned permanently and will always be available.
+                  IPFS is decentralized, so occasionally a gateway may be slow. Try a different
+                  gateway URL (Pinata, Cloudflare, etc.). Your file is pinned permanently and will
+                  always be available.
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Do I have to use the verified image (with badge)?</CardTitle>
+                <CardTitle className="text-base">
+                  Do I have to use the verified image (with badge)?
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  You can use either! The verified image (with gold badge) is recommended for social media and DEXs because it visually shows your IP is protected. The original image IPFS hash is also stored in your NFT certificate for verification.
+                  You can use either! The verified image (with gold badge) is recommended for social
+                  media and DEXs because it visually shows your IP is protected. The original image
+                  IPFS hash is also stored in your NFT certificate for verification.
                 </p>
               </CardContent>
             </Card>

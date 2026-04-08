@@ -23,16 +23,16 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       doc.text("SOLTURIO", 50, 50);
       doc.fontSize(10).fillColor("#666").font("Helvetica");
       doc.text("Plant Your Standard on Chain™", 50, 80);
-      
+
       // Date and recipient
       doc.fillColor("#000").fontSize(11);
-      const currentDate = new Date().toLocaleDateString("en-US", { 
-        year: "numeric", 
-        month: "long", 
-        day: "numeric" 
+      const currentDate = new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       });
       doc.text(currentDate, 50, 120);
-      
+
       doc.moveDown();
       doc.fontSize(12).font("Helvetica");
       doc.text("Solana Foundation", 50, 150);
@@ -60,7 +60,7 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       doc.moveDown();
       doc.font("Helvetica-Bold").fontSize(13);
       doc.text("The Critical Problem We Solve", { paragraphGap: 5 });
-      
+
       doc.font("Helvetica").fontSize(11);
       doc.text(
         "The Solana ecosystem faces a growing crisis of intellectual property theft, particularly in the DEX space where copycat tokens regularly steal legitimate project logos and branding. This damages:",
@@ -73,8 +73,8 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
         "• The Solana ecosystem's reputation when scams proliferate",
         "• Legal uncertainty around IP ownership in Web3",
       ];
-      
-      problems.forEach(problem => {
+
+      problems.forEach((problem) => {
         doc.text(problem, { indent: 20, paragraphGap: 3 });
       });
 
@@ -82,7 +82,7 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       doc.moveDown();
       doc.font("Helvetica-Bold").fontSize(13);
       doc.text("Solturio's Solution: Blockchain-Native IP Protection", { paragraphGap: 5 });
-      
+
       doc.font("Helvetica").fontSize(11);
       doc.text(
         "Solturio creates an immutable, timestamp-verified registry of intellectual property on Solana, providing:",
@@ -97,8 +97,8 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
         "• IPFS/Arweave integration for permanent proof storage",
         "• Metaplex NFT minting for IP ownership certificates",
       ];
-      
-      solutions.forEach(solution => {
+
+      solutions.forEach((solution) => {
         doc.text(solution, { indent: 20, paragraphGap: 3 });
       });
 
@@ -106,7 +106,7 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       doc.moveDown();
       doc.font("Helvetica-Bold").fontSize(13);
       doc.text("Benefits to the Solana Ecosystem", { paragraphGap: 5 });
-      
+
       doc.font("Helvetica").fontSize(11);
       const benefits = [
         "1. Enhanced Security: Reduce scams and protect users from fraudulent projects",
@@ -115,23 +115,23 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
         "4. Ecosystem Growth: Attract serious businesses with proper IP protection",
         "5. Innovation Leadership: Position Solana as the blockchain for legitimate business",
       ];
-      
-      benefits.forEach(benefit => {
+
+      benefits.forEach((benefit) => {
         doc.text(benefit, { align: "justify", paragraphGap: 5 });
       });
 
       // Add new page for technical details
       doc.addPage();
-      
+
       // Technical Implementation
       doc.font("Helvetica-Bold").fontSize(13);
       doc.text("Technical Architecture on Solana", 50, 50, { paragraphGap: 5 });
-      
+
       doc.font("Helvetica").fontSize(11);
-      doc.text(
-        "Solturio leverages Solana's unique capabilities:",
-        { align: "justify", paragraphGap: 5 }
-      );
+      doc.text("Solturio leverages Solana's unique capabilities:", {
+        align: "justify",
+        paragraphGap: 5,
+      });
 
       const technical = [
         "• Smart Contracts: Custom programs for IP registration and verification",
@@ -141,8 +141,8 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
         "• Low Cost: Minimal transaction fees for accessibility",
         "• Compressed NFTs: Efficient storage of large IP portfolios",
       ];
-      
-      technical.forEach(item => {
+
+      technical.forEach((item) => {
         doc.text(item, { indent: 20, paragraphGap: 3 });
       });
 
@@ -150,12 +150,9 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       doc.moveDown();
       doc.font("Helvetica-Bold").fontSize(13);
       doc.text("Early Traction and Adoption Strategy", { paragraphGap: 5 });
-      
+
       doc.font("Helvetica").fontSize(11);
-      doc.text(
-        "We are already building momentum with:",
-        { align: "justify", paragraphGap: 5 }
-      );
+      doc.text("We are already building momentum with:", { align: "justify", paragraphGap: 5 });
 
       const traction = [
         "• Partnership discussions with major DEX platforms",
@@ -164,8 +161,8 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
         "• Educational content on IP protection in Web3",
         "• $CATH token rewards for platform engagement",
       ];
-      
-      traction.forEach(item => {
+
+      traction.forEach((item) => {
         doc.text(item, { indent: 20, paragraphGap: 3 });
       });
 
@@ -173,12 +170,12 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       doc.moveDown();
       doc.font("Helvetica-Bold").fontSize(13);
       doc.text("Proposed Partnership with Solana Foundation", { paragraphGap: 5 });
-      
+
       doc.font("Helvetica").fontSize(11);
-      doc.text(
-        "We seek the Solana Foundation's support to:",
-        { align: "justify", paragraphGap: 5 }
-      );
+      doc.text("We seek the Solana Foundation's support to:", {
+        align: "justify",
+        paragraphGap: 5,
+      });
 
       const partnership = [
         "1. Grant Support: Funding to accelerate development and adoption",
@@ -187,8 +184,8 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
         "4. Co-Marketing: Joint announcement of IP protection standard",
         "5. Foundation Usage: Solana Foundation using Solturio for its own IP",
       ];
-      
-      partnership.forEach(item => {
+
+      partnership.forEach((item) => {
         doc.text(item, { paragraphGap: 5 });
       });
 
@@ -196,7 +193,7 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
       doc.moveDown();
       doc.font("Helvetica-Bold").fontSize(13);
       doc.text("Next Steps", { paragraphGap: 5 });
-      
+
       doc.font("Helvetica").fontSize(11);
       doc.text(
         "We would welcome the opportunity to discuss how Solturio can become the standard for IP protection across the Solana ecosystem. We are prepared to:",
@@ -209,8 +206,8 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
         "• Discuss grant requirements and milestones",
         "• Explore pilot programs with Foundation partners",
       ];
-      
-      nextSteps.forEach(step => {
+
+      nextSteps.forEach((step) => {
         doc.text(step, { indent: 20, paragraphGap: 3 });
       });
 
@@ -233,12 +230,9 @@ export function generateSolanaFoundationProposal(): Promise<Buffer> {
 
       // Footer
       doc.fontSize(9).fillColor("#666");
-      doc.text(
-        "Solturio - Plant Your Standard on Chain™",
-        50,
-        doc.page.height - 50,
-        { align: "center" }
-      );
+      doc.text("Solturio - Plant Your Standard on Chain™", 50, doc.page.height - 50, {
+        align: "center",
+      });
 
       doc.end();
     } catch (error) {

@@ -6,13 +6,27 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { 
-  Users, 
-  Search, 
-  RefreshCw, 
-  Gift, 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Users,
+  Search,
+  RefreshCw,
+  Gift,
   Calendar,
   CheckCircle2,
   Clock,
@@ -20,7 +34,7 @@ import {
   Crown,
   TrendingUp,
   Coins,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -52,114 +66,186 @@ export function SubscriptionAdminPanel() {
   const [manualRewardAmount, setManualRewardAmount] = useState("");
   const [rewardDialogOpen, setRewardDialogOpen] = useState(false);
 
-  const { data: users, isLoading: usersLoading, refetch: refetchUsers } = useQuery<SubscriptionUser[]>({
-    queryKey: ['/api/admin/subscriptions/users'],
+  const {
+    data: users,
+    isLoading: usersLoading,
+    refetch: refetchUsers,
+  } = useQuery<SubscriptionUser[]>({
+    queryKey: ["/api/admin/subscriptions/users"],
   });
 
-  const { data: rewardsStats, isLoading: statsLoading, refetch: refetchStats } = useQuery<RewardsPoolStats>({
-    queryKey: ['/api/admin/tokens/rewards-pool'],
+  const {
+    data: rewardsStats,
+    isLoading: statsLoading,
+    refetch: refetchStats,
+  } = useQuery<RewardsPoolStats>({
+    queryKey: ["/api/admin/tokens/rewards-pool"],
   });
 
   const grantFreeMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const response = await apiRequest('POST', '/api/admin/subscriptions/grant-free', { userId });
+      const response = await apiRequest("POST", "/api/admin/subscriptions/grant-free", { userId });
       return response.json();
     },
     onMutate: async (userId) => {
-      await queryClient.cancelQueries({ queryKey: ['/api/admin/subscriptions/users'] });
-      const previousUsers = queryClient.getQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users']);
-      queryClient.setQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users'], (old) =>
-        old?.map((user) => user.id === userId ? { ...user, accountStatus: 'admin' } : user) || []
+      await queryClient.cancelQueries({ queryKey: ["/api/admin/subscriptions/users"] });
+      const previousUsers = queryClient.getQueryData<SubscriptionUser[]>([
+        "/api/admin/subscriptions/users",
+      ]);
+      queryClient.setQueryData<SubscriptionUser[]>(
+        ["/api/admin/subscriptions/users"],
+        (old) =>
+          old?.map((user) => (user.id === userId ? { ...user, accountStatus: "admin" } : user)) ||
+          []
       );
       return { previousUsers };
     },
     onSuccess: () => {
-      toast({ title: "Free access granted", description: "User now has admin/free access to the platform." });
+      toast({
+        title: "Free access granted",
+        description: "User now has admin/free access to the platform.",
+      });
     },
     onError: (error: Error, _userId, context) => {
       if (context?.previousUsers) {
-        queryClient.setQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users'], context.previousUsers);
+        queryClient.setQueryData<SubscriptionUser[]>(
+          ["/api/admin/subscriptions/users"],
+          context.previousUsers
+        );
       }
-      toast({ title: "Failed to grant access", description: error.message, variant: "destructive" });
+      toast({
+        title: "Failed to grant access",
+        description: error.message,
+        variant: "destructive",
+      });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/subscriptions/users'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/subscriptions/users"] });
     },
   });
 
   const extendSubscriptionMutation = useMutation({
     mutationFn: async ({ userId, days }: { userId: string; days: number }) => {
-      const response = await apiRequest('POST', '/api/admin/subscriptions/extend', { userId, days });
+      const response = await apiRequest("POST", "/api/admin/subscriptions/extend", {
+        userId,
+        days,
+      });
       return response.json();
     },
     onMutate: async ({ userId, days }) => {
-      await queryClient.cancelQueries({ queryKey: ['/api/admin/subscriptions/users'] });
-      const previousUsers = queryClient.getQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users']);
-      queryClient.setQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users'], (old) =>
-        old?.map((user) => {
-          if (user.id === userId) {
-            const currentExpiry = user.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt) : new Date();
-            const newExpiry = new Date(currentExpiry.getTime() + days * 24 * 60 * 60 * 1000);
-            return { ...user, subscriptionExpiresAt: newExpiry.toISOString(), accountStatus: 'active' };
-          }
-          return user;
-        }) || []
+      await queryClient.cancelQueries({ queryKey: ["/api/admin/subscriptions/users"] });
+      const previousUsers = queryClient.getQueryData<SubscriptionUser[]>([
+        "/api/admin/subscriptions/users",
+      ]);
+      queryClient.setQueryData<SubscriptionUser[]>(
+        ["/api/admin/subscriptions/users"],
+        (old) =>
+          old?.map((user) => {
+            if (user.id === userId) {
+              const currentExpiry = user.subscriptionExpiresAt
+                ? new Date(user.subscriptionExpiresAt)
+                : new Date();
+              const newExpiry = new Date(currentExpiry.getTime() + days * 24 * 60 * 60 * 1000);
+              return {
+                ...user,
+                subscriptionExpiresAt: newExpiry.toISOString(),
+                accountStatus: "active",
+              };
+            }
+            return user;
+          }) || []
       );
       return { previousUsers };
     },
     onSuccess: () => {
-      toast({ title: "Subscription extended", description: "User's subscription has been extended." });
+      toast({
+        title: "Subscription extended",
+        description: "User's subscription has been extended.",
+      });
     },
     onError: (error: Error, _variables, context) => {
       if (context?.previousUsers) {
-        queryClient.setQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users'], context.previousUsers);
+        queryClient.setQueryData<SubscriptionUser[]>(
+          ["/api/admin/subscriptions/users"],
+          context.previousUsers
+        );
       }
-      toast({ title: "Failed to extend subscription", description: error.message, variant: "destructive" });
+      toast({
+        title: "Failed to extend subscription",
+        description: error.message,
+        variant: "destructive",
+      });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/subscriptions/users'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/subscriptions/users"] });
     },
   });
 
   const awardRewardsMutation = useMutation({
-    mutationFn: async ({ userId, amount, reason }: { userId: string; amount: number; reason: string }) => {
-      const response = await apiRequest('POST', '/api/admin/subscriptions/award-rewards', { userId, amount, reason });
+    mutationFn: async ({
+      userId,
+      amount,
+      reason,
+    }: {
+      userId: string;
+      amount: number;
+      reason: string;
+    }) => {
+      const response = await apiRequest("POST", "/api/admin/subscriptions/award-rewards", {
+        userId,
+        amount,
+        reason,
+      });
       return response.json();
     },
     onMutate: async ({ userId, amount }) => {
-      await queryClient.cancelQueries({ queryKey: ['/api/admin/subscriptions/users'] });
-      const previousUsers = queryClient.getQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users']);
-      queryClient.setQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users'], (old) =>
-        old?.map((user) => {
-          if (user.id === userId) {
-            const currentBalance = parseFloat(user.soltBalance || '0');
-            return { ...user, soltBalance: String(currentBalance + amount) };
-          }
-          return user;
-        }) || []
+      await queryClient.cancelQueries({ queryKey: ["/api/admin/subscriptions/users"] });
+      const previousUsers = queryClient.getQueryData<SubscriptionUser[]>([
+        "/api/admin/subscriptions/users",
+      ]);
+      queryClient.setQueryData<SubscriptionUser[]>(
+        ["/api/admin/subscriptions/users"],
+        (old) =>
+          old?.map((user) => {
+            if (user.id === userId) {
+              const currentBalance = parseFloat(user.soltBalance || "0");
+              return { ...user, soltBalance: String(currentBalance + amount) };
+            }
+            return user;
+          }) || []
       );
       setRewardDialogOpen(false);
       setManualRewardAmount("");
       return { previousUsers };
     },
     onSuccess: () => {
-      toast({ title: "Rewards awarded", description: "SOLT rewards have been credited to the user." });
+      toast({
+        title: "Rewards awarded",
+        description: "SOLT rewards have been credited to the user.",
+      });
     },
     onError: (error: Error, _variables, context) => {
       if (context?.previousUsers) {
-        queryClient.setQueryData<SubscriptionUser[]>(['/api/admin/subscriptions/users'], context.previousUsers);
+        queryClient.setQueryData<SubscriptionUser[]>(
+          ["/api/admin/subscriptions/users"],
+          context.previousUsers
+        );
       }
       setRewardDialogOpen(false);
       setManualRewardAmount("");
-      toast({ title: "Failed to award rewards", description: error.message, variant: "destructive" });
+      toast({
+        title: "Failed to award rewards",
+        description: error.message,
+        variant: "destructive",
+      });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/subscriptions/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/tokens/rewards-pool'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/subscriptions/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tokens/rewards-pool"] });
     },
   });
 
-  const filteredUsers = users?.filter(user => {
+  const filteredUsers = users?.filter((user) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -172,14 +258,30 @@ export function SubscriptionAdminPanel() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'active':
-        return <Badge className="bg-green-600"><CheckCircle2 className="w-3 h-3 mr-1" /> Active</Badge>;
-      case 'expired':
-        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" /> Expired</Badge>;
-      case 'admin':
-        return <Badge className="bg-purple-600"><Crown className="w-3 h-3 mr-1" /> Admin</Badge>;
+      case "active":
+        return (
+          <Badge className="bg-green-600">
+            <CheckCircle2 className="w-3 h-3 mr-1" /> Active
+          </Badge>
+        );
+      case "expired":
+        return (
+          <Badge variant="destructive">
+            <XCircle className="w-3 h-3 mr-1" /> Expired
+          </Badge>
+        );
+      case "admin":
+        return (
+          <Badge className="bg-purple-600">
+            <Crown className="w-3 h-3 mr-1" /> Admin
+          </Badge>
+        );
       default:
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
+        return (
+          <Badge variant="secondary">
+            <Clock className="w-3 h-3 mr-1" /> Pending
+          </Badge>
+        );
     }
   };
 
@@ -212,7 +314,8 @@ export function SubscriptionAdminPanel() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users?.filter(u => u.accountStatus === 'active' || u.accountStatus === 'admin').length || 0}
+              {users?.filter((u) => u.accountStatus === "active" || u.accountStatus === "admin")
+                .length || 0}
             </div>
           </CardContent>
         </Card>
@@ -253,7 +356,12 @@ export function SubscriptionAdminPanel() {
               <CardTitle>Subscription Management</CardTitle>
               <CardDescription>View and manage user subscriptions and rewards</CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={() => refetchUsers()} data-testid="button-refresh-users">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetchUsers()}
+              data-testid="button-refresh-users"
+            >
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </Button>
@@ -303,17 +411,21 @@ export function SubscriptionAdminPanel() {
                       </TableCell>
                       <TableCell>{getStatusBadge(user.accountStatus)}</TableCell>
                       <TableCell className="text-sm">
-                        {user.accountStatus === 'admin' ? 'Never' : formatDate(user.subscriptionExpiresAt)}
+                        {user.accountStatus === "admin"
+                          ? "Never"
+                          : formatDate(user.subscriptionExpiresAt)}
                       </TableCell>
                       <TableCell className="text-right font-mono">
-                        {parseFloat(user.soltBalance || '0').toLocaleString()} SOLT
+                        {parseFloat(user.soltBalance || "0").toLocaleString()} SOLT
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => extendSubscriptionMutation.mutate({ userId: user.id, days: 30 })}
+                            onClick={() =>
+                              extendSubscriptionMutation.mutate({ userId: user.id, days: 30 })
+                            }
                             disabled={extendSubscriptionMutation.isPending}
                             data-testid={`button-extend-${user.id}`}
                           >
@@ -332,7 +444,7 @@ export function SubscriptionAdminPanel() {
                             <Gift className="w-3 h-3 mr-1" />
                             Reward
                           </Button>
-                          {user.accountStatus !== 'admin' && (
+                          {user.accountStatus !== "admin" && (
                             <Button
                               variant="secondary"
                               size="sm"
@@ -393,7 +505,7 @@ export function SubscriptionAdminPanel() {
                   awardRewardsMutation.mutate({
                     userId: selectedUser.id,
                     amount: parseFloat(manualRewardAmount),
-                    reason: 'admin_manual',
+                    reason: "admin_manual",
                   });
                 }
               }}

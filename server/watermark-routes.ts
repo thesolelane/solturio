@@ -1,6 +1,6 @@
 /**
  * Watermark Protection API Routes
- * 
+ *
  * Provides file watermarking endpoints for IP protection.
  * Call before IPFS upload to embed ownership proof.
  */
@@ -68,7 +68,7 @@ watermarkRouter.post("/verify", async (req: Request, res: Response) => {
 
     const category = getFileCategory(filename);
 
-    if (category === 'code') {
+    if (category === "code") {
       const result = verifyWatermark(content, filename);
       res.json({
         success: true,
@@ -81,7 +81,9 @@ watermarkRouter.post("/verify", async (req: Request, res: Response) => {
         found: result.valid,
         manifest: result.manifest,
         error: result.error,
-        note: result.valid ? 'Manifest verified. File hash matches and signature is valid.' : undefined,
+        note: result.valid
+          ? "Manifest verified. File hash matches and signature is valid."
+          : undefined,
       });
     } else {
       res.json({
@@ -114,7 +116,7 @@ watermarkRouter.post("/generate-manifest", isAuthenticated, async (req: Request,
       });
     }
 
-    const fileHash = createHash('sha256').update(fileContent).digest('hex');
+    const fileHash = createHash("sha256").update(fileContent).digest("hex");
     const manifest = generateManifest({ isclId, ownerWallet, fileHash });
 
     res.json({
@@ -172,7 +174,8 @@ watermarkRouter.get("/supported-types", (req: Request, res: Response) => {
     types: getSupportedTypes(),
     notes: {
       code: "Code files get a visible comment header plus hidden steganographic mark using zero-width Unicode characters",
-      binary: "Binary files (audio, image, document) use a companion .solturio manifest file stored alongside the original in IPFS",
+      binary:
+        "Binary files (audio, image, document) use a companion .solturio manifest file stored alongside the original in IPFS",
       verification: "Watermark hash can be verified against on-chain IPRegistration record",
     },
   });

@@ -8,29 +8,51 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, ArrowLeft, Link2, Download, CheckCircle, AlertTriangle, ExternalLink } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  Link2,
+  Download,
+  CheckCircle,
+  AlertTriangle,
+  ExternalLink,
+} from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Logo } from "@shared/schema";
 
 function getExplorerUrl(chain: string, address: string): { url: string; name: string } {
   switch (chain) {
-    case 'solana':
-      return { url: `https://solscan.io/token/${address}`, name: 'Solscan' };
-    case 'ethereum':
-      return { url: `https://etherscan.io/token/${address}`, name: 'Etherscan' };
-    case 'base':
-      return { url: `https://basescan.org/token/${address}`, name: 'BaseScan' };
-    case 'arbitrum':
-      return { url: `https://arbiscan.io/token/${address}`, name: 'Arbiscan' };
-    case 'polygon':
-      return { url: `https://polygonscan.com/token/${address}`, name: 'PolygonScan' };
+    case "solana":
+      return { url: `https://solscan.io/token/${address}`, name: "Solscan" };
+    case "ethereum":
+      return { url: `https://etherscan.io/token/${address}`, name: "Etherscan" };
+    case "base":
+      return { url: `https://basescan.org/token/${address}`, name: "BaseScan" };
+    case "arbitrum":
+      return { url: `https://arbiscan.io/token/${address}`, name: "Arbiscan" };
+    case "polygon":
+      return { url: `https://polygonscan.com/token/${address}`, name: "PolygonScan" };
     default:
-      return { url: `https://solscan.io/token/${address}`, name: 'Explorer' };
+      return { url: `https://solscan.io/token/${address}`, name: "Explorer" };
   }
 }
 
@@ -165,7 +187,8 @@ export default function BindContract() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Bind Contract Address</h1>
         <p className="text-muted-foreground">
-          Link your deployed token contract to your original registration and generate a verification manifest.
+          Link your deployed token contract to your original registration and generate a
+          verification manifest.
         </p>
       </div>
 
@@ -187,7 +210,7 @@ export default function BindContract() {
             <div>
               <span className="text-muted-foreground block">Registered</span>
               <span className="font-medium">
-                {logo.ownershipClaimedAt 
+                {logo.ownershipClaimedAt
                   ? new Date(logo.ownershipClaimedAt).toLocaleDateString()
                   : "N/A"}
               </span>
@@ -208,9 +231,7 @@ export default function BindContract() {
               <CheckCircle className="w-5 h-5 text-green-500" />
               <CardTitle>Contract Address Bound</CardTitle>
             </div>
-            <CardDescription>
-              Your token contract is linked to this registration
-            </CardDescription>
+            <CardDescription>Your token contract is linked to this registration</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="p-4 bg-muted rounded-lg space-y-3">
@@ -233,16 +254,20 @@ export default function BindContract() {
                 </div>
               )}
               {(() => {
-                const ca = (logo as any).tokenContractAddress || form.getValues().tokenContractAddress;
-                const chain = (logo as any).tokenContractChain || form.getValues().tokenContractChain || 'solana';
+                const ca =
+                  (logo as any).tokenContractAddress || form.getValues().tokenContractAddress;
+                const chain =
+                  (logo as any).tokenContractChain ||
+                  form.getValues().tokenContractChain ||
+                  "solana";
                 if (!ca) return null;
                 const explorer = getExplorerUrl(chain, ca);
                 return (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="w-full text-xs gap-1 mt-2"
-                    onClick={() => window.open(explorer.url, '_blank')}
+                    onClick={() => window.open(explorer.url, "_blank")}
                     data-testid="button-view-explorer"
                   >
                     <ExternalLink className="w-3 h-3" />
@@ -255,7 +280,8 @@ export default function BindContract() {
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                Some social platforms strip metadata on upload. Keep your original files and this verification manifest as proof of ownership.
+                Some social platforms strip metadata on upload. Keep your original files and this
+                verification manifest as proof of ownership.
               </AlertDescription>
             </Alert>
 
@@ -275,7 +301,7 @@ export default function BindContract() {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => window.open(`/api/logos/${logoId}/download-verified`, '_blank')}
+                onClick={() => window.open(`/api/logos/${logoId}/download-verified`, "_blank")}
                 data-testid="button-download-verified"
               >
                 <Download className="w-4 h-4 mr-2" />
@@ -290,7 +316,8 @@ export default function BindContract() {
           <CardHeader>
             <CardTitle>Enter Contract Details</CardTitle>
             <CardDescription>
-              After deploying your token, enter the contract address to bind it to your registration.
+              After deploying your token, enter the contract address to bind it to your
+              registration.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -329,15 +356,13 @@ export default function BindContract() {
                     <FormItem>
                       <FormLabel>Contract Address *</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="e.g., 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU" 
+                        <Input
+                          placeholder="e.g., 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
                           {...field}
                           data-testid="input-contract-address"
                         />
                       </FormControl>
-                      <FormDescription>
-                        The on-chain token contract address
-                      </FormDescription>
+                      <FormDescription>The on-chain token contract address</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -350,8 +375,8 @@ export default function BindContract() {
                     <FormItem>
                       <FormLabel>Pool/Pair Address (Optional)</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="DEX liquidity pool address" 
+                        <Input
+                          placeholder="DEX liquidity pool address"
                           {...field}
                           data-testid="input-pool-address"
                         />
@@ -364,8 +389,8 @@ export default function BindContract() {
                   )}
                 />
 
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full"
                   disabled={bindMutation.isPending}
                   data-testid="button-submit-bind"
@@ -394,7 +419,9 @@ export default function BindContract() {
             </li>
             <li className="flex items-start gap-2">
               <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-              <span>Creates a timestamped verification record with chain, CA, project ID, and file hash</span>
+              <span>
+                Creates a timestamped verification record with chain, CA, project ID, and file hash
+              </span>
             </li>
             <li className="flex items-start gap-2">
               <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
@@ -406,7 +433,8 @@ export default function BindContract() {
             </li>
           </ul>
           <p className="text-xs text-muted-foreground mt-4 pt-4 border-t">
-            Note: Some social platforms strip metadata on upload. Keep your original files and this platform's verification manifest as proof of ownership.
+            Note: Some social platforms strip metadata on upload. Keep your original files and this
+            platform's verification manifest as proof of ownership.
           </p>
         </CardContent>
       </Card>

@@ -4,27 +4,34 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { 
-  CheckCircle2, 
-  Coins, 
-  AlertCircle, 
-  Loader2, 
-  Copy, 
+import {
+  CheckCircle2,
+  Coins,
+  AlertCircle,
+  Loader2,
+  Copy,
   ExternalLink,
   Sparkles,
   Shield,
   Clock,
-  Zap
+  Zap,
 } from "lucide-react";
 
 interface SubscriptionInfo {
-  status: 'active' | 'pending' | 'expired';
+  status: "active" | "pending" | "expired";
   expiresAt?: string;
   isAdmin: boolean;
   isPromo: boolean;
@@ -42,7 +49,9 @@ export default function ActivatePage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const [paymentStep, setPaymentStep] = useState<'info' | 'payment' | 'verifying' | 'complete'>('info');
+  const [paymentStep, setPaymentStep] = useState<"info" | "payment" | "verifying" | "complete">(
+    "info"
+  );
   const [transactionSignature, setTransactionSignature] = useState("");
 
   useEffect(() => {
@@ -63,34 +72,36 @@ export default function ActivatePage() {
   }, [isAuthenticated, authLoading, toast]);
 
   const { data: subscriptionInfo, isLoading: subscriptionLoading } = useQuery<SubscriptionInfo>({
-    queryKey: ['/api/subscription/status'],
+    queryKey: ["/api/subscription/status"],
     enabled: isAuthenticated,
   });
 
   const { data: paymentInfo, isLoading: paymentLoading } = useQuery<PaymentInfo>({
-    queryKey: ['/api/subscription/payment-info'],
-    enabled: isAuthenticated && subscriptionInfo?.status === 'pending',
+    queryKey: ["/api/subscription/payment-info"],
+    enabled: isAuthenticated && subscriptionInfo?.status === "pending",
   });
 
   const verifyPaymentMutation = useMutation({
     mutationFn: async (txSignature: string) => {
-      const response = await apiRequest('POST', '/api/subscription/verify-payment', { transactionSignature: txSignature });
+      const response = await apiRequest("POST", "/api/subscription/verify-payment", {
+        transactionSignature: txSignature,
+      });
       return response;
     },
     onSuccess: () => {
       toast({ title: "Payment Verified!", description: "Your account is now active for 1 year." });
-      setPaymentStep('complete');
-      queryClient.invalidateQueries({ queryKey: ['/api/subscription/status'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      setTimeout(() => setLocation('/dashboard'), 2000);
+      setPaymentStep("complete");
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription/status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setTimeout(() => setLocation("/dashboard"), 2000);
     },
     onError: (error: any) => {
-      toast({ 
-        title: "Verification Failed", 
-        description: error.message || "Could not verify payment. Please try again.", 
-        variant: "destructive" 
+      toast({
+        title: "Verification Failed",
+        description: error.message || "Could not verify payment. Please try again.",
+        variant: "destructive",
       });
-      setPaymentStep('payment');
+      setPaymentStep("payment");
     },
   });
 
@@ -99,16 +110,24 @@ export default function ActivatePage() {
       await navigator.clipboard.writeText(text);
       toast({ title: "Copied!", description: `${label} copied to clipboard` });
     } catch (err) {
-      toast({ title: "Copy Failed", description: "Could not copy to clipboard", variant: "destructive" });
+      toast({
+        title: "Copy Failed",
+        description: "Could not copy to clipboard",
+        variant: "destructive",
+      });
     }
   };
 
   const handleVerifyPayment = () => {
     if (!transactionSignature.trim()) {
-      toast({ title: "Missing Signature", description: "Please enter your transaction signature", variant: "destructive" });
+      toast({
+        title: "Missing Signature",
+        description: "Please enter your transaction signature",
+        variant: "destructive",
+      });
       return;
     }
-    setPaymentStep('verifying');
+    setPaymentStep("verifying");
     verifyPaymentMutation.mutate(transactionSignature);
   };
 
@@ -142,7 +161,7 @@ export default function ActivatePage() {
             </Badge>
           </CardContent>
           <CardFooter className="justify-center">
-            <Button onClick={() => setLocation('/dashboard')} data-testid="button-go-dashboard">
+            <Button onClick={() => setLocation("/dashboard")} data-testid="button-go-dashboard">
               Go to Dashboard
             </Button>
           </CardFooter>
@@ -151,12 +170,12 @@ export default function ActivatePage() {
     );
   }
 
-  if (subscriptionInfo?.status === 'active') {
+  if (subscriptionInfo?.status === "active") {
     const expiresAt = subscriptionInfo.expiresAt ? new Date(subscriptionInfo.expiresAt) : null;
-    const daysRemaining = expiresAt 
+    const daysRemaining = expiresAt
       ? Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
       : 0;
-    
+
     return (
       <div className="container max-w-4xl mx-auto py-8 px-4">
         <Card>
@@ -167,9 +186,7 @@ export default function ActivatePage() {
               </div>
             </div>
             <CardTitle className="text-2xl">Account Active</CardTitle>
-            <CardDescription>
-              Your platform access is active and ready to use.
-            </CardDescription>
+            <CardDescription>Your platform access is active and ready to use.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-center gap-2">
@@ -184,14 +201,12 @@ export default function ActivatePage() {
                   <Clock className="w-4 h-4 inline mr-1" />
                   Expires: {expiresAt.toLocaleDateString()}
                 </p>
-                <p className="text-sm font-medium">
-                  {daysRemaining} days remaining
-                </p>
+                <p className="text-sm font-medium">{daysRemaining} days remaining</p>
               </div>
             )}
           </CardContent>
           <CardFooter className="justify-center">
-            <Button onClick={() => setLocation('/dashboard')} data-testid="button-go-dashboard">
+            <Button onClick={() => setLocation("/dashboard")} data-testid="button-go-dashboard">
               Go to Dashboard
             </Button>
           </CardFooter>
@@ -200,7 +215,7 @@ export default function ActivatePage() {
     );
   }
 
-  if (subscriptionInfo?.status === 'expired') {
+  if (subscriptionInfo?.status === "expired") {
     return (
       <div className="container max-w-4xl mx-auto py-8 px-4">
         <Card>
@@ -224,7 +239,7 @@ export default function ActivatePage() {
             </Alert>
           </CardContent>
           <CardFooter className="justify-center">
-            <Button onClick={() => setPaymentStep('payment')} data-testid="button-renew">
+            <Button onClick={() => setPaymentStep("payment")} data-testid="button-renew">
               Renew Subscription
             </Button>
           </CardFooter>
@@ -249,13 +264,14 @@ export default function ActivatePage() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {paymentStep === 'info' && (
+          {paymentStep === "info" && (
             <>
               {paymentInfo?.isPromo && (
                 <Alert className="border-green-500/50 bg-green-500/5">
                   <Sparkles className="h-4 w-4 text-green-500" />
                   <AlertDescription className="text-green-600">
-                    <strong>Early Adopter Special!</strong> You're eligible for the launch promotion price.
+                    <strong>Early Adopter Special!</strong> You're eligible for the launch promotion
+                    price.
                   </AlertDescription>
                 </Alert>
               )}
@@ -267,7 +283,7 @@ export default function ActivatePage() {
                     {paymentInfo?.isPromo ? "Launch Promo" : "Standard"}
                   </Badge>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Duration</span>
                   <span className="font-semibold">1 Year Access</span>
@@ -279,11 +295,9 @@ export default function ActivatePage() {
                   <span className="font-semibold">Amount Due</span>
                   <div className="text-right">
                     <div className="text-2xl font-bold" data-testid="text-payment-amount">
-                      {paymentInfo?.solEquivalent || '0.14'} SOL worth
+                      {paymentInfo?.solEquivalent || "0.14"} SOL worth
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      in $CATH tokens
-                    </div>
+                    <div className="text-sm text-muted-foreground">in $CATH tokens</div>
                   </div>
                 </div>
               </div>
@@ -307,19 +321,20 @@ export default function ActivatePage() {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Non-refundable.</strong> This is a service fee for platform access. 
-                  All payments are final and non-refundable.
+                  <strong>Non-refundable.</strong> This is a service fee for platform access. All
+                  payments are final and non-refundable.
                 </AlertDescription>
               </Alert>
             </>
           )}
 
-          {paymentStep === 'payment' && paymentInfo && (
+          {paymentStep === "payment" && paymentInfo && (
             <>
               <div className="p-6 border rounded-lg bg-muted/30 space-y-4">
                 <h4 className="font-semibold">Payment Instructions</h4>
                 <p className="text-sm text-muted-foreground">
-                  Send the exact amount of $CATH tokens to the platform wallet, then paste your transaction signature below.
+                  Send the exact amount of $CATH tokens to the platform wallet, then paste your
+                  transaction signature below.
                 </p>
 
                 <div className="space-y-3">
@@ -330,8 +345,8 @@ export default function ActivatePage() {
                         {paymentInfo.recipientWallet}
                       </code>
                     </div>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => copyToClipboard(paymentInfo.recipientWallet, "Wallet address")}
                       data-testid="button-copy-wallet"
@@ -347,8 +362,8 @@ export default function ActivatePage() {
                         {paymentInfo.cathAmount}
                       </code>
                     </div>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => copyToClipboard(paymentInfo.cathAmount, "Amount")}
                       data-testid="button-copy-amount"
@@ -379,13 +394,14 @@ export default function ActivatePage() {
               <Alert className="border-amber-500/50 bg-amber-500/5">
                 <AlertCircle className="h-4 w-4 text-amber-500" />
                 <AlertDescription>
-                  Make sure to send from your connected wallet: {user?.walletAddress?.slice(0, 8)}...
+                  Make sure to send from your connected wallet: {user?.walletAddress?.slice(0, 8)}
+                  ...
                 </AlertDescription>
               </Alert>
             </>
           )}
 
-          {paymentStep === 'verifying' && (
+          {paymentStep === "verifying" && (
             <div className="space-y-6 py-8">
               <div className="flex flex-col items-center gap-4">
                 <Loader2 className="h-16 w-16 text-primary animate-spin" />
@@ -400,7 +416,7 @@ export default function ActivatePage() {
             </div>
           )}
 
-          {paymentStep === 'complete' && (
+          {paymentStep === "complete" && (
             <div className="space-y-6 py-8">
               <div className="flex flex-col items-center gap-4">
                 <CheckCircle2 className="h-16 w-16 text-green-500" />
@@ -422,24 +438,35 @@ export default function ActivatePage() {
         </CardContent>
 
         <CardFooter className="flex justify-between gap-4">
-          {paymentStep === 'info' && (
+          {paymentStep === "info" && (
             <>
-              <Button variant="outline" onClick={() => setLocation('/dashboard')} data-testid="button-cancel">
+              <Button
+                variant="outline"
+                onClick={() => setLocation("/dashboard")}
+                data-testid="button-cancel"
+              >
                 Cancel
               </Button>
-              <Button onClick={() => setPaymentStep('payment')} data-testid="button-proceed-payment">
+              <Button
+                onClick={() => setPaymentStep("payment")}
+                data-testid="button-proceed-payment"
+              >
                 <Coins className="w-4 h-4 mr-2" />
                 Proceed to Payment
               </Button>
             </>
           )}
 
-          {paymentStep === 'payment' && (
+          {paymentStep === "payment" && (
             <>
-              <Button variant="outline" onClick={() => setPaymentStep('info')} data-testid="button-back">
+              <Button
+                variant="outline"
+                onClick={() => setPaymentStep("info")}
+                data-testid="button-back"
+              >
                 Back
               </Button>
-              <Button 
+              <Button
                 onClick={handleVerifyPayment}
                 disabled={!transactionSignature.trim() || verifyPaymentMutation.isPending}
                 data-testid="button-verify-payment"
@@ -459,8 +486,12 @@ export default function ActivatePage() {
             </>
           )}
 
-          {paymentStep === 'complete' && (
-            <Button className="w-full" onClick={() => setLocation('/dashboard')} data-testid="button-go-dashboard">
+          {paymentStep === "complete" && (
+            <Button
+              className="w-full"
+              onClick={() => setLocation("/dashboard")}
+              data-testid="button-go-dashboard"
+            >
               <ExternalLink className="w-4 h-4 mr-2" />
               Go to Dashboard
             </Button>

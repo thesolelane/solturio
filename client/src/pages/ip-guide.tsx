@@ -28,12 +28,13 @@ export default function IPGuide() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            <strong>Blockchain NFTs</strong> provide immutable, timestamped proof of ownership - perfect for 
-            establishing creation dates and takedown requests on crypto platforms like DEXScreener.
+            <strong>Blockchain NFTs</strong> provide immutable, timestamped proof of ownership -
+            perfect for establishing creation dates and takedown requests on crypto platforms like
+            DEXScreener.
           </p>
           <p>
-            <strong>Legal trademark registration</strong> provides enforceable rights in court, broader protection 
-            across industries, and the ability to sue infringers for damages.
+            <strong>Legal trademark registration</strong> provides enforceable rights in court,
+            broader protection across industries, and the ability to sue infringers for damages.
           </p>
           <p className="text-muted-foreground">
             For maximum protection, we recommend combining blockchain proof with legal registration.
@@ -43,9 +44,15 @@ export default function IPGuide() {
 
       <Tabs defaultValue="trademark" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="trademark" data-testid="tab-trademark">Trademark Registration</TabsTrigger>
-          <TabsTrigger value="copyright" data-testid="tab-copyright">Copyright Registration</TabsTrigger>
-          <TabsTrigger value="comparison" data-testid="tab-comparison">Comparison</TabsTrigger>
+          <TabsTrigger value="trademark" data-testid="tab-trademark">
+            Trademark Registration
+          </TabsTrigger>
+          <TabsTrigger value="copyright" data-testid="tab-copyright">
+            Copyright Registration
+          </TabsTrigger>
+          <TabsTrigger value="comparison" data-testid="tab-comparison">
+            Comparison
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="trademark" className="space-y-6">
@@ -81,9 +88,7 @@ export default function IPGuide() {
                       <p className="text-sm text-muted-foreground">
                         <strong>8-12 months</strong> for approval
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        Initial review in 3-4 months
-                      </p>
+                      <p className="text-sm text-muted-foreground">Initial review in 3-4 months</p>
                     </div>
                   </div>
                 </div>
@@ -126,7 +131,10 @@ export default function IPGuide() {
                 <h3 className="font-semibold mb-3">Filing Process</h3>
                 <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
                   <li>Search existing trademarks to avoid conflicts</li>
-                  <li>Choose your trademark class(es) - most logos use Class 25 (clothing) or Class 35 (business services)</li>
+                  <li>
+                    Choose your trademark class(es) - most logos use Class 25 (clothing) or Class 35
+                    (business services)
+                  </li>
                   <li>File TEAS Standard or TEAS Plus application</li>
                   <li>Respond to any USPTO office actions (3-4 months)</li>
                   <li>Publication for opposition (30 days)</li>
@@ -135,7 +143,11 @@ export default function IPGuide() {
               </div>
 
               <Button asChild variant="default" data-testid="button-uspto">
-                <a href="https://www.uspto.gov/trademarks" target="_blank" rel="noopener noreferrer">
+                <a
+                  href="https://www.uspto.gov/trademarks"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   Visit USPTO Website
                   <ExternalLink className="w-4 h-4 ml-2" />
                 </a>
@@ -148,9 +160,7 @@ export default function IPGuide() {
           <Card>
             <CardHeader>
               <CardTitle>US Copyright Registration</CardTitle>
-              <CardDescription>
-                Register your logo artwork for copyright protection
-              </CardDescription>
+              <CardDescription>Register your logo artwork for copyright protection</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
@@ -250,7 +260,9 @@ export default function IPGuide() {
           <div className="grid md:grid-cols-3 gap-6">
             <Card>
               <CardHeader>
-                <Badge variant="secondary" className="w-fit mb-2">Blockchain NFT</Badge>
+                <Badge variant="secondary" className="w-fit mb-2">
+                  Blockchain NFT
+                </Badge>
                 <CardTitle className="text-lg">Solturio</CardTitle>
                 <CardDescription>Immutable proof of creation</CardDescription>
               </CardHeader>
@@ -274,7 +286,9 @@ export default function IPGuide() {
 
             <Card>
               <CardHeader>
-                <Badge variant="secondary" className="w-fit mb-2">Legal Protection</Badge>
+                <Badge variant="secondary" className="w-fit mb-2">
+                  Legal Protection
+                </Badge>
                 <CardTitle className="text-lg">Trademark</CardTitle>
                 <CardDescription>Brand identity protection</CardDescription>
               </CardHeader>
@@ -298,7 +312,9 @@ export default function IPGuide() {
 
             <Card>
               <CardHeader>
-                <Badge variant="secondary" className="w-fit mb-2">Legal Protection</Badge>
+                <Badge variant="secondary" className="w-fit mb-2">
+                  Legal Protection
+                </Badge>
                 <CardTitle className="text-lg">Copyright</CardTitle>
                 <CardDescription>Artistic work protection</CardDescription>
               </CardHeader>
@@ -332,8 +348,8 @@ export default function IPGuide() {
                   <div>
                     <p className="font-semibold mb-1">Step 1: Blockchain Proof (Solturio)</p>
                     <p className="text-sm text-muted-foreground">
-                      Immediately establish timestamped proof of creation. Perfect for crypto-native projects 
-                      and quick takedown requests.
+                      Immediately establish timestamped proof of creation. Perfect for crypto-native
+                      projects and quick takedown requests.
                     </p>
                   </div>
                 </div>
@@ -341,9 +357,11 @@ export default function IPGuide() {
                 <div className="flex items-start gap-3">
                   <FileText className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-semibold mb-1">Step 2: Copyright Registration (if artistic)</p>
+                    <p className="font-semibold mb-1">
+                      Step 2: Copyright Registration (if artistic)
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      If your logo has creative/artistic elements, file for copyright protection. 
+                      If your logo has creative/artistic elements, file for copyright protection.
                       Quick and affordable ($45-65, 3-5 months).
                     </p>
                   </div>
@@ -352,9 +370,11 @@ export default function IPGuide() {
                 <div className="flex items-start gap-3">
                   <FileText className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-semibold mb-1">Step 3: Trademark Registration (for serious brands)</p>
+                    <p className="font-semibold mb-1">
+                      Step 3: Trademark Registration (for serious brands)
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      If you're building a long-term brand, invest in trademark registration. 
+                      If you're building a long-term brand, invest in trademark registration.
                       Provides strongest legal protection ($250-2000+, 8-12 months).
                     </p>
                   </div>
@@ -365,8 +385,8 @@ export default function IPGuide() {
                 <CardContent className="pt-6">
                   <p className="text-sm font-semibold mb-2">Coming Soon: Solturio Filing Service</p>
                   <p className="text-sm text-muted-foreground">
-                    We're partnering with IP attorneys to offer assisted trademark and copyright filing 
-                    services directly through Solturio. Get notified when this launches!
+                    We're partnering with IP attorneys to offer assisted trademark and copyright
+                    filing services directly through Solturio. Get notified when this launches!
                   </p>
                 </CardContent>
               </Card>

@@ -41,7 +41,9 @@ export default function MusicCollectionDetail() {
       <div className="container max-w-7xl mx-auto px-6 py-12 text-center">
         <h1 className="text-2xl font-semibold">Collection not found</h1>
         <Link href="/music">
-          <Button variant="outline" className="mt-4">Back to Collections</Button>
+          <Button variant="outline" className="mt-4">
+            Back to Collections
+          </Button>
         </Link>
       </div>
     );
@@ -68,13 +70,19 @@ export default function MusicCollectionDetail() {
         <div className="flex items-center gap-6">
           <div className="w-24 h-24 rounded-xl bg-primary/10 flex items-center justify-center">
             {collection.coverArtUri ? (
-              <img src={collection.coverArtUri} alt={collection.name} className="w-full h-full object-cover rounded-xl" />
+              <img
+                src={collection.coverArtUri}
+                alt={collection.name}
+                className="w-full h-full object-cover rounded-xl"
+              />
             ) : (
               <Disc3 className="w-12 h-12 text-primary" />
             )}
           </div>
           <div>
-            <h1 className="text-3xl font-semibold" data-testid="text-collection-name">{collection.name}</h1>
+            <h1 className="text-3xl font-semibold" data-testid="text-collection-name">
+              {collection.name}
+            </h1>
             {collection.description && (
               <p className="text-muted-foreground mt-1">{collection.description}</p>
             )}
@@ -106,7 +114,9 @@ export default function MusicCollectionDetail() {
         <TabsContent value="releases" className="mt-6">
           {loadingReleases ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-48" />
+              ))}
             </div>
           ) : !releases || releases.length === 0 ? (
             <Card className="text-center py-12">
@@ -126,11 +136,18 @@ export default function MusicCollectionDetail() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {releases.map((release) => (
                 <Link key={release.id} href={`/music/releases/${release.id}`}>
-                  <Card className="hover-elevate cursor-pointer h-full" data-testid={`card-release-${release.id}`}>
+                  <Card
+                    className="hover-elevate cursor-pointer h-full"
+                    data-testid={`card-release-${release.id}`}
+                  >
                     <CardHeader>
                       <div className="w-full aspect-square rounded-lg bg-muted flex items-center justify-center mb-4 overflow-hidden">
                         {release.coverArtUri ? (
-                          <img src={release.coverArtUri} alt={release.title} className="w-full h-full object-cover" />
+                          <img
+                            src={release.coverArtUri}
+                            alt={release.title}
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
                           <Disc3 className="w-16 h-16 text-muted-foreground" />
                         )}
@@ -154,7 +171,9 @@ export default function MusicCollectionDetail() {
         <TabsContent value="tracks" className="mt-6">
           {loadingTracks ? (
             <div className="space-y-2">
-              {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-16" />)}
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-16" />
+              ))}
             </div>
           ) : !tracks || tracks.length === 0 ? (
             <Card className="text-center py-12">
@@ -174,7 +193,10 @@ export default function MusicCollectionDetail() {
             <div className="space-y-2">
               {tracks.map((track, index) => (
                 <Link key={track.id} href={`/music/tracks/${track.id}`}>
-                  <Card className="hover-elevate cursor-pointer" data-testid={`card-track-${track.id}`}>
+                  <Card
+                    className="hover-elevate cursor-pointer"
+                    data-testid={`card-track-${track.id}`}
+                  >
                     <CardContent className="flex items-center gap-4 p-4">
                       <span className="text-sm text-muted-foreground w-8">{index + 1}</span>
                       <div className="w-10 h-10 rounded bg-muted flex items-center justify-center flex-shrink-0">
@@ -199,11 +221,7 @@ export default function MusicCollectionDetail() {
         </TabsContent>
       </Tabs>
 
-      <MusicUploadWizard
-        open={uploadOpen}
-        onOpenChange={setUploadOpen}
-        collectionId={id!}
-      />
+      <MusicUploadWizard open={uploadOpen} onOpenChange={setUploadOpen} collectionId={id!} />
     </div>
   );
 }

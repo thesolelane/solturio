@@ -9,13 +9,16 @@ import { Keypair, PublicKey } from "@solana/web3.js";
 import nacl from "tweetnacl";
 
 // In-memory store for challenges (use DB in production)
-const activeChallenges = new Map<string, { userId: string; challenge: string; timestamp: number }>();
+const activeChallenges = new Map<
+  string,
+  { userId: string; challenge: string; timestamp: number }
+>();
 const CHALLENGE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
 export function generateChallenge(userId: string): string {
   // Generate random challenge
   const challenge = randomBytes(32).toString("hex");
-  
+
   // Store challenge
   activeChallenges.set(challenge, {
     userId,
@@ -54,11 +57,7 @@ export function verifyChallengeSignature(
     const challengeBytes = Buffer.from(challenge, "hex");
     const publicKeyBytes = new PublicKey(userPublicKey).toBytes();
 
-    const valid = nacl.sign.detached.verify(
-      challengeBytes,
-      signatureBytes,
-      publicKeyBytes
-    );
+    const valid = nacl.sign.detached.verify(challengeBytes, signatureBytes, publicKeyBytes);
 
     // Delete challenge after use (one-time)
     activeChallenges.delete(challenge);

@@ -11,7 +11,7 @@ export interface ContractBinding {
   contractAddress: string;
   chainId: number;
   bindingDate: Date;
-  verificationLevel: 'gold' | 'silver' | 'standard';
+  verificationLevel: "gold" | "silver" | "standard";
   prelaunchRegistration: boolean;
   ipfsProofUrl: string;
 }
@@ -37,7 +37,7 @@ export async function bindLogoToContract(params: {
   deploymentTxHash?: string;
 }): Promise<ContractBinding> {
   const { logoId, contractAddress, chainId, deploymentDate, deploymentTxHash } = params;
-  
+
   // Get logo registration details
   const logo = await storage.getLogoById(logoId);
   if (!logo) {
@@ -47,15 +47,17 @@ export async function bindLogoToContract(params: {
   // Determine verification level based on timing
   const registrationDate = new Date(logo.createdAt);
   const isPrelaunch = registrationDate < deploymentDate;
-  const daysBefore = Math.floor((deploymentDate.getTime() - registrationDate.getTime()) / (1000 * 60 * 60 * 24));
+  const daysBefore = Math.floor(
+    (deploymentDate.getTime() - registrationDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
 
-  let verificationLevel: 'gold' | 'silver' | 'standard';
+  let verificationLevel: "gold" | "silver" | "standard";
   if (isPrelaunch && daysBefore > 7) {
-    verificationLevel = 'gold'; // Registered 7+ days before launch
+    verificationLevel = "gold"; // Registered 7+ days before launch
   } else if (isPrelaunch) {
-    verificationLevel = 'silver'; // Registered before launch but < 7 days
+    verificationLevel = "silver"; // Registered before launch but < 7 days
   } else {
-    verificationLevel = 'standard'; // Registered after launch
+    verificationLevel = "standard"; // Registered after launch
   }
 
   // Create binding record
@@ -66,14 +68,14 @@ export async function bindLogoToContract(params: {
     bindingDate: new Date(),
     verificationLevel,
     prelaunchRegistration: isPrelaunch,
-    ipfsProofUrl: logo.ipfsHash ? `https://ipfs.io/ipfs/${logo.ipfsHash}` : '',
+    ipfsProofUrl: logo.ipfsHash ? `https://ipfs.io/ipfs/${logo.ipfsHash}` : "",
   };
 
   // Store in database (would be implemented in storage.ts)
   await storage.createContractBinding?.(binding);
 
   // If gold verification, generate certificate
-  if (verificationLevel === 'gold') {
+  if (verificationLevel === "gold") {
     await generateGoldCertificate(logo, contractAddress, deploymentDate);
   }
 
@@ -99,13 +101,15 @@ export async function checkGoldVerification(
   }
 
   return {
-    hasGoldCheck: binding.verificationLevel === 'gold',
+    hasGoldCheck: binding.verificationLevel === "gold",
     contractAddress: binding.contractAddress,
     registrationDate: logo.createdAt,
     launchDate: binding.bindingDate,
-    daysBeforeLaunch: binding.prelaunchRegistration ? 
-      Math.floor((binding.bindingDate.getTime() - logo.createdAt.getTime()) / (1000 * 60 * 60 * 24)) : 
-      undefined,
+    daysBeforeLaunch: binding.prelaunchRegistration
+      ? Math.floor(
+          (binding.bindingDate.getTime() - logo.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+        )
+      : undefined,
     verificationProof: `https://solturio.app/verify/contract/${contractAddress}`,
   };
 }
@@ -126,10 +130,10 @@ async function generateGoldCertificate(
     registrationDate: logo.createdAt,
     contractAddress,
     deploymentDate,
-    verificationLevel: 'GOLD',
-    certificateId: createHash('sha256')
+    verificationLevel: "GOLD",
+    certificateId: createHash("sha256")
       .update(`${logo.id}-${contractAddress}-gold`)
-      .digest('hex')
+      .digest("hex")
       .slice(0, 16),
   };
 
@@ -143,18 +147,18 @@ async function generateGoldCertificate(
  */
 export function generateVerificationWidget(
   contractAddress: string,
-  verificationLevel: 'gold' | 'silver' | 'standard'
+  verificationLevel: "gold" | "silver" | "standard"
 ): string {
   const colors = {
-    gold: '#FFD700',
-    silver: '#C0C0C0',
-    standard: '#CD7F32',
+    gold: "#FFD700",
+    silver: "#C0C0C0",
+    standard: "#CD7F32",
   };
 
   const badges = {
-    gold: '✓ Gold Verified',
-    silver: '✓ Silver Verified',
-    standard: '✓ Verified',
+    gold: "✓ Gold Verified",
+    silver: "✓ Silver Verified",
+    standard: "✓ Verified",
   };
 
   return `
@@ -242,14 +246,14 @@ export async function batchVerifyContracts(
   contracts: Array<{ address: string; chainId: number }>
 ): Promise<Map<string, VerificationStatus>> {
   const results = new Map<string, VerificationStatus>();
-  
+
   for (const contract of contracts) {
     const status = await checkGoldVerification(contract.address, contract.chainId);
     if (status) {
       results.set(contract.address, status);
     }
   }
-  
+
   return results;
 }
 
@@ -258,13 +262,11 @@ export async function batchVerifyContracts(
  */
 export function generateDEXBadge(verification: VerificationStatus): string {
   if (!verification.hasGoldCheck) {
-    return '';
+    return "";
   }
 
   const daysBefore = verification.daysBeforeLaunch || 0;
-  const badgeText = daysBefore > 30 ? 
-    `Gold ✓ (${daysBefore}d pre-launch)` : 
-    `Gold ✓ Pre-launch`;
+  const badgeText = daysBefore > 30 ? `Gold ✓ (${daysBefore}d pre-launch)` : `Gold ✓ Pre-launch`;
 
   return `
     <div class="solturio-gold-badge" style="

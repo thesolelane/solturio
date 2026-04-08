@@ -5,7 +5,8 @@ export function hybridContextHash(audioHashHex: string, context: string) {
 }
 
 export function hybridId(audioHashHex: string, releaseId: string, trackNumber: number) {
-  return crypto.createHash("sha256")
+  return crypto
+    .createHash("sha256")
     .update(`${audioHashHex}:${releaseId}:${trackNumber}:v1`)
     .digest("hex");
 }

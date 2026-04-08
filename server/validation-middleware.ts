@@ -83,7 +83,9 @@ export const applyValidationToRoutes = (app: any) => {
 /**
  * Wrap endpoints with error handler
  */
-export const withErrorHandler = (handler: Function) => {
+export const withErrorHandler = (
+  handler: (req: ValidatedRequest, res: Response, next: NextFunction) => Promise<void> | void
+) => {
   return async (req: ValidatedRequest, res: Response, next: NextFunction) => {
     try {
       await handler(req, res, next);

@@ -1,6 +1,6 @@
 /**
  * NFT Minting UI Component
- * 
+ *
  * Shows minting status and triggers NFT certificate creation
  */
 
@@ -85,7 +85,9 @@ export function NFTMintingUI({
             </div>
             <Badge className="bg-green-600 dark:bg-green-700">Minted</Badge>
           </div>
-          <CardDescription>Your IP protection certificate is secured on the blockchain</CardDescription>
+          <CardDescription>
+            Your IP protection certificate is secured on the blockchain
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2 text-sm">
@@ -119,7 +121,9 @@ export function NFTMintingUI({
           </div>
           <div>
             <CardTitle>Create IP Protection Certificate</CardTitle>
-            <CardDescription>Mint an NFT certificate to the blockchain as proof of ownership</CardDescription>
+            <CardDescription>
+              Mint an NFT certificate to the blockchain as proof of ownership
+            </CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -128,7 +132,8 @@ export function NFTMintingUI({
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>What This Does</AlertTitle>
           <AlertDescription>
-            Creates an immutable NFT certificate on Solana blockchain. Your logo metadata and IPFS hash are stored forever, proving your IP ownership with a timestamp.
+            Creates an immutable NFT certificate on Solana blockchain. Your logo metadata and IPFS
+            hash are stored forever, proving your IP ownership with a timestamp.
           </AlertDescription>
         </Alert>
 
@@ -137,7 +142,14 @@ export function NFTMintingUI({
             <p className="font-semibold">Certificate Details:</p>
             <ul className="space-y-1 text-gray-600 dark:text-gray-400 text-xs">
               <li>✓ Logo Name: {logoName}</li>
-              <li>✓ Type: {registrationType === "token_launch" ? "Token Launch" : registrationType === "artwork" ? "Artwork" : "Logo"}</li>
+              <li>
+                ✓ Type:{" "}
+                {registrationType === "token_launch"
+                  ? "Token Launch"
+                  : registrationType === "artwork"
+                    ? "Artwork"
+                    : "Logo"}
+              </li>
               <li>✓ Network: Solana Mainnet</li>
               <li>✓ Storage: IPFS + On-Chain</li>
             </ul>
@@ -148,13 +160,17 @@ export function NFTMintingUI({
           <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
             <AlertDescription className="text-xs space-y-2">
               <p>
-                <strong>How it works:</strong> Your logo file stays in your {logoName}.solturio.sol wallet. Only the metadata and IPFS hash are recorded on-chain, creating an immutable proof of ownership.
+                <strong>How it works:</strong> Your logo file stays in your {logoName}.solturio.sol
+                wallet. Only the metadata and IPFS hash are recorded on-chain, creating an immutable
+                proof of ownership.
               </p>
               <p>
-                <strong>Cost:</strong> Minting requires a small SOL transaction fee (typically 0.0005 - 0.001 SOL).
+                <strong>Cost:</strong> Minting requires a small SOL transaction fee (typically
+                0.0005 - 0.001 SOL).
               </p>
               <p>
-                <strong>Recovery:</strong> Your certificate can be recovered using your wallet recovery phrase.
+                <strong>Recovery:</strong> Your certificate can be recovered using your wallet
+                recovery phrase.
               </p>
             </AlertDescription>
           </Alert>

@@ -1,9 +1,9 @@
-import { 
-  Home, 
-  Upload, 
-  Package, 
-  Settings, 
-  Shield, 
+import {
+  Home,
+  Upload,
+  Package,
+  Settings,
+  Shield,
   CheckCircle,
   BookOpen,
   Globe,
@@ -17,7 +17,7 @@ import {
   KeyRound,
   Coins,
   DollarSign,
-  ClipboardList
+  ClipboardList,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -47,13 +47,12 @@ const ADMIN_EMAILS = [
 export function AppSidebar() {
   const [location] = useLocation();
   const { user, isAuthenticated } = useAuth();
-  
-  const isAdmin = isAuthenticated && user?.email && 
-    ADMIN_EMAILS.includes(user.email.toLowerCase());
+
+  const isAdmin = isAuthenticated && user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
 
   // Fetch user's logos to determine if they have collections
   const { data: logos } = useQuery<any[]>({
-    queryKey: ['/api/logos'],
+    queryKey: ["/api/logos"],
     enabled: isAuthenticated, // Only fetch if authenticated
   });
 
@@ -117,7 +116,7 @@ export function AppSidebar() {
       requireAuth: true,
       show: true, // Always show
     },
-  ].filter(item => item.show !== false); // Filter out items that shouldn't be shown
+  ].filter((item) => item.show !== false); // Filter out items that shouldn't be shown
 
   // Public menu items
   const publicItems = [
@@ -205,21 +204,17 @@ export function AppSidebar() {
       <SidebarHeader className="p-4 border-b">
         <Link href="/">
           <div className="flex items-center gap-2 cursor-pointer">
-            <img 
-              src="/solturio-logo-light.png" 
-              alt="Solturio" 
-              className="h-8 w-8 dark:hidden"
-            />
-            <img 
-              src="/solturio-logo-dark.png" 
-              alt="Solturio" 
+            <img src="/solturio-logo-light.png" alt="Solturio" className="h-8 w-8 dark:hidden" />
+            <img
+              src="/solturio-logo-dark.png"
+              alt="Solturio"
               className="h-8 w-8 hidden dark:block"
             />
             <span className="font-bold text-lg">Solturio</span>
           </div>
         </Link>
       </SidebarHeader>
-      
+
       <SidebarContent>
         {/* Public Section */}
         <SidebarGroup>
@@ -228,14 +223,14 @@ export function AppSidebar() {
             <SidebarMenu>
               {publicItems.map((item) => {
                 if (item.requireAuth && !isAuthenticated) return null;
-                
+
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <a 
+                      <a
                         href={item.url}
                         className={location === item.url ? "bg-sidebar-accent" : ""}
-                        data-testid={`link-sidebar-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                        data-testid={`link-sidebar-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
                       >
                         <item.icon className="w-4 h-4" />
                         <span>{item.title}</span>
@@ -257,10 +252,10 @@ export function AppSidebar() {
                 {userItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <a 
+                      <a
                         href={item.url}
                         className={location === item.url ? "bg-sidebar-accent" : ""}
-                        data-testid={`link-sidebar-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                        data-testid={`link-sidebar-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
                       >
                         <item.icon className="w-4 h-4" />
                         <span>{item.title}</span>
@@ -288,10 +283,10 @@ export function AppSidebar() {
                 {adminItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <a 
+                      <a
                         href={item.url}
                         className={location === item.url ? "bg-sidebar-accent" : ""}
-                        data-testid={`link-sidebar-admin-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                        data-testid={`link-sidebar-admin-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
                       >
                         <item.icon className="w-4 h-4" />
                         <span>{item.title}</span>
@@ -309,24 +304,22 @@ export function AppSidebar() {
         {isAuthenticated ? (
           <div className="flex items-center justify-between">
             <div className="text-sm">
-              <p className="font-medium truncate">{user?.firstName || user?.email || 'User'}</p>
-              <p className="text-xs text-muted-foreground truncate">
-                {user?.email || 'No email'}
-              </p>
+              <p className="font-medium truncate">{user?.firstName || user?.email || "User"}</p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email || "No email"}</p>
             </div>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
-              onClick={() => window.location.href = "/api/logout"}
+              onClick={() => (window.location.href = "/api/logout")}
               data-testid="button-logout"
             >
               Logout
             </Button>
           </div>
         ) : (
-          <Button 
-            className="w-full" 
-            onClick={() => window.location.href = "/api/login"}
+          <Button
+            className="w-full"
+            onClick={() => (window.location.href = "/api/login")}
             data-testid="button-login"
           >
             Login

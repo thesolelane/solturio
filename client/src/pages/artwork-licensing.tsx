@@ -1,36 +1,61 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SolturioLicensingBadge, LicensingTermsDisplay, generateLicenseBadgeSVG } from '@/components/solturio-licensing-badge';
-import { Download, Shield, FileText, Image, AlertCircle, Copy, CheckCircle, Upload } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  SolturioLicensingBadge,
+  LicensingTermsDisplay,
+  generateLicenseBadgeSVG,
+} from "@/components/solturio-licensing-badge";
+import {
+  Download,
+  Shield,
+  FileText,
+  Image,
+  AlertCircle,
+  Copy,
+  CheckCircle,
+  Upload,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ArtworkLicensing() {
   const { toast } = useToast();
-  const [selectedLogo, setSelectedLogo] = useState<string>('');
-  const [licenseType, setLicenseType] = useState<'personal' | 'commercial' | 'exclusive' | 'nft'>('personal');
-  const [buyerName, setBuyerName] = useState('');
-  const [buyerEmail, setBuyerEmail] = useState('');
-  const [badgePosition, setBadgePosition] = useState<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>('bottom-right');
-  const [badgeSize, setBadgeSize] = useState<'sm' | 'md' | 'lg'>('md');
+  const [selectedLogo, setSelectedLogo] = useState<string>("");
+  const [licenseType, setLicenseType] = useState<"personal" | "commercial" | "exclusive" | "nft">(
+    "personal"
+  );
+  const [buyerName, setBuyerName] = useState("");
+  const [buyerEmail, setBuyerEmail] = useState("");
+  const [badgePosition, setBadgePosition] = useState<
+    "top-left" | "top-right" | "bottom-left" | "bottom-right"
+  >("bottom-right");
+  const [badgeSize, setBadgeSize] = useState<"sm" | "md" | "lg">("md");
   const [badgeOpacity, setBadgeOpacity] = useState(0.8);
   const [includeQR, setIncludeQR] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [badgeStyle, setBadgeStyle] = useState<'minimal' | 'detailed' | 'premium' | 'invisible'>('detailed');
-  const [colorTheme, setColorTheme] = useState<'light' | 'dark' | 'gold' | 'holographic'>('dark');
-  const [customText, setCustomText] = useState('');
-  
+  const [badgeStyle, setBadgeStyle] = useState<"minimal" | "detailed" | "premium" | "invisible">(
+    "detailed"
+  );
+  const [colorTheme, setColorTheme] = useState<"light" | "dark" | "gold" | "holographic">("dark");
+  const [customText, setCustomText] = useState("");
+
   // Fetch user's registered logos
   const { data: logos, isLoading } = useQuery<any[]>({
-    queryKey: ['/api/logos']
+    queryKey: ["/api/logos"],
   });
 
   const selectedLogoData = logos?.find((logo: any) => logo.id === selectedLogo);
@@ -43,12 +68,13 @@ export default function ArtworkLicensing() {
           <Shield className="w-20 h-20 text-muted-foreground mx-auto mb-6" />
           <h1 className="text-3xl font-bold mb-2">No Artwork to License Yet</h1>
           <p className="text-lg text-muted-foreground mb-6">
-            You need to register your logos and artwork first before you can create licensed versions.
+            You need to register your logos and artwork first before you can create licensed
+            versions.
           </p>
           <p className="text-muted-foreground mb-8">
-            The Artwork Licensing feature allows you to embed transparent Solturio badges 
-            into your work when selling or licensing it to clients, providing proof of authenticity 
-            and registration.
+            The Artwork Licensing feature allows you to embed transparent Solturio badges into your
+            work when selling or licensing it to clients, providing proof of authenticity and
+            registration.
           </p>
           <Button size="lg" asChild>
             <a href="/upload">
@@ -66,7 +92,7 @@ export default function ArtworkLicensing() {
       toast({
         title: "Missing Information",
         description: "Please select artwork and provide buyer details",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -74,47 +100,47 @@ export default function ArtworkLicensing() {
     // Generate the SVG badge
     const badgeSVG = generateLicenseBadgeSVG({
       registrationId: selectedLogoData.id,
-      artistName: selectedLogoData.creatorName || 'Artist',
+      artistName: selectedLogoData.creatorName || "Artist",
       artworkTitle: selectedLogoData.title,
       licenseType,
-      timestamp: selectedLogoData.createdAt
+      timestamp: selectedLogoData.createdAt,
     });
 
     // Create download link for licensed version
-    const blob = new Blob([badgeSVG], { type: 'image/svg+xml' });
+    const blob = new Blob([badgeSVG], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     link.download = `${selectedLogoData.title}_licensed_${licenseType}.svg`;
     link.click();
 
     toast({
       title: "Licensed Artwork Generated",
-      description: "The licensed version with embedded Solturio badge has been downloaded"
+      description: "The licensed version with embedded Solturio badge has been downloaded",
     });
   };
 
   const handleCopyLicenseInfo = () => {
     if (!selectedLogoData) return;
-    
+
     const licenseInfo = `
 SOLTURIO LICENSING CERTIFICATE
 ================================
 Artwork: ${selectedLogoData.title}
 Registration ID: ${selectedLogoData.id}
-Artist: ${selectedLogoData.creatorName || 'Artist'}
+Artist: ${selectedLogoData.creatorName || "Artist"}
 License Type: ${licenseType.toUpperCase()}
 Buyer: ${buyerName}
-Date: ${new Date().toISOString().split('T')[0]}
+Date: ${new Date().toISOString().split("T")[0]}
 Verification URL: ${window.location.origin}/verify/${selectedLogoData.id}
 ================================
 This artwork is registered and protected on the Solturio blockchain platform.
     `.trim();
-    
+
     navigator.clipboard.writeText(licenseInfo);
     toast({
       title: "Copied to Clipboard",
-      description: "License information has been copied"
+      description: "License information has been copied",
     });
   };
 
@@ -131,9 +157,10 @@ This artwork is registered and protected on the Solturio blockchain platform.
         <Shield className="w-4 h-4" />
         <AlertTitle>Protect Your Sales</AlertTitle>
         <AlertDescription>
-          When you license or sell your artwork, embed our transparent Solturio badge to provide buyers with 
-          proof of authenticity and registration. The badge includes your artist information, license type, 
-          and a verification QR code that links back to your Solturio registration.
+          When you license or sell your artwork, embed our transparent Solturio badge to provide
+          buyers with proof of authenticity and registration. The badge includes your artist
+          information, license type, and a verification QR code that links back to your Solturio
+          registration.
         </AlertDescription>
       </Alert>
 
@@ -164,9 +191,16 @@ This artwork is registered and protected on the Solturio blockchain platform.
 
               {selectedLogoData && (
                 <div className="bg-muted p-3 rounded-lg space-y-1">
-                  <p className="text-sm"><strong>Title:</strong> {selectedLogoData.title}</p>
-                  <p className="text-sm"><strong>Registered:</strong> {new Date(selectedLogoData.createdAt).toLocaleDateString()}</p>
-                  <p className="text-sm font-mono"><strong>ID:</strong> #{selectedLogoData.id.slice(0, 8)}</p>
+                  <p className="text-sm">
+                    <strong>Title:</strong> {selectedLogoData.title}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Registered:</strong>{" "}
+                    {new Date(selectedLogoData.createdAt).toLocaleDateString()}
+                  </p>
+                  <p className="text-sm font-mono">
+                    <strong>ID:</strong> #{selectedLogoData.id.slice(0, 8)}
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -195,7 +229,7 @@ This artwork is registered and protected on the Solturio blockchain platform.
 
               <div>
                 <Label htmlFor="buyer">Buyer Name</Label>
-                <Input 
+                <Input
                   id="buyer"
                   value={buyerName}
                   onChange={(e) => setBuyerName(e.target.value)}
@@ -206,7 +240,7 @@ This artwork is registered and protected on the Solturio blockchain platform.
 
               <div>
                 <Label htmlFor="email">Buyer Email</Label>
-                <Input 
+                <Input
                   id="email"
                   type="email"
                   value={buyerEmail}
@@ -299,7 +333,7 @@ This artwork is registered and protected on the Solturio blockchain platform.
                     <Image className="w-32 h-32 text-muted-foreground" />
                     <SolturioLicensingBadge
                       registrationId={selectedLogoData.id}
-                      artistName={selectedLogoData.creatorName || 'Artist Name'}
+                      artistName={selectedLogoData.creatorName || "Artist Name"}
                       artworkTitle={selectedLogoData.title}
                       licenseType={licenseType}
                       timestamp={selectedLogoData.createdAt}
@@ -333,7 +367,7 @@ This artwork is registered and protected on the Solturio blockchain platform.
               <CardDescription>Generate licensed artwork with embedded badge</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button 
+              <Button
                 onClick={handleGenerateLicensedArtwork}
                 className="w-full gap-2"
                 disabled={!selectedLogoData || !buyerName || !buyerEmail}
@@ -342,8 +376,8 @@ This artwork is registered and protected on the Solturio blockchain platform.
                 <Download className="w-4 h-4" />
                 Generate Licensed Artwork
               </Button>
-              
-              <Button 
+
+              <Button
                 onClick={handleCopyLicenseInfo}
                 variant="outline"
                 className="w-full gap-2"
@@ -354,7 +388,7 @@ This artwork is registered and protected on the Solturio blockchain platform.
                 Copy License Certificate
               </Button>
 
-              <Button 
+              <Button
                 variant="outline"
                 className="w-full gap-2"
                 disabled={!selectedLogoData}
@@ -384,8 +418,8 @@ This artwork is registered and protected on the Solturio blockchain platform.
             <li>Send both the licensed artwork and certificate to your buyer</li>
           </ol>
           <p className="mt-3">
-            The embedded badge proves authenticity and allows buyers to verify their license 
-            by scanning the QR code or visiting the verification URL.
+            The embedded badge proves authenticity and allows buyers to verify their license by
+            scanning the QR code or visiting the verification URL.
           </p>
         </AlertDescription>
       </Alert>

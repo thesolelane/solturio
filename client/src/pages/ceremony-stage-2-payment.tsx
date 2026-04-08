@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, Coins, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
@@ -15,7 +22,9 @@ interface WalletTierData {
 
 export default function CeremonyStage2Payment() {
   const [, setLocation] = useLocation();
-  const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "verifying" | "complete">("idle");
+  const [paymentStatus, setPaymentStatus] = useState<
+    "idle" | "processing" | "verifying" | "complete"
+  >("idle");
   const [paymentProgress, setPaymentProgress] = useState(0);
 
   const { data: walletTier } = useQuery<WalletTierData>({
@@ -24,9 +33,10 @@ export default function CeremonyStage2Payment() {
 
   const tier = walletTier?.tier || "standard";
   const amount = tier === "standard" ? "0.1" : "0.15";
-  const walletName = tier === "standard" 
-    ? "042.solturio.sol" 
-    : `${walletTier?.customName || "yourname"}.solturio.sol`;
+  const walletName =
+    tier === "standard"
+      ? "042.solturio.sol"
+      : `${walletTier?.customName || "yourname"}.solturio.sol`;
 
   const handleInitiatePayment = async () => {
     setPaymentStatus("processing");
@@ -86,7 +96,8 @@ export default function CeremonyStage2Payment() {
               <Alert>
                 <Coins className="h-4 w-4" />
                 <AlertDescription>
-                  This payment covers the Solana network fees for creating your wallet and storing certificates/contracts on-chain.
+                  This payment covers the Solana network fees for creating your wallet and storing
+                  certificates/contracts on-chain.
                 </AlertDescription>
               </Alert>
 
@@ -97,7 +108,7 @@ export default function CeremonyStage2Payment() {
                     {tier === "standard" ? "Standard" : "Premium"}
                   </Badge>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Wallet Address</span>
                   <span className="font-mono text-sm font-semibold" data-testid="text-wallet-name">
@@ -161,9 +172,7 @@ export default function CeremonyStage2Payment() {
                 <Loader2 className="h-16 w-16 text-primary animate-spin" />
                 <div className="text-center space-y-2">
                   <h3 className="font-semibold text-lg">Verifying Transaction...</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Confirming on Solana blockchain
-                  </p>
+                  <p className="text-sm text-muted-foreground">Confirming on Solana blockchain</p>
                 </div>
               </div>
               <Progress value={paymentProgress} className="h-3" />
@@ -179,7 +188,8 @@ export default function CeremonyStage2Payment() {
                 <div className="text-center space-y-2">
                   <h3 className="font-semibold text-lg text-green-600">Payment Successful!</h3>
                   <p className="text-sm text-muted-foreground">
-                    Wallet <span className="font-mono font-semibold">{walletName}</span> created successfully
+                    Wallet <span className="font-mono font-semibold">{walletName}</span> created
+                    successfully
                   </p>
                 </div>
               </div>

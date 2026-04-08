@@ -45,74 +45,99 @@ export interface IStorage {
   updateUser(userId: string, updates: Partial<User>): Promise<User>;
   updateWalletAddress(userId: string, walletAddress: string): Promise<User>;
   updateEmailVerified(userId: string, verified: boolean): Promise<User>;
-  updateNotificationPreferences(userId: string, notifyPaymentsDue: boolean, notifyRentalReminders: boolean): Promise<User>;
-  updateSocialHandles(userId: string, handles: { twitterHandle?: string; telegramHandle?: string; discordHandle?: string; instagramHandle?: string; telegramGroupLink?: string; websiteUrl?: string; bio?: string }): Promise<User>;
-  createSolturioWallet(userId: string, publicKey: string, encryptedPrivateKey: string): Promise<User>;
+  updateNotificationPreferences(
+    userId: string,
+    notifyPaymentsDue: boolean,
+    notifyRentalReminders: boolean
+  ): Promise<User>;
+  updateSocialHandles(
+    userId: string,
+    handles: {
+      twitterHandle?: string;
+      telegramHandle?: string;
+      discordHandle?: string;
+      instagramHandle?: string;
+      telegramGroupLink?: string;
+      websiteUrl?: string;
+      bio?: string;
+    }
+  ): Promise<User>;
+  createSolturioWallet(
+    userId: string,
+    publicKey: string,
+    encryptedPrivateKey: string
+  ): Promise<User>;
   markPrivateKeyExported(userId: string): Promise<User>;
   getAllUsers(): Promise<User[]>;
-  
+
   // Logo operations
   createLogo(logo: InsertLogo): Promise<Logo>;
   getLogosByUserId(userId: string): Promise<Logo[]>;
   getLogosByCollectionId(collectionId: string): Promise<Logo[]>;
-  updateLogoNFTData(logoId: string, data: {
-    nftAddress: string;
-    transactionHash: string;
-    mintedAt: Date;
-  }): Promise<Logo>;
+  updateLogoNFTData(
+    logoId: string,
+    data: {
+      nftAddress: string;
+      transactionHash: string;
+      mintedAt: Date;
+    }
+  ): Promise<Logo>;
   getLogoById(logoId: string): Promise<Logo | undefined>;
   updateLogoIPFS(logoId: string, ipfsHash: string, ipfsMetadataHash?: string): Promise<Logo>;
   getLogosByFileHash(fileHash: string): Promise<Logo[]>;
-  
+
   // Collection operations
   createCollection(collection: InsertCollection): Promise<Collection>;
   getCollection(id: string): Promise<Collection | undefined>;
   getCollectionsByUserId(userId: string): Promise<Collection[]>;
   getAllMintedCollections(): Promise<Array<Collection & { user: User | null; logoCount: number }>>;
   updateCollectionStatus(id: string, status: string): Promise<Collection>;
-  updateCollectionBlockchainData(id: string, data: {
-    collectionAddress: string;
-    transactionHash: string;
-    explorerUrl: string;
-    status: string;
-    mintedAt: Date;
-  }): Promise<Collection>;
+  updateCollectionBlockchainData(
+    id: string,
+    data: {
+      collectionAddress: string;
+      transactionHash: string;
+      explorerUrl: string;
+      status: string;
+      mintedAt: Date;
+    }
+  ): Promise<Collection>;
   updateCollection(id: string, data: Partial<Collection>): Promise<Collection>;
-  
+
   // Logo update operations
   updateLogo(id: string, data: Partial<Logo>): Promise<Logo>;
-  
+
   // Payment operations
   createPayment(payment: InsertPayment): Promise<Payment>;
   getPaymentByIntentId(intentId: string): Promise<Payment | undefined>;
   getPaymentByTxHash(txHash: string): Promise<Payment | undefined>;
   updatePaymentStatus(id: string, status: string): Promise<Payment>;
-  
+
   // Stats
   getUserStats(userId: string): Promise<{
     totalLogos: number;
     mintedCollections: number;
     pendingLogos: number;
   }>;
-  
+
   // Authorized usage operations
   createAuthorizedUsage(usage: InsertAuthorizedUsage): Promise<AuthorizedUsage>;
   getAuthorizedUsagesByLogoId(logoId: string): Promise<AuthorizedUsage[]>;
   getAuthorizedUsagesByUserId(userId: string): Promise<AuthorizedUsage[]>;
   updateAuthorizedUsage(id: string, data: Partial<AuthorizedUsage>): Promise<AuthorizedUsage>;
   deleteAuthorizedUsage(id: string): Promise<void>;
-  
+
   // Quiz operations
   getQuizQuestions(category?: string, points?: number): Promise<any[]>;
   getQuizStats(userId: string): Promise<any>;
   submitQuizAnswer(userId: string, data: any): Promise<any>;
   createQuizQuestions(questions: any[]): Promise<void>;
   verifyAuthorizedUsage(id: string, verifiedAt: Date): Promise<AuthorizedUsage>;
-  
+
   // Phase 1: Replay Prevention
   getNonceByValue(nonce: string): Promise<any | undefined>;
   storeNonce(nonce: string): Promise<void>;
-  
+
   // Treasury Wallet operations
   createTreasuryWallet(wallet: InsertTreasuryWallet): Promise<TreasuryWallet>;
   getTreasuryWallets(): Promise<TreasuryWallet[]>;
@@ -120,31 +145,34 @@ export interface IStorage {
   getTreasuryWalletByAddress(address: string): Promise<TreasuryWallet | undefined>;
   updateTreasuryWallet(id: string, data: Partial<TreasuryWallet>): Promise<TreasuryWallet>;
   deleteTreasuryWallet(id: string): Promise<void>;
-  
+
   // Compliance Log operations
   createComplianceLog(log: Partial<ComplianceLog>): Promise<ComplianceLog>;
   getComplianceLogs(limit?: number, offset?: number): Promise<ComplianceLog[]>;
   getComplianceLogsByUser(userId: string): Promise<ComplianceLog[]>;
   getComplianceLogsByTrigger(triggerCode: string): Promise<ComplianceLog[]>;
-  
+
   // KYC Status operations
   getKycStatus(userId: string): Promise<KycStatus | undefined>;
   createOrUpdateKycStatus(userId: string, data: Partial<InsertKycStatus>): Promise<KycStatus>;
   updateKycTier(userId: string, tier: string): Promise<KycStatus>;
   updateRolling30DayVolume(userId: string, volume: string): Promise<KycStatus>;
-  
+
   // Compliance Trigger Rules operations
   getActiveTriggerRules(): Promise<ComplianceTriggerRule[]>;
   getTriggerRuleByCode(code: string): Promise<ComplianceTriggerRule | undefined>;
   createTriggerRule(rule: Partial<ComplianceTriggerRule>): Promise<ComplianceTriggerRule>;
-  updateTriggerRule(id: string, data: Partial<ComplianceTriggerRule>): Promise<ComplianceTriggerRule>;
-  
+  updateTriggerRule(
+    id: string,
+    data: Partial<ComplianceTriggerRule>
+  ): Promise<ComplianceTriggerRule>;
+
   // Compliance Case operations
   createComplianceCase(caseData: Partial<ComplianceCase>): Promise<ComplianceCase>;
   getComplianceCases(status?: string): Promise<ComplianceCase[]>;
   getComplianceCaseByNumber(caseNumber: string): Promise<ComplianceCase | undefined>;
   updateComplianceCase(id: string, data: Partial<ComplianceCase>): Promise<ComplianceCase>;
-  
+
   // License Contract operations
   createLicenseContract(license: InsertLicenseContract): Promise<LicenseContract>;
   getLicenseContract(id: string): Promise<LicenseContract | undefined>;
@@ -153,12 +181,15 @@ export interface IStorage {
   getLicenseContractsByLicensee(walletAddress: string): Promise<LicenseContract[]>;
   getLicenseContractsByLogo(logoId: string): Promise<LicenseContract[]>;
   getLicenseContractsByAsset(assetId: string): Promise<LicenseContract[]>;
-  getActiveLicenseForUserAndAsset(userId: string, assetId: string): Promise<LicenseContract | undefined>;
+  getActiveLicenseForUserAndAsset(
+    userId: string,
+    assetId: string
+  ): Promise<LicenseContract | undefined>;
   updateLicenseContract(id: string, data: Partial<LicenseContract>): Promise<LicenseContract>;
   searchLicensesByTransaction(query: string, userId: string): Promise<LicenseContract[]>;
   signLicenseContractAsLicensor(id: string, signature: string): Promise<LicenseContract>;
   signLicenseContractAsLicensee(id: string, signature: string): Promise<LicenseContract>;
-  
+
   // Visitor Account operations
   createVisitorAccount(email: string, marketingOptIn?: boolean): Promise<any>;
   getVisitorAccountByEmail(email: string): Promise<any | undefined>;
@@ -167,7 +198,15 @@ export interface IStorage {
   updateVisitorLastLogin(id: string): Promise<any>;
   submitVisitorQuizAnswer(visitorId: string, data: any): Promise<any>;
   getVisitorQuizStats(visitorId: string): Promise<any>;
-  convertVisitorToUser(visitorId: string, userId: string): Promise<{ transferred: boolean; soltRewards: string; gamePoints: number; experiencePoints: number }>;
+  convertVisitorToUser(
+    visitorId: string,
+    userId: string
+  ): Promise<{
+    transferred: boolean;
+    soltRewards: string;
+    gamePoints: number;
+    experiencePoints: number;
+  }>;
   checkExpiredVisitorRewards(): Promise<number>;
   verifyVisitorSessionToken(visitorId: string, sessionToken: string): Promise<boolean>;
 }
@@ -200,7 +239,10 @@ export class DatabaseStorage implements IStorage {
   async upsertUser(userData: UpsertUser): Promise<User> {
     // First check if a user with this email already exists (handles case where id differs but email is same)
     if (userData.email) {
-      const [existingByEmail] = await db.select().from(users).where(eq(users.email, userData.email));
+      const [existingByEmail] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, userData.email));
       if (existingByEmail && existingByEmail.id !== userData.id) {
         // Update the existing user by email, preserving their original id
         const [user] = await db
@@ -216,7 +258,7 @@ export class DatabaseStorage implements IStorage {
         return user;
       }
     }
-    
+
     // Normal upsert by id
     const [user] = await db
       .insert(users)
@@ -265,7 +307,15 @@ export class DatabaseStorage implements IStorage {
 
   async updateSocialHandles(
     userId: string,
-    handles: { twitterHandle?: string; telegramHandle?: string; discordHandle?: string; instagramHandle?: string; telegramGroupLink?: string; websiteUrl?: string; bio?: string }
+    handles: {
+      twitterHandle?: string;
+      telegramHandle?: string;
+      discordHandle?: string;
+      instagramHandle?: string;
+      telegramGroupLink?: string;
+      websiteUrl?: string;
+      bio?: string;
+    }
   ): Promise<User> {
     const [user] = await db
       .update(users)
@@ -275,10 +325,14 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async createSolturioWallet(userId: string, publicKey: string, encryptedPrivateKey: string): Promise<User> {
+  async createSolturioWallet(
+    userId: string,
+    publicKey: string,
+    encryptedPrivateKey: string
+  ): Promise<User> {
     const [user] = await db
       .update(users)
-      .set({ 
+      .set({
         solanaPublicKey: publicKey,
         solanaEncryptedPrivateKey: encryptedPrivateKey,
         solanaWalletCreatedAt: new Date(),
@@ -316,11 +370,14 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(logos).where(eq(logos.collectionId, collectionId));
   }
 
-  async updateLogoNFTData(logoId: string, data: {
-    nftAddress: string;
-    transactionHash: string;
-    mintedAt: Date;
-  }): Promise<Logo> {
+  async updateLogoNFTData(
+    logoId: string,
+    data: {
+      nftAddress: string;
+      transactionHash: string;
+      mintedAt: Date;
+    }
+  ): Promise<Logo> {
     const [updated] = await db
       .update(logos)
       .set({ ...data, updatedAt: new Date() })
@@ -337,10 +394,10 @@ export class DatabaseStorage implements IStorage {
   async updateLogoIPFS(logoId: string, ipfsHash: string, ipfsMetadataHash?: string): Promise<Logo> {
     const [updated] = await db
       .update(logos)
-      .set({ 
-        ipfsHash, 
+      .set({
+        ipfsHash,
         ipfsMetadataHash,
-        updatedAt: new Date() 
+        updatedAt: new Date(),
       })
       .where(eq(logos.id, logoId))
       .returning();
@@ -374,19 +431,24 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(collections.createdAt));
   }
 
-  async getAllMintedCollections(): Promise<Array<Collection & { user: User | null; logoCount: number }>> {
+  async getAllMintedCollections(): Promise<
+    Array<Collection & { user: User | null; logoCount: number }>
+  > {
     // Get all minted collections with their users
     const mintedCollections = await db
       .select()
       .from(collections)
-      .where(eq(collections.status, 'minted'))
+      .where(eq(collections.status, "minted"))
       .orderBy(desc(collections.mintedAt));
-    
+
     // Enrich with user data and logo count
     const results = await Promise.all(
       mintedCollections.map(async (collection) => {
         const [user] = await db.select().from(users).where(eq(users.id, collection.userId));
-        const collectionLogos = await db.select().from(logos).where(eq(logos.collectionId, collection.id));
+        const collectionLogos = await db
+          .select()
+          .from(logos)
+          .where(eq(logos.collectionId, collection.id));
         return {
           ...collection,
           user: user || null,
@@ -394,7 +456,7 @@ export class DatabaseStorage implements IStorage {
         };
       })
     );
-    
+
     return results;
   }
 
@@ -407,13 +469,16 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async updateCollectionBlockchainData(id: string, data: {
-    collectionAddress: string;
-    transactionHash: string;
-    explorerUrl: string;
-    status: string;
-    mintedAt: Date;
-  }): Promise<Collection> {
+  async updateCollectionBlockchainData(
+    id: string,
+    data: {
+      collectionAddress: string;
+      transactionHash: string;
+      explorerUrl: string;
+      status: string;
+      mintedAt: Date;
+    }
+  ): Promise<Collection> {
     const [updated] = await db
       .update(collections)
       .set({ ...data, updatedAt: new Date() })
@@ -478,21 +543,24 @@ export class DatabaseStorage implements IStorage {
     pendingLogos: number;
   }> {
     const userLogos = await db.select().from(logos).where(eq(logos.userId, userId));
-    const userCollections = await db.select().from(collections).where(eq(collections.userId, userId));
+    const userCollections = await db
+      .select()
+      .from(collections)
+      .where(eq(collections.userId, userId));
 
     return {
       totalLogos: userLogos.length,
-      mintedCollections: userCollections.filter(c => c.status === 'minted').length,
-      pendingLogos: userLogos.filter(l => !l.nftAddress).length,
+      mintedCollections: userCollections.filter((c) => c.status === "minted").length,
+      pendingLogos: userLogos.filter((l) => !l.nftAddress).length,
     };
   }
-  
+
   // Authorized usage operations
   async createAuthorizedUsage(usage: InsertAuthorizedUsage): Promise<AuthorizedUsage> {
     const [created] = await db.insert(authorizedUsages).values(usage).returning();
     return created;
   }
-  
+
   async getAuthorizedUsagesByLogoId(logoId: string): Promise<AuthorizedUsage[]> {
     return db
       .select()
@@ -500,7 +568,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(authorizedUsages.logoId, logoId))
       .orderBy(desc(authorizedUsages.createdAt));
   }
-  
+
   async getAuthorizedUsagesByUserId(userId: string): Promise<AuthorizedUsage[]> {
     return db
       .select()
@@ -508,8 +576,11 @@ export class DatabaseStorage implements IStorage {
       .where(eq(authorizedUsages.userId, userId))
       .orderBy(desc(authorizedUsages.createdAt));
   }
-  
-  async updateAuthorizedUsage(id: string, data: Partial<AuthorizedUsage>): Promise<AuthorizedUsage> {
+
+  async updateAuthorizedUsage(
+    id: string,
+    data: Partial<AuthorizedUsage>
+  ): Promise<AuthorizedUsage> {
     const [updated] = await db
       .update(authorizedUsages)
       .set({ ...data, updatedAt: new Date() })
@@ -517,11 +588,11 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updated;
   }
-  
+
   async deleteAuthorizedUsage(id: string): Promise<void> {
     await db.delete(authorizedUsages).where(eq(authorizedUsages.id, id));
   }
-  
+
   async verifyAuthorizedUsage(id: string, verifiedAt: Date): Promise<AuthorizedUsage> {
     const [updated] = await db
       .update(authorizedUsages)
@@ -530,12 +601,12 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updated;
   }
-  
+
   // Quiz operations
   async getQuizQuestions(category?: string, points?: number): Promise<any[]> {
     const { quizQuestions } = await import("@shared/schema");
     let query = db.select().from(quizQuestions).where(eq(quizQuestions.isActive, true));
-    
+
     // Apply filters if provided
     if (category) {
       query = query.where(eq(quizQuestions.category, category));
@@ -543,68 +614,65 @@ export class DatabaseStorage implements IStorage {
     if (points) {
       query = query.where(eq(quizQuestions.points, points));
     }
-    
+
     return query;
   }
-  
+
   async getQuizStats(userId: string): Promise<any> {
     const { quizStats } = await import("@shared/schema");
     const [stats] = await db.select().from(quizStats).where(eq(quizStats.userId, userId));
-    
+
     if (!stats) {
       // Create initial stats for user
       const [newStats] = await db
         .insert(quizStats)
-        .values({ userId, totalPoints: 0, totalCathEarned: '0' })
+        .values({ userId, totalPoints: 0, totalCathEarned: "0" })
         .returning();
       // Map to frontend expected field name
       return { ...newStats, totalSoltEarned: newStats.totalCathEarned };
     }
-    
+
     // Map to frontend expected field name (column is totalCathEarned but we expose as totalSoltEarned)
     return { ...stats, totalSoltEarned: stats.totalCathEarned };
   }
-  
+
   async submitQuizAnswer(userId: string, data: any): Promise<any> {
     const { quizQuestions, quizAttempts, quizStats } = await import("@shared/schema");
-    
+
     // Get the question
     const [question] = await db
       .select()
       .from(quizQuestions)
       .where(eq(quizQuestions.id, data.questionId));
-    
+
     if (!question) {
       throw new Error("Question not found");
     }
-    
+
     // Check if answer is correct
     const isCorrect = data.answer === question.answer;
     let pointsEarned = 0;
     let soltReward = "0";
-    
+
     // Get or create user stats
-    let [userStats] = await db
-      .select()
-      .from(quizStats)
-      .where(eq(quizStats.userId, userId));
-    
+    let [userStats] = await db.select().from(quizStats).where(eq(quizStats.userId, userId));
+
     if (!userStats) {
       const [newStats] = await db
         .insert(quizStats)
-        .values({ userId, totalPoints: 0, totalCathEarned: '0' })
+        .values({ userId, totalPoints: 0, totalCathEarned: "0" })
         .returning();
       userStats = newStats;
     }
-    
+
     if (isCorrect) {
       // Calculate points (reduced by 75% if hint used)
       pointsEarned = data.hintUsed ? Math.floor(data.originalPoints * 0.25) : data.originalPoints;
-      
+
       // Calculate new streak
       const newStreak = (userStats.streak || 0) + 1;
       const newLongestStreak = Math.max(newStreak, userStats.longestStreak || 0);
-      
+
       // Calculate base $SOLT reward based on streak
       let baseReward = 0;
       if (newStreak >= 10) {
@@ -614,19 +682,21 @@ export class DatabaseStorage implements IStorage {
       } else if (newStreak >= 3) {
         baseReward = 0.1;
       }
-      
+
       // Apply time-based multiplier for early adopters
       // Set SOLTURIO_LAUNCH_DATE env var when ready (format: YYYY-MM-DD)
       // If not set, multipliers are disabled (1x rewards)
       const launchDateStr = process.env.SOLTURIO_LAUNCH_DATE;
       let multiplier = 1.0;
       let multiplierLabel = "Standard";
-      
+
       if (launchDateStr) {
         const LAUNCH_DATE = new Date(launchDateStr);
         const now = new Date();
-        const daysSinceLaunch = Math.floor((now.getTime() - LAUNCH_DATE.getTime()) / (1000 * 60 * 60 * 24));
-        
+        const daysSinceLaunch = Math.floor(
+          (now.getTime() - LAUNCH_DATE.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
         if (daysSinceLaunch >= 0 && daysSinceLaunch <= 60) {
           // Days 0-60: 2.5x multiplier (Launch promotion)
           multiplier = 2.5;
@@ -638,14 +708,14 @@ export class DatabaseStorage implements IStorage {
         }
         // After day 100: 1x (normal rewards)
       }
-      
+
       const finalReward = baseReward * multiplier;
       soltReward = finalReward.toFixed(2);
-      
+
       // Update totals
-      const currentSoltEarned = parseFloat(userStats.totalCathEarned || '0');
+      const currentSoltEarned = parseFloat(userStats.totalCathEarned || "0");
       const newSoltTotal = (currentSoltEarned + finalReward).toFixed(2);
-      
+
       // Update user stats
       await db
         .update(quizStats)
@@ -670,7 +740,7 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(quizStats.userId, userId));
     }
-    
+
     // Record the attempt
     await db.insert(quizAttempts).values({
       userId,
@@ -681,19 +751,21 @@ export class DatabaseStorage implements IStorage {
       timeToAnswer: data.timeToAnswer,
       hintUsed: data.hintUsed,
     });
-    
+
     // Calculate current multiplier info for frontend display
     // Uses SOLTURIO_LAUNCH_DATE env var (format: YYYY-MM-DD)
     const launchDateEnv = process.env.SOLTURIO_LAUNCH_DATE;
     let currentMultiplier = 1.0;
     let currentMultiplierLabel = "Standard";
     let daysRemaining = 0;
-    
+
     if (launchDateEnv) {
       const launchDate = new Date(launchDateEnv);
       const currentTime = new Date();
-      const daysSince = Math.floor((currentTime.getTime() - launchDate.getTime()) / (1000 * 60 * 60 * 24));
-      
+      const daysSince = Math.floor(
+        (currentTime.getTime() - launchDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
       if (daysSince >= 0 && daysSince <= 60) {
         currentMultiplier = 2.5;
         currentMultiplierLabel = "2.5x Launch Bonus";
@@ -704,18 +776,18 @@ export class DatabaseStorage implements IStorage {
         daysRemaining = 100 - daysSince;
       }
     }
-    
-    return { 
-      isCorrect, 
-      pointsEarned, 
-      correctAnswer: question.answer, 
+
+    return {
+      isCorrect,
+      pointsEarned,
+      correctAnswer: question.answer,
       soltReward,
       multiplier: currentMultiplier,
       multiplierLabel: currentMultiplierLabel,
-      daysRemaining
+      daysRemaining,
     };
   }
-  
+
   async createQuizQuestions(questions: any[]): Promise<void> {
     const { quizQuestions } = await import("@shared/schema");
     await db.insert(quizQuestions).values(questions);
@@ -726,12 +798,12 @@ export class DatabaseStorage implements IStorage {
     try {
       // Query replay_prevention table using pool directly
       const result = await (db as any).$client.query(
-        'SELECT * FROM replay_prevention WHERE nonce = $1 LIMIT 1',
+        "SELECT * FROM replay_prevention WHERE nonce = $1 LIMIT 1",
         [nonce]
       );
       return result.rows?.[0];
     } catch (error) {
-      console.error('Error fetching nonce:', error);
+      console.error("Error fetching nonce:", error);
       return undefined;
     }
   }
@@ -740,13 +812,13 @@ export class DatabaseStorage implements IStorage {
     try {
       // Insert nonce using pool directly
       await (db as any).$client.query(
-        'INSERT INTO replay_prevention (nonce, used_at, expires_at) VALUES ($1, NOW(), NOW() + INTERVAL \'24 hours\')',
+        "INSERT INTO replay_prevention (nonce, used_at, expires_at) VALUES ($1, NOW(), NOW() + INTERVAL '24 hours')",
         [nonce]
       );
     } catch (error: any) {
-      console.error('Error storing nonce:', error);
+      console.error("Error storing nonce:", error);
       // Ignore unique constraint violations (duplicate nonce)
-      if (error.code !== '23505') {
+      if (error.code !== "23505") {
         throw error;
       }
     }
@@ -754,25 +826,16 @@ export class DatabaseStorage implements IStorage {
 
   // Treasury Wallet operations
   async createTreasuryWallet(wallet: InsertTreasuryWallet): Promise<TreasuryWallet> {
-    const [created] = await db
-      .insert(treasuryWallets)
-      .values(wallet)
-      .returning();
+    const [created] = await db.insert(treasuryWallets).values(wallet).returning();
     return created;
   }
 
   async getTreasuryWallets(): Promise<TreasuryWallet[]> {
-    return db
-      .select()
-      .from(treasuryWallets)
-      .orderBy(treasuryWallets.role);
+    return db.select().from(treasuryWallets).orderBy(treasuryWallets.role);
   }
 
   async getTreasuryWalletByRole(role: string): Promise<TreasuryWallet | undefined> {
-    const [wallet] = await db
-      .select()
-      .from(treasuryWallets)
-      .where(eq(treasuryWallets.role, role));
+    const [wallet] = await db.select().from(treasuryWallets).where(eq(treasuryWallets.role, role));
     return wallet;
   }
 
@@ -833,16 +896,16 @@ export class DatabaseStorage implements IStorage {
 
   // KYC Status operations
   async getKycStatus(userId: string): Promise<KycStatus | undefined> {
-    const [status] = await db
-      .select()
-      .from(kycStatus)
-      .where(eq(kycStatus.userId, userId));
+    const [status] = await db.select().from(kycStatus).where(eq(kycStatus.userId, userId));
     return status;
   }
 
-  async createOrUpdateKycStatus(userId: string, data: Partial<InsertKycStatus>): Promise<KycStatus> {
+  async createOrUpdateKycStatus(
+    userId: string,
+    data: Partial<InsertKycStatus>
+  ): Promise<KycStatus> {
     const existing = await this.getKycStatus(userId);
-    
+
     if (existing) {
       const [updated] = await db
         .update(kycStatus)
@@ -866,10 +929,10 @@ export class DatabaseStorage implements IStorage {
   async updateRolling30DayVolume(userId: string, volume: string): Promise<KycStatus> {
     const [updated] = await db
       .update(kycStatus)
-      .set({ 
-        rolling30DayVolume: volume, 
+      .set({
+        rolling30DayVolume: volume,
         last30DayVolumeUpdatedAt: new Date(),
-        updatedAt: new Date() 
+        updatedAt: new Date(),
       })
       .where(eq(kycStatus.userId, userId))
       .returning();
@@ -901,7 +964,10 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async updateTriggerRule(id: string, data: Partial<ComplianceTriggerRule>): Promise<ComplianceTriggerRule> {
+  async updateTriggerRule(
+    id: string,
+    data: Partial<ComplianceTriggerRule>
+  ): Promise<ComplianceTriggerRule> {
     const [updated] = await db
       .update(complianceTriggerRules)
       .set({ ...data, updatedAt: new Date() })
@@ -927,10 +993,7 @@ export class DatabaseStorage implements IStorage {
         .where(eq(complianceCases.status, status))
         .orderBy(desc(complianceCases.createdAt));
     }
-    return db
-      .select()
-      .from(complianceCases)
-      .orderBy(desc(complianceCases.createdAt));
+    return db.select().from(complianceCases).orderBy(desc(complianceCases.createdAt));
   }
 
   async getComplianceCaseByNumber(caseNumber: string): Promise<ComplianceCase | undefined> {
@@ -962,10 +1025,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getLicenseContract(id: string): Promise<LicenseContract | undefined> {
-    const [license] = await db
-      .select()
-      .from(licenseContracts)
-      .where(eq(licenseContracts.id, id));
+    const [license] = await db.select().from(licenseContracts).where(eq(licenseContracts.id, id));
     return license;
   }
 
@@ -1009,10 +1069,13 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(licenseContracts.createdAt));
   }
 
-  async getActiveLicenseForUserAndAsset(userId: string, assetId: string): Promise<LicenseContract | undefined> {
+  async getActiveLicenseForUserAndAsset(
+    userId: string,
+    assetId: string
+  ): Promise<LicenseContract | undefined> {
     const user = await this.getUser(userId);
     if (!user?.walletAddress) return undefined;
-    
+
     const [license] = await db
       .select()
       .from(licenseContracts)
@@ -1020,13 +1083,16 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(licenseContracts.assetId, assetId),
           eq(licenseContracts.licenseeWallet, user.walletAddress),
-          eq(licenseContracts.status, 'active')
+          eq(licenseContracts.status, "active")
         )
       );
     return license;
   }
 
-  async updateLicenseContract(id: string, data: Partial<LicenseContract>): Promise<LicenseContract> {
+  async updateLicenseContract(
+    id: string,
+    data: Partial<LicenseContract>
+  ): Promise<LicenseContract> {
     const [updated] = await db
       .update(licenseContracts)
       .set({ ...data, updatedAt: new Date() })
@@ -1048,7 +1114,9 @@ export class DatabaseStorage implements IStorage {
         and(
           or(
             eq(licenseContracts.licensorUserId, userId),
-            ...(userWallets.length > 0 ? userWallets.map(w => eq(licenseContracts.licenseeWallet, w)) : [])
+            ...(userWallets.length > 0
+              ? userWallets.map((w) => eq(licenseContracts.licenseeWallet, w))
+              : [])
           ),
           or(
             eq(licenseContracts.p2pTransactionHash, query),
@@ -1067,7 +1135,7 @@ export class DatabaseStorage implements IStorage {
       .set({
         licensorSignature: signature,
         licensorSignedAt: new Date(),
-        status: 'pending_licensee_signature',
+        status: "pending_licensee_signature",
         updatedAt: new Date(),
       })
       .where(eq(licenseContracts.id, id))
@@ -1081,7 +1149,7 @@ export class DatabaseStorage implements IStorage {
       .set({
         licenseeSignature: signature,
         licenseeSignedAt: new Date(),
-        status: 'pending_payment',
+        status: "pending_payment",
         updatedAt: new Date(),
       })
       .where(eq(licenseContracts.id, id))
@@ -1090,11 +1158,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Visitor Account operations
-  async createVisitorAccount(email: string, marketingOptIn: boolean = false): Promise<VisitorAccount> {
-    const verificationToken = crypto.randomBytes(32).toString('hex');
+  async createVisitorAccount(
+    email: string,
+    marketingOptIn: boolean = false
+  ): Promise<VisitorAccount> {
+    const verificationToken = crypto.randomBytes(32).toString("hex");
     const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
     const rewardsExpireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-    
+
     const [visitor] = await db
       .insert(visitorAccounts)
       .values({
@@ -1118,10 +1189,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getVisitorAccountById(id: string): Promise<VisitorAccount | undefined> {
-    const [visitor] = await db
-      .select()
-      .from(visitorAccounts)
-      .where(eq(visitorAccounts.id, id));
+    const [visitor] = await db.select().from(visitorAccounts).where(eq(visitorAccounts.id, id));
     return visitor;
   }
 
@@ -1135,9 +1203,9 @@ export class DatabaseStorage implements IStorage {
           gte(visitorAccounts.verificationTokenExpiresAt, new Date())
         )
       );
-    
+
     if (!visitor) return undefined;
-    
+
     const [updated] = await db
       .update(visitorAccounts)
       .set({
@@ -1148,15 +1216,15 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(visitorAccounts.id, visitor.id))
       .returning();
-    
+
     return updated;
   }
 
   async updateVisitorLastLogin(id: string): Promise<VisitorAccount & { newSessionToken: string }> {
     const now = new Date();
     const rewardsExpireAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
-    const sessionToken = crypto.randomBytes(32).toString('hex'); // Generate new session token on login
-    
+    const sessionToken = crypto.randomBytes(32).toString("hex"); // Generate new session token on login
+
     const [updated] = await db
       .update(visitorAccounts)
       .set({
@@ -1178,19 +1246,19 @@ export class DatabaseStorage implements IStorage {
 
   async submitVisitorQuizAnswer(visitorId: string, data: any): Promise<any> {
     const visitor = await this.getVisitorAccountById(visitorId);
-    if (!visitor) throw new Error('Visitor not found');
-    
+    if (!visitor) throw new Error("Visitor not found");
+
     // Extend last login and rewards expiration on activity
     const now = new Date();
     const newRewardsExpireAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
-    
+
     // Check if rewards have expired
     if (visitor.rewardsExpireAt && now > visitor.rewardsExpireAt) {
       // Reset rewards before processing new answer
       await db
         .update(visitorAccounts)
         .set({
-          pendingSoltRewards: '0',
+          pendingSoltRewards: "0",
           pendingGamePoints: 0,
           pendingExperiencePoints: 0,
           currentStreak: 0,
@@ -1199,25 +1267,27 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(visitorAccounts.id, visitorId));
     }
-    
+
     const { quizQuestions } = await import("@shared/schema");
     const [question] = await db
       .select()
       .from(quizQuestions)
       .where(eq(quizQuestions.id, data.questionId));
-    
-    if (!question) throw new Error('Question not found');
-    
+
+    if (!question) throw new Error("Question not found");
+
     const isCorrect = data.answer === question.answer;
     let pointsEarned = 0;
-    let soltReward = '0';
+    let soltReward = "0";
     let newStreak = visitor.currentStreak || 0;
-    
+
     if (isCorrect) {
       // Calculate points (75% reduction if hint used)
-      pointsEarned = data.hintUsed ? Math.floor((question.points || 10) * 0.25) : (question.points || 10);
+      pointsEarned = data.hintUsed
+        ? Math.floor((question.points || 10) * 0.25)
+        : question.points || 10;
       newStreak = newStreak + 1;
-      
+
       // Calculate $SOLT reward based on streak
       let baseReward = 0;
       if (newStreak >= 10) {
@@ -1227,33 +1297,35 @@ export class DatabaseStorage implements IStorage {
       } else if (newStreak >= 3) {
         baseReward = 0.1;
       }
-      
+
       // Apply time-based multiplier
       const launchDateStr = process.env.SOLTURIO_LAUNCH_DATE;
       let multiplier = 1.0;
-      
+
       if (launchDateStr) {
         const LAUNCH_DATE = new Date(launchDateStr);
         const now = new Date();
-        const daysSinceLaunch = Math.floor((now.getTime() - LAUNCH_DATE.getTime()) / (1000 * 60 * 60 * 1000));
-        
+        const daysSinceLaunch = Math.floor(
+          (now.getTime() - LAUNCH_DATE.getTime()) / (1000 * 60 * 60 * 1000)
+        );
+
         if (daysSinceLaunch >= 0 && daysSinceLaunch <= 60) {
           multiplier = 2.5;
         } else if (daysSinceLaunch > 60 && daysSinceLaunch <= 100) {
           multiplier = 1.5;
         }
       }
-      
+
       const finalReward = baseReward * multiplier;
       soltReward = finalReward.toFixed(2);
     } else {
       newStreak = 0;
     }
-    
+
     // Update visitor stats and extend rewards expiration on activity
-    const currentSolt = parseFloat(visitor.pendingSoltRewards || '0');
+    const currentSolt = parseFloat(visitor.pendingSoltRewards || "0");
     const newSolt = (currentSolt + parseFloat(soltReward)).toFixed(2);
-    
+
     await db
       .update(visitorAccounts)
       .set({
@@ -1269,7 +1341,7 @@ export class DatabaseStorage implements IStorage {
         updatedAt: now,
       })
       .where(eq(visitorAccounts.id, visitorId));
-    
+
     return {
       isCorrect,
       pointsEarned,
@@ -1283,16 +1355,16 @@ export class DatabaseStorage implements IStorage {
   async getVisitorQuizStats(visitorId: string): Promise<any> {
     const visitor = await this.getVisitorAccountById(visitorId);
     if (!visitor) return null;
-    
+
     // Check if rewards expired
     const rewardsExpired = visitor.rewardsExpireAt && new Date() > visitor.rewardsExpireAt;
-    
+
     return {
-      currentStreak: rewardsExpired ? 0 : (visitor.currentStreak || 0),
+      currentStreak: rewardsExpired ? 0 : visitor.currentStreak || 0,
       highestStreak: visitor.highestStreak || 0,
-      totalGamePoints: rewardsExpired ? 0 : (visitor.pendingGamePoints || 0),
-      totalExperiencePoints: rewardsExpired ? 0 : (visitor.pendingExperiencePoints || 0),
-      pendingSoltRewards: rewardsExpired ? '0' : (visitor.pendingSoltRewards || '0'),
+      totalGamePoints: rewardsExpired ? 0 : visitor.pendingGamePoints || 0,
+      totalExperiencePoints: rewardsExpired ? 0 : visitor.pendingExperiencePoints || 0,
+      pendingSoltRewards: rewardsExpired ? "0" : visitor.pendingSoltRewards || "0",
       questionsAnswered: visitor.questionsAnswered || 0,
       correctAnswers: visitor.correctAnswers || 0,
       rewardsExpireAt: visitor.rewardsExpireAt,
@@ -1301,13 +1373,21 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async convertVisitorToUser(visitorId: string, userId: string): Promise<{ transferred: boolean; soltRewards: string; gamePoints: number; experiencePoints: number }> {
+  async convertVisitorToUser(
+    visitorId: string,
+    userId: string
+  ): Promise<{
+    transferred: boolean;
+    soltRewards: string;
+    gamePoints: number;
+    experiencePoints: number;
+  }> {
     const visitor = await this.getVisitorAccountById(visitorId);
-    if (!visitor) throw new Error('Visitor not found');
-    
+    if (!visitor) throw new Error("Visitor not found");
+
     // Check if rewards expired
     const rewardsExpired = visitor.rewardsExpireAt && new Date() > visitor.rewardsExpireAt;
-    
+
     if (rewardsExpired) {
       // Mark as converted but don't transfer rewards
       await db
@@ -1318,29 +1398,26 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         })
         .where(eq(visitorAccounts.id, visitorId));
-      
-      return { transferred: false, soltRewards: '0', gamePoints: 0, experiencePoints: 0 };
+
+      return { transferred: false, soltRewards: "0", gamePoints: 0, experiencePoints: 0 };
     }
-    
+
     // Get quiz stats table
     const { quizStats } = await import("@shared/schema");
-    
+
     // Check if user already has quiz stats
-    const [existingStats] = await db
-      .select()
-      .from(quizStats)
-      .where(eq(quizStats.userId, userId));
-    
-    const soltToTransfer = visitor.pendingSoltRewards || '0';
+    const [existingStats] = await db.select().from(quizStats).where(eq(quizStats.userId, userId));
+
+    const soltToTransfer = visitor.pendingSoltRewards || "0";
     const gamePointsToTransfer = visitor.pendingGamePoints || 0;
     const xpToTransfer = visitor.pendingExperiencePoints || 0;
-    
+
     if (existingStats) {
       // Add pending rewards to existing stats
       // Note: quizStats uses totalPoints for game points, no separate XP field
-      const currentCath = parseFloat(existingStats.totalCathEarned || '0');
+      const currentCath = parseFloat(existingStats.totalCathEarned || "0");
       const newCath = (currentCath + parseFloat(soltToTransfer)).toFixed(2);
-      
+
       await db
         .update(quizStats)
         .set({
@@ -1354,48 +1431,48 @@ export class DatabaseStorage implements IStorage {
         .where(eq(quizStats.userId, userId));
     } else {
       // Create new stats record with visitor's rewards
-      await db
-        .insert(quizStats)
-        .values({
-          userId,
-          totalPoints: gamePointsToTransfer,
-          totalCathEarned: soltToTransfer,
-          streak: visitor.currentStreak || 0,
-          longestStreak: visitor.highestStreak || 0,
-          totalQuestions: visitor.questionsAnswered || 0,
-          correctAnswers: visitor.correctAnswers || 0,
-        });
+      await db.insert(quizStats).values({
+        userId,
+        totalPoints: gamePointsToTransfer,
+        totalCathEarned: soltToTransfer,
+        streak: visitor.currentStreak || 0,
+        longestStreak: visitor.highestStreak || 0,
+        totalQuestions: visitor.questionsAnswered || 0,
+        correctAnswers: visitor.correctAnswers || 0,
+      });
     }
-    
+
     // Update user's SOLT balance
     const user = await this.getUser(userId);
     if (user) {
-      const currentBalance = parseFloat(user.sltrBalance || '0');
+      const currentBalance = parseFloat(user.sltrBalance || "0");
       const newBalance = (currentBalance + parseFloat(soltToTransfer)).toFixed(2);
-      
+
       await db
         .update(users)
         .set({
           sltrBalance: newBalance,
-          sltrTotalEarned: (parseFloat(user.sltrTotalEarned || '0') + parseFloat(soltToTransfer)).toFixed(2),
+          sltrTotalEarned: (
+            parseFloat(user.sltrTotalEarned || "0") + parseFloat(soltToTransfer)
+          ).toFixed(2),
         })
         .where(eq(users.id, userId));
     }
-    
+
     // Mark visitor as converted
     await db
       .update(visitorAccounts)
       .set({
         convertedToUserId: userId,
         convertedAt: new Date(),
-        pendingSoltRewards: '0',
+        pendingSoltRewards: "0",
         pendingGamePoints: 0,
         pendingExperiencePoints: 0,
         currentStreak: 0,
         updatedAt: new Date(),
       })
       .where(eq(visitorAccounts.id, visitorId));
-    
+
     return {
       transferred: true,
       soltRewards: soltToTransfer,
@@ -1409,7 +1486,7 @@ export class DatabaseStorage implements IStorage {
     const expired = await db
       .update(visitorAccounts)
       .set({
-        pendingSoltRewards: '0',
+        pendingSoltRewards: "0",
         pendingGamePoints: 0,
         pendingExperiencePoints: 0,
         currentStreak: 0,
@@ -1421,7 +1498,7 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .returning();
-    
+
     return expired.length;
   }
 }

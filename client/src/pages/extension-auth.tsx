@@ -57,7 +57,7 @@ export default function ExtensionAuth() {
 
         const { token } = await response.json();
 
-        console.log('Sending token to extension:', extId);
+        console.log("Sending token to extension:", extId);
         window.chrome!.runtime!.sendMessage(
           extId!,
           { type: "SOLTURIO_AUTH_TOKEN", token },
@@ -66,7 +66,9 @@ export default function ExtensionAuth() {
               setStatus("success");
             } else {
               setStatus("error");
-              setErrorMessage("Failed to send token to extension. Make sure the extension is installed.");
+              setErrorMessage(
+                "Failed to send token to extension. Make sure the extension is installed."
+              );
             }
           }
         );
@@ -95,9 +97,7 @@ export default function ExtensionAuth() {
             <Shield className="w-12 h-12 text-primary" />
           </div>
           <CardTitle>Solturio Extension</CardTitle>
-          <CardDescription>
-            Connecting your account to the browser extension
-          </CardDescription>
+          <CardDescription>Connecting your account to the browser extension</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {status === "loading" && (
@@ -148,13 +148,14 @@ export default function ExtensionAuth() {
           )}
 
           {status === "no-extension" && (
-            <div className="flex flex-col items-center gap-4 py-8" data-testid="status-no-extension">
+            <div
+              className="flex flex-col items-center gap-4 py-8"
+              data-testid="status-no-extension"
+            >
               <AlertCircle className="w-12 h-12 text-amber-500" />
               <div className="text-center">
                 <p className="font-medium text-lg">Extension Not Detected</p>
-                <p className="text-muted-foreground text-sm mt-1">
-                  {errorMessage}
-                </p>
+                <p className="text-muted-foreground text-sm mt-1">{errorMessage}</p>
               </div>
               <Button variant="outline" onClick={handleGoHome} data-testid="button-dashboard">
                 Return to Dashboard

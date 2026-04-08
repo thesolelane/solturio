@@ -46,10 +46,7 @@ const RETRY_DELAY_MS = 1000;
 
 function generateSignature(body: string, timestamp: number): string {
   const message = `${timestamp}:${body}`;
-  return crypto
-    .createHmac("sha256", SC_API_SECRET)
-    .update(message)
-    .digest("hex");
+  return crypto.createHmac("sha256", SC_API_SECRET).update(message).digest("hex");
 }
 
 function shouldRetry(attempt: number, statusCode: number): boolean {
@@ -81,9 +78,7 @@ function recordFailure(): void {
 
   if (circuitBreaker.failures >= CIRCUIT_THRESHOLD) {
     circuitBreaker.isOpen = true;
-    console.warn(
-      `[SC-CLIENT] Circuit breaker OPEN after ${circuitBreaker.failures} failures`
-    );
+    console.warn(`[SC-CLIENT] Circuit breaker OPEN after ${circuitBreaker.failures} failures`);
   }
 }
 
@@ -92,9 +87,7 @@ function recordSuccess(): void {
   circuitBreaker.isOpen = false;
 }
 
-export async function scRequest<T = any>(
-  options: SCRequestOptions
-): Promise<SCResponse<T>> {
+export async function scRequest<T = any>(options: SCRequestOptions): Promise<SCResponse<T>> {
   const { method, path, body, userId, requestId } = options;
   const reqId = requestId || `sc_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
@@ -155,7 +148,7 @@ export async function scRequest<T = any>(
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
       const url = `${SC_API_URL}${path}`;
-      
+
       const fetchOptions: RequestInit = {
         method,
         headers,

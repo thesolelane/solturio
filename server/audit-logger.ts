@@ -23,7 +23,7 @@ class AuditLogger {
   private logs: Map<string, AuditLogEntry> = new Map();
   private maxLogs = 10000;
 
-  log(entry: Omit<AuditLogEntry, 'id' | 'timestamp'>): AuditLogEntry {
+  log(entry: Omit<AuditLogEntry, "id" | "timestamp">): AuditLogEntry {
     const auditEntry: AuditLogEntry = {
       ...entry,
       id: Math.random().toString(36).substring(7),
@@ -41,7 +41,9 @@ class AuditLogger {
 
     // Console log important actions
     if (entry.statusCode >= 400) {
-      console.warn(`[AUDIT] ${entry.method} ${entry.endpoint} - ${entry.statusCode} - User: ${entry.userId}`);
+      console.warn(
+        `[AUDIT] ${entry.method} ${entry.endpoint} - ${entry.statusCode} - User: ${entry.userId}`
+      );
     }
 
     return auditEntry;
@@ -56,11 +58,11 @@ class AuditLogger {
   }
 
   getLogsByUser(userId: string): AuditLogEntry[] {
-    return Array.from(this.logs.values()).filter(l => l.userId === userId);
+    return Array.from(this.logs.values()).filter((l) => l.userId === userId);
   }
 
   getLogsByEndpoint(endpoint: string): AuditLogEntry[] {
-    return Array.from(this.logs.values()).filter(l => l.endpoint === endpoint);
+    return Array.from(this.logs.values()).filter((l) => l.endpoint === endpoint);
   }
 
   // Persist logs to database (Phase 3 enhancement)

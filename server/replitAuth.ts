@@ -40,7 +40,7 @@ export function getSession() {
     cookie: {
       httpOnly: true,
       secure: true,
-      sameSite: 'lax', // CSRF protection: prevents cross-site request forgery
+      sameSite: "lax", // CSRF protection: prevents cross-site request forgery
       maxAge: sessionTtl,
     },
   });
@@ -56,9 +56,7 @@ function updateUserSession(
   user.expires_at = user.claims?.exp;
 }
 
-async function upsertUser(
-  claims: any,
-) {
+async function upsertUser(claims: any) {
   await storage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
@@ -86,8 +84,7 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
+  for (const domain of process.env.REPLIT_DOMAINS!.split(",")) {
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
@@ -95,7 +92,7 @@ export async function setupAuth(app: Express) {
         scope: "openid email profile offline_access",
         callbackURL: `https://${domain}/api/callback`,
       },
-      verify,
+      verify
     );
     passport.use(strategy);
   }
@@ -105,14 +102,14 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/login", (req, res, next) => {
     // Preserve extension params for callback
-    const isExtension = req.query.extension === 'true';
+    const isExtension = req.query.extension === "true";
     const extId = req.query.ext_id as string;
-    
+
     if (isExtension && extId) {
       // Store in session for retrieval after callback
       (req.session as any).extensionAuth = { extId };
     }
-    
+
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
@@ -121,7 +118,7 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/callback", (req, res, next) => {
     const extensionAuth = (req.session as any)?.extensionAuth;
-    
+
     // Determine redirect URL
     let successRedirect = "/";
     if (extensionAuth?.extId) {
@@ -130,7 +127,7 @@ export async function setupAuth(app: Express) {
       // Clear from session
       delete (req.session as any).extensionAuth;
     }
-    
+
     passport.authenticate(`replitauth:${req.hostname}`, {
       successReturnToOrRedirect: successRedirect,
       failureRedirect: "/api/login",

@@ -11,7 +11,7 @@ interface VerifiedImageProps {
 
 const BADGE_SIZES = {
   sm: "w-6 h-6",
-  md: "w-8 h-8", 
+  md: "w-8 h-8",
   lg: "w-12 h-12",
 };
 
@@ -41,7 +41,7 @@ export function VerifiedImage({
           onError={() => setImageError(true)}
         />
       )}
-      
+
       {showBadge && !badgeError && (
         <img
           src={badgeUrl}
@@ -57,15 +57,15 @@ export function VerifiedImage({
 }
 
 // Badge-only component for use in other contexts
-export function VerificationBadge({ 
+export function VerificationBadge({
   size = "md",
   className = "",
-}: { 
+}: {
   size?: "sm" | "md" | "lg";
   className?: string;
 }) {
   const badgeUrl = getAssetUrl(VERIFICATION_ASSETS.badge.cid, "pinata");
-  
+
   return (
     <img
       src={badgeUrl}

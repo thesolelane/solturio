@@ -13,20 +13,76 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
-import { Palette, Upload, ArrowLeft, ArrowRight, Loader2, CheckCircle2, Music, BookOpen, Code, PenTool, FileText } from "lucide-react";
+import {
+  Palette,
+  Upload,
+  ArrowLeft,
+  ArrowRight,
+  Loader2,
+  CheckCircle2,
+  Music,
+  BookOpen,
+  Code,
+  PenTool,
+  FileText,
+} from "lucide-react";
 
 const CREATIVE_WORK_TYPES = [
-  { id: "artwork", label: "Artwork / Logo / Design", description: "illustrations, logos, graphic designs, digital art", icon: Palette },
-  { id: "audio", label: "Audio / Music", description: "songs, sound effects, podcasts, beats", icon: Music },
-  { id: "book", label: "Books / Written Works", description: "manuscripts, whitepapers, articles, research papers", icon: BookOpen },
-  { id: "code", label: "Source Code / Software", description: "algorithms, smart contracts, applications", icon: Code },
-  { id: "drawing", label: "Drawings / Blueprints", description: "technical drawings, CAD files, schematics", icon: PenTool },
-  { id: "plan", label: "Plans / Documents", description: "business plans, whitepapers, pitch decks, specs", icon: FileText },
+  {
+    id: "artwork",
+    label: "Artwork / Logo / Design",
+    description: "illustrations, logos, graphic designs, digital art",
+    icon: Palette,
+  },
+  {
+    id: "audio",
+    label: "Audio / Music",
+    description: "songs, sound effects, podcasts, beats",
+    icon: Music,
+  },
+  {
+    id: "book",
+    label: "Books / Written Works",
+    description: "manuscripts, whitepapers, articles, research papers",
+    icon: BookOpen,
+  },
+  {
+    id: "code",
+    label: "Source Code / Software",
+    description: "algorithms, smart contracts, applications",
+    icon: Code,
+  },
+  {
+    id: "drawing",
+    label: "Drawings / Blueprints",
+    description: "technical drawings, CAD files, schematics",
+    icon: PenTool,
+  },
+  {
+    id: "plan",
+    label: "Plans / Documents",
+    description: "business plans, whitepapers, pitch decks, specs",
+    icon: FileText,
+  },
 ] as const;
 
 const FILE_ACCEPT_FORMATS: Record<string, string> = {
@@ -59,175 +115,202 @@ const CREATIVE_TYPE_LABELS: Record<string, string> = {
 const TYPES_WITH_CONTRACT_BONDING = ["artwork", "book", "drawing", "plan"];
 const IMAGE_PREVIEW_TYPES = ["artwork", "drawing"];
 
-const artworkSchema = z.object({
-  creativeWorkType: z.enum(["artwork", "audio", "book", "code", "drawing", "plan"]),
+const artworkSchema = z
+  .object({
+    creativeWorkType: z.enum(["artwork", "audio", "book", "code", "drawing", "plan"]),
 
-  file: z.any().refine((files) => files?.length > 0, "Please upload your file"),
+    file: z.any().refine((files) => files?.length > 0, "Please upload your file"),
 
-  artworkTitle: z.string().min(2, "Title must be at least 2 characters").max(200),
+    artworkTitle: z.string().min(2, "Title must be at least 2 characters").max(200),
 
-  artworkSummary: z.string().min(10, "Summary must be at least 10 characters").max(300, "Summary must be 300 characters or less"),
+    artworkSummary: z
+      .string()
+      .min(10, "Summary must be at least 10 characters")
+      .max(300, "Summary must be 300 characters or less"),
 
-  whenCreated: z.string().min(1, "Please specify when this was created"),
+    whenCreated: z.string().min(1, "Please specify when this was created"),
 
-  createdBy: z.enum(["self", "work_for_hire", "team"], { required_error: "Please specify who created this" }),
-  creatorDetails: z.string().optional(),
+    createdBy: z.enum(["self", "work_for_hire", "team"], {
+      required_error: "Please specify who created this",
+    }),
+    creatorDetails: z.string().optional(),
 
-  isWorkForHire: z.boolean(),
-  receivedPayment: z.boolean().optional(),
-  paymentAmount: z.string().optional(),
-  paymentDetails: z.string().optional(),
+    isWorkForHire: z.boolean(),
+    receivedPayment: z.boolean().optional(),
+    paymentAmount: z.string().optional(),
+    paymentDetails: z.string().optional(),
 
-  workFor: z.enum(["individual", "community"], { required_error: "Please specify if this is for individual or community" }),
+    workFor: z.enum(["individual", "community"], {
+      required_error: "Please specify if this is for individual or community",
+    }),
 
-  bondedToContract: z.boolean(),
-  contractAddress: z.string().optional(),
+    bondedToContract: z.boolean(),
+    contractAddress: z.string().optional(),
 
-  isExclusive: z.boolean(),
-  variationsPlanned: z.string().optional(),
+    isExclusive: z.boolean(),
+    variationsPlanned: z.string().optional(),
 
-  planToLicense: z.boolean(),
-  licenseType: z.enum(["limited", "revocable", "perpetuity"], { required_error: "Required if licensing" }).optional(),
-  licensingDetails: z.string().optional(),
+    planToLicense: z.boolean(),
+    licenseType: z
+      .enum(["limited", "revocable", "perpetuity"], { required_error: "Required if licensing" })
+      .optional(),
+    licensingDetails: z.string().optional(),
 
-  planToMintNFT: z.boolean(),
-  planToSellVariations: z.boolean(),
-  planToGiveAwayVariations: z.boolean(),
+    planToMintNFT: z.boolean(),
+    planToSellVariations: z.boolean(),
+    planToGiveAwayVariations: z.boolean(),
 
-  isCustomPFP: z.boolean(),
-  pfpClientTelegram: z.string().optional(),
-  pfpClientTwitter: z.string().optional(),
+    isCustomPFP: z.boolean(),
+    pfpClientTelegram: z.string().optional(),
+    pfpClientTwitter: z.string().optional(),
 
-  intendedUse: z.string().min(20, "Please describe intended use (minimum 20 characters)"),
+    intendedUse: z.string().min(20, "Please describe intended use (minimum 20 characters)"),
 
-  portfolioUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-  twitterHandle: z.string().optional(),
-  telegramHandle: z.string().optional(),
-  instagramHandle: z.string().optional(),
-  discordHandle: z.string().optional(),
-  otherSocial: z.string().optional(),
+    portfolioUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+    twitterHandle: z.string().optional(),
+    telegramHandle: z.string().optional(),
+    instagramHandle: z.string().optional(),
+    discordHandle: z.string().optional(),
+    otherSocial: z.string().optional(),
 
-  audioGenre: z.string().optional(),
-  audioDuration: z.string().optional(),
-  audioContainsSamples: z.boolean().optional(),
-  audioSampleDetails: z.string().optional(),
-  audioHasVocals: z.enum(["instrumental", "vocals", "both"]).optional(),
+    audioGenre: z.string().optional(),
+    audioDuration: z.string().optional(),
+    audioContainsSamples: z.boolean().optional(),
+    audioSampleDetails: z.string().optional(),
+    audioHasVocals: z.enum(["instrumental", "vocals", "both"]).optional(),
 
-  bookCategory: z.string().optional(),
-  bookWordCount: z.string().optional(),
-  bookLanguage: z.string().optional(),
-  bookCoAuthors: z.string().optional(),
-  bookIsbn: z.string().optional(),
+    bookCategory: z.string().optional(),
+    bookWordCount: z.string().optional(),
+    bookLanguage: z.string().optional(),
+    bookCoAuthors: z.string().optional(),
+    bookIsbn: z.string().optional(),
 
-  codeProgrammingLanguage: z.string().optional(),
-  codeRepoUrl: z.string().optional(),
-  codeLicenseType: z.string().optional(),
-  codeVersion: z.string().optional(),
+    codeProgrammingLanguage: z.string().optional(),
+    codeRepoUrl: z.string().optional(),
+    codeLicenseType: z.string().optional(),
+    codeVersion: z.string().optional(),
 
-  drawingScale: z.string().optional(),
-  drawingStandard: z.string().optional(),
+    drawingScale: z.string().optional(),
+    drawingStandard: z.string().optional(),
 
-  planDocumentType: z.string().optional(),
-  planConfidentiality: z.string().optional(),
-  planVersion: z.string().optional(),
-}).superRefine((data, ctx) => {
-  if (data.isWorkForHire && data.createdBy !== "work_for_hire") {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "If this is work for hire, please select 'Work for hire' as the creator",
-      path: ["createdBy"],
-    });
-  }
-
-  if (data.createdBy === "work_for_hire" && !data.isWorkForHire) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "If created by work for hire, must check work for hire checkbox",
-      path: ["isWorkForHire"],
-    });
-  }
-
-  if (data.isWorkForHire && (!data.paymentAmount || data.paymentAmount.trim().length === 0)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Payment amount is required for work for hire",
-      path: ["paymentAmount"],
-    });
-  }
-
-  if (data.isWorkForHire && (!data.paymentDetails || data.paymentDetails.trim().length === 0)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Please provide payment and contract details for work for hire",
-      path: ["paymentDetails"],
-    });
-  }
-
-  if ((data.createdBy === "work_for_hire" || data.createdBy === "team") && (!data.creatorDetails || data.creatorDetails.trim().length === 0)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Please provide details about who created this work",
-      path: ["creatorDetails"],
-    });
-  }
-
-  if (data.bondedToContract && (!data.contractAddress || data.contractAddress.trim().length === 0)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Please provide the contract address",
-      path: ["contractAddress"],
-    });
-  }
-
-  if (!data.isExclusive && (!data.variationsPlanned || data.variationsPlanned.trim().length === 0)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Please describe the variations (since this is not exclusive 1 of 1)",
-      path: ["variationsPlanned"],
-    });
-  }
-
-  if (data.planToLicense && !data.licenseType) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Please specify the license type",
-      path: ["licenseType"],
-    });
-  }
-
-  if (data.planToLicense && (!data.licensingDetails || data.licensingDetails.trim().length === 0)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Please provide licensing details and terms",
-      path: ["licensingDetails"],
-    });
-  }
-
-  if (data.isCustomPFP) {
-    if (!data.pfpClientTwitter || data.pfpClientTwitter.trim().length === 0) {
+    planDocumentType: z.string().optional(),
+    planConfidentiality: z.string().optional(),
+    planVersion: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.isWorkForHire && data.createdBy !== "work_for_hire") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Please provide client's Twitter handle",
-        path: ["pfpClientTwitter"],
+        message: "If this is work for hire, please select 'Work for hire' as the creator",
+        path: ["createdBy"],
       });
     }
-    if (!data.pfpClientTelegram || data.pfpClientTelegram.trim().length === 0) {
+
+    if (data.createdBy === "work_for_hire" && !data.isWorkForHire) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Please provide client's Telegram handle",
-        path: ["pfpClientTelegram"],
+        message: "If created by work for hire, must check work for hire checkbox",
+        path: ["isWorkForHire"],
       });
     }
-  }
 
-  if (data.creativeWorkType === "audio" && data.audioContainsSamples && (!data.audioSampleDetails || data.audioSampleDetails.trim().length === 0)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Please provide sample clearance details",
-      path: ["audioSampleDetails"],
-    });
-  }
-});
+    if (data.isWorkForHire && (!data.paymentAmount || data.paymentAmount.trim().length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Payment amount is required for work for hire",
+        path: ["paymentAmount"],
+      });
+    }
+
+    if (data.isWorkForHire && (!data.paymentDetails || data.paymentDetails.trim().length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please provide payment and contract details for work for hire",
+        path: ["paymentDetails"],
+      });
+    }
+
+    if (
+      (data.createdBy === "work_for_hire" || data.createdBy === "team") &&
+      (!data.creatorDetails || data.creatorDetails.trim().length === 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please provide details about who created this work",
+        path: ["creatorDetails"],
+      });
+    }
+
+    if (
+      data.bondedToContract &&
+      (!data.contractAddress || data.contractAddress.trim().length === 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please provide the contract address",
+        path: ["contractAddress"],
+      });
+    }
+
+    if (
+      !data.isExclusive &&
+      (!data.variationsPlanned || data.variationsPlanned.trim().length === 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please describe the variations (since this is not exclusive 1 of 1)",
+        path: ["variationsPlanned"],
+      });
+    }
+
+    if (data.planToLicense && !data.licenseType) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please specify the license type",
+        path: ["licenseType"],
+      });
+    }
+
+    if (
+      data.planToLicense &&
+      (!data.licensingDetails || data.licensingDetails.trim().length === 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please provide licensing details and terms",
+        path: ["licensingDetails"],
+      });
+    }
+
+    if (data.isCustomPFP) {
+      if (!data.pfpClientTwitter || data.pfpClientTwitter.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Please provide client's Twitter handle",
+          path: ["pfpClientTwitter"],
+        });
+      }
+      if (!data.pfpClientTelegram || data.pfpClientTelegram.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Please provide client's Telegram handle",
+          path: ["pfpClientTelegram"],
+        });
+      }
+    }
+
+    if (
+      data.creativeWorkType === "audio" &&
+      data.audioContainsSamples &&
+      (!data.audioSampleDetails || data.audioSampleDetails.trim().length === 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please provide sample clearance details",
+        path: ["audioSampleDetails"],
+      });
+    }
+  });
 
 type ArtworkFormValues = z.infer<typeof artworkSchema>;
 
@@ -235,7 +318,13 @@ const getStepFields = (creativeWorkType: string) => {
   const step1Base = ["file", "artworkTitle", "artworkSummary", "whenCreated", "creativeWorkType"];
 
   const typeSpecificStep1: Record<string, string[]> = {
-    audio: ["audioGenre", "audioDuration", "audioContainsSamples", "audioSampleDetails", "audioHasVocals"],
+    audio: [
+      "audioGenre",
+      "audioDuration",
+      "audioContainsSamples",
+      "audioSampleDetails",
+      "audioHasVocals",
+    ],
     book: ["bookCategory", "bookWordCount", "bookLanguage", "bookCoAuthors", "bookIsbn"],
     code: ["codeProgrammingLanguage", "codeRepoUrl", "codeLicenseType", "codeVersion"],
     drawing: ["drawingScale", "drawingStandard"],
@@ -244,9 +333,39 @@ const getStepFields = (creativeWorkType: string) => {
 
   return {
     1: [...step1Base, ...(typeSpecificStep1[creativeWorkType] || [])] as string[],
-    2: ["createdBy", "creatorDetails", "isWorkForHire", "receivedPayment", "paymentAmount", "paymentDetails", "workFor"] as string[],
-    3: ["isExclusive", "variationsPlanned", "planToSellVariations", "planToGiveAwayVariations", "planToLicense", "licenseType", "licensingDetails", "isCustomPFP", "pfpClientTwitter", "pfpClientTelegram"] as string[],
-    4: ["planToMintNFT", "bondedToContract", "contractAddress", "intendedUse", "portfolioUrl", "twitterHandle", "telegramHandle", "instagramHandle", "discordHandle", "otherSocial"] as string[],
+    2: [
+      "createdBy",
+      "creatorDetails",
+      "isWorkForHire",
+      "receivedPayment",
+      "paymentAmount",
+      "paymentDetails",
+      "workFor",
+    ] as string[],
+    3: [
+      "isExclusive",
+      "variationsPlanned",
+      "planToSellVariations",
+      "planToGiveAwayVariations",
+      "planToLicense",
+      "licenseType",
+      "licensingDetails",
+      "isCustomPFP",
+      "pfpClientTwitter",
+      "pfpClientTelegram",
+    ] as string[],
+    4: [
+      "planToMintNFT",
+      "bondedToContract",
+      "contractAddress",
+      "intendedUse",
+      "portfolioUrl",
+      "twitterHandle",
+      "telegramHandle",
+      "instagramHandle",
+      "discordHandle",
+      "otherSocial",
+    ] as string[],
   };
 };
 
@@ -429,7 +548,7 @@ export default function RegisterArtwork() {
 
     if (isValid) {
       setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       toast({
         title: "Please complete all required fields",
@@ -441,7 +560,7 @@ export default function RegisterArtwork() {
 
   const handleBack = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const createdBy = form.watch("createdBy");
@@ -457,7 +576,7 @@ export default function RegisterArtwork() {
   }
 
   const progressPercentage = (currentStep / totalSteps) * 100;
-  const selectedTypeInfo = CREATIVE_WORK_TYPES.find(t => t.id === creativeWorkType);
+  const selectedTypeInfo = CREATIVE_WORK_TYPES.find((t) => t.id === creativeWorkType);
   const SelectedIcon = selectedTypeInfo?.icon || Palette;
 
   return (
@@ -488,10 +607,18 @@ export default function RegisterArtwork() {
           <div className="space-y-2 mt-4">
             <Progress value={progressPercentage} className="h-2" data-testid="progress-wizard" />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span className={currentStep === 1 ? "font-semibold text-foreground" : ""}>Upload & Details</span>
-              <span className={currentStep === 2 ? "font-semibold text-foreground" : ""}>Ownership</span>
-              <span className={currentStep === 3 ? "font-semibold text-foreground" : ""}>Licensing</span>
-              <span className={currentStep === 4 ? "font-semibold text-foreground" : ""}>Distribution</span>
+              <span className={currentStep === 1 ? "font-semibold text-foreground" : ""}>
+                Upload & Details
+              </span>
+              <span className={currentStep === 2 ? "font-semibold text-foreground" : ""}>
+                Ownership
+              </span>
+              <span className={currentStep === 3 ? "font-semibold text-foreground" : ""}>
+                Licensing
+              </span>
+              <span className={currentStep === 4 ? "font-semibold text-foreground" : ""}>
+                Distribution
+              </span>
             </div>
           </div>
         </CardHeader>
@@ -499,7 +626,6 @@ export default function RegisterArtwork() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-
           {currentStep === 1 && (
             <Card>
               <CardHeader>
@@ -532,7 +658,11 @@ export default function RegisterArtwork() {
                             const isSelected = field.value === type.id;
                             return (
                               <div key={type.id} className="relative">
-                                <RadioGroupItem value={type.id} id={`type-${type.id}`} className="sr-only" />
+                                <RadioGroupItem
+                                  value={type.id}
+                                  id={`type-${type.id}`}
+                                  className="sr-only"
+                                />
                                 <Label
                                   htmlFor={`type-${type.id}`}
                                   className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-colors text-center ${
@@ -542,8 +672,12 @@ export default function RegisterArtwork() {
                                   }`}
                                   data-testid={`radio-type-${type.id}`}
                                 >
-                                  <Icon className={`w-5 h-5 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
-                                  <span className={`text-xs font-medium leading-tight ${isSelected ? "text-foreground" : "text-muted-foreground"}`}>
+                                  <Icon
+                                    className={`w-5 h-5 ${isSelected ? "text-primary" : "text-muted-foreground"}`}
+                                  />
+                                  <span
+                                    className={`text-xs font-medium leading-tight ${isSelected ? "text-foreground" : "text-muted-foreground"}`}
+                                  >
                                     {type.label}
                                   </span>
                                 </Label>
@@ -588,14 +722,19 @@ export default function RegisterArtwork() {
                             </div>
                           )}
                           {!IMAGE_PREVIEW_TYPES.includes(creativeWorkType) && fileName && (
-                            <div className="flex items-center gap-2 p-3 rounded-lg border bg-muted/50" data-testid="text-file-name">
+                            <div
+                              className="flex items-center gap-2 p-3 rounded-lg border bg-muted/50"
+                              data-testid="text-file-name"
+                            >
                               <SelectedIcon className="w-4 h-4 text-muted-foreground" />
                               <span className="text-sm text-muted-foreground">{fileName}</span>
                             </div>
                           )}
                         </div>
                       </FormControl>
-                      <FormDescription>{FILE_FORMAT_DESCRIPTIONS[creativeWorkType]}</FormDescription>
+                      <FormDescription>
+                        {FILE_FORMAT_DESCRIPTIONS[creativeWorkType]}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -608,7 +747,11 @@ export default function RegisterArtwork() {
                     <FormItem>
                       <FormLabel>Title *</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Cyber Dragon Logo" {...field} data-testid="input-artwork-title" />
+                        <Input
+                          placeholder="e.g., Cyber Dragon Logo"
+                          {...field}
+                          data-testid="input-artwork-title"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -630,9 +773,7 @@ export default function RegisterArtwork() {
                           data-testid="textarea-artwork-summary"
                         />
                       </FormControl>
-                      <FormDescription>
-                        {field.value?.length || 0}/300 characters
-                      </FormDescription>
+                      <FormDescription>{field.value?.length || 0}/300 characters</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -691,7 +832,11 @@ export default function RegisterArtwork() {
                         <FormItem>
                           <FormLabel>Duration</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., 3:45" {...field} data-testid="input-audio-duration" />
+                            <Input
+                              placeholder="e.g., 3:45"
+                              {...field}
+                              data-testid="input-audio-duration"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -753,15 +898,27 @@ export default function RegisterArtwork() {
                             >
                               <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="instrumental" id="vocals-instrumental" />
-                                <Label htmlFor="vocals-instrumental" className="font-normal cursor-pointer">Instrumental</Label>
+                                <Label
+                                  htmlFor="vocals-instrumental"
+                                  className="font-normal cursor-pointer"
+                                >
+                                  Instrumental
+                                </Label>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="vocals" id="vocals-vocals" />
-                                <Label htmlFor="vocals-vocals" className="font-normal cursor-pointer">Vocals</Label>
+                                <Label
+                                  htmlFor="vocals-vocals"
+                                  className="font-normal cursor-pointer"
+                                >
+                                  Vocals
+                                </Label>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="both" id="vocals-both" />
-                                <Label htmlFor="vocals-both" className="font-normal cursor-pointer">Both</Label>
+                                <Label htmlFor="vocals-both" className="font-normal cursor-pointer">
+                                  Both
+                                </Label>
                               </div>
                             </RadioGroup>
                           </FormControl>
@@ -811,7 +968,11 @@ export default function RegisterArtwork() {
                         <FormItem>
                           <FormLabel>Approximate Word/Page Count</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., 50,000 words" {...field} data-testid="input-book-word-count" />
+                            <Input
+                              placeholder="e.g., 50,000 words"
+                              {...field}
+                              data-testid="input-book-word-count"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -825,7 +986,11 @@ export default function RegisterArtwork() {
                         <FormItem>
                           <FormLabel>Language</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., English" {...field} data-testid="input-book-language" />
+                            <Input
+                              placeholder="e.g., English"
+                              {...field}
+                              data-testid="input-book-language"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -858,7 +1023,11 @@ export default function RegisterArtwork() {
                         <FormItem>
                           <FormLabel>ISBN (optional)</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., 978-3-16-148410-0" {...field} data-testid="input-book-isbn" />
+                            <Input
+                              placeholder="e.g., 978-3-16-148410-0"
+                              {...field}
+                              data-testid="input-book-isbn"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -879,7 +1048,11 @@ export default function RegisterArtwork() {
                         <FormItem>
                           <FormLabel>Programming Language(s)</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., Rust, TypeScript" {...field} data-testid="input-code-programming-language" />
+                            <Input
+                              placeholder="e.g., Rust, TypeScript"
+                              {...field}
+                              data-testid="input-code-programming-language"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -893,7 +1066,11 @@ export default function RegisterArtwork() {
                         <FormItem>
                           <FormLabel>Repository URL (optional)</FormLabel>
                           <FormControl>
-                            <Input placeholder="https://github.com/..." {...field} data-testid="input-code-repo-url" />
+                            <Input
+                              placeholder="https://github.com/..."
+                              {...field}
+                              data-testid="input-code-repo-url"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -934,7 +1111,11 @@ export default function RegisterArtwork() {
                         <FormItem>
                           <FormLabel>Version (optional)</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., 1.0.0" {...field} data-testid="input-code-version" />
+                            <Input
+                              placeholder="e.g., 1.0.0"
+                              {...field}
+                              data-testid="input-code-version"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -955,7 +1136,11 @@ export default function RegisterArtwork() {
                         <FormItem>
                           <FormLabel>Scale / Dimensions</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., 1:100 or 24x36 inches" {...field} data-testid="input-drawing-scale" />
+                            <Input
+                              placeholder="e.g., 1:100 or 24x36 inches"
+                              {...field}
+                              data-testid="input-drawing-scale"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -969,7 +1154,11 @@ export default function RegisterArtwork() {
                         <FormItem>
                           <FormLabel>Technical Standard (optional)</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., ISO 128, ANSI Y14.5" {...field} data-testid="input-drawing-standard" />
+                            <Input
+                              placeholder="e.g., ISO 128, ANSI Y14.5"
+                              {...field}
+                              data-testid="input-drawing-standard"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -999,7 +1188,9 @@ export default function RegisterArtwork() {
                               <SelectItem value="whitepaper">Whitepaper</SelectItem>
                               <SelectItem value="business_plan">Business Plan</SelectItem>
                               <SelectItem value="pitch_deck">Pitch Deck</SelectItem>
-                              <SelectItem value="technical_spec">Technical Specification</SelectItem>
+                              <SelectItem value="technical_spec">
+                                Technical Specification
+                              </SelectItem>
                               <SelectItem value="proposal">Proposal</SelectItem>
                               <SelectItem value="report">Report</SelectItem>
                               <SelectItem value="other">Other</SelectItem>
@@ -1040,7 +1231,11 @@ export default function RegisterArtwork() {
                         <FormItem>
                           <FormLabel>Version (optional)</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., v1.0" {...field} data-testid="input-plan-version" />
+                            <Input
+                              placeholder="e.g., v1.0"
+                              {...field}
+                              data-testid="input-plan-version"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -1056,12 +1251,9 @@ export default function RegisterArtwork() {
             <Card className="border-primary/20">
               <CardHeader>
                 <CardTitle className="text-primary">Ownership & Agreements</CardTitle>
-                <CardDescription>
-                  Legal questions about creation and ownership
-                </CardDescription>
+                <CardDescription>Legal questions about creation and ownership</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-
                 <FormField
                   control={form.control}
                   name="createdBy"
@@ -1075,19 +1267,31 @@ export default function RegisterArtwork() {
                           className="flex flex-col space-y-2"
                         >
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="self" id="created-self" data-testid="radio-created-self" />
+                            <RadioGroupItem
+                              value="self"
+                              id="created-self"
+                              data-testid="radio-created-self"
+                            />
                             <Label htmlFor="created-self" className="font-normal cursor-pointer">
                               I created it myself
                             </Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="work_for_hire" id="created-hire" data-testid="radio-created-hire" />
+                            <RadioGroupItem
+                              value="work_for_hire"
+                              id="created-hire"
+                              data-testid="radio-created-hire"
+                            />
                             <Label htmlFor="created-hire" className="font-normal cursor-pointer">
                               Work for hire (I hired/commissioned someone)
                             </Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="team" id="created-team" data-testid="radio-created-team" />
+                            <RadioGroupItem
+                              value="team"
+                              id="created-team"
+                              data-testid="radio-created-team"
+                            />
                             <Label htmlFor="created-team" className="font-normal cursor-pointer">
                               Created by my team/company
                             </Label>
@@ -1135,9 +1339,7 @@ export default function RegisterArtwork() {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel className="font-semibold">
-                          2. Is this work for hire?
-                        </FormLabel>
+                        <FormLabel className="font-semibold">2. Is this work for hire?</FormLabel>
                         <FormDescription>
                           Check if you created this for a client who owns the rights
                         </FormDescription>
@@ -1213,7 +1415,9 @@ export default function RegisterArtwork() {
                   name="workFor"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-semibold">3. Is this work for an individual or community? *</FormLabel>
+                      <FormLabel className="font-semibold">
+                        3. Is this work for an individual or community? *
+                      </FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
@@ -1221,13 +1425,21 @@ export default function RegisterArtwork() {
                           className="flex flex-col space-y-2"
                         >
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="individual" id="work-individual" data-testid="radio-work-individual" />
+                            <RadioGroupItem
+                              value="individual"
+                              id="work-individual"
+                              data-testid="radio-work-individual"
+                            />
                             <Label htmlFor="work-individual" className="font-normal cursor-pointer">
                               Individual (personal project, client work)
                             </Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="community" id="work-community" data-testid="radio-work-community" />
+                            <RadioGroupItem
+                              value="community"
+                              id="work-community"
+                              data-testid="radio-work-community"
+                            />
                             <Label htmlFor="work-community" className="font-normal cursor-pointer">
                               Community (DAO, collective, open-source project)
                             </Label>
@@ -1246,12 +1458,9 @@ export default function RegisterArtwork() {
             <Card className="border-primary/20">
               <CardHeader>
                 <CardTitle className="text-primary">Licensing & Exclusivity</CardTitle>
-                <CardDescription>
-                  Define usage rights and distribution plans
-                </CardDescription>
+                <CardDescription>Define usage rights and distribution plans</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-
                 <FormField
                   control={form.control}
                   name="isExclusive"
@@ -1315,7 +1524,8 @@ export default function RegisterArtwork() {
                           </FormControl>
                           <div className="space-y-1 leading-none">
                             <FormLabel className="font-semibold">
-                              5. Will you sell variations{creativeWorkType === "audio" ? " / remixes" : ""} of this work?
+                              5. Will you sell variations
+                              {creativeWorkType === "audio" ? " / remixes" : ""} of this work?
                             </FormLabel>
                           </div>
                         </FormItem>
@@ -1336,7 +1546,8 @@ export default function RegisterArtwork() {
                           </FormControl>
                           <div className="space-y-1 leading-none">
                             <FormLabel className="font-semibold">
-                              6. Will you give away variations{creativeWorkType === "audio" ? " / remixes" : ""} of this work?
+                              6. Will you give away variations
+                              {creativeWorkType === "audio" ? " / remixes" : ""} of this work?
                             </FormLabel>
                           </div>
                         </FormItem>
@@ -1383,9 +1594,15 @@ export default function RegisterArtwork() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="limited">Limited (time-bound or usage-restricted)</SelectItem>
-                              <SelectItem value="revocable">Revocable (can be cancelled)</SelectItem>
-                              <SelectItem value="perpetuity">Perpetuity (permanent, irrevocable)</SelectItem>
+                              <SelectItem value="limited">
+                                Limited (time-bound or usage-restricted)
+                              </SelectItem>
+                              <SelectItem value="revocable">
+                                Revocable (can be cancelled)
+                              </SelectItem>
+                              <SelectItem value="perpetuity">
+                                Perpetuity (permanent, irrevocable)
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -1435,7 +1652,8 @@ export default function RegisterArtwork() {
                               8. Is this a customized PFP for someone specific?
                             </FormLabel>
                             <FormDescription>
-                              Check if this is a profile picture created for a specific person/project
+                              Check if this is a profile picture created for a specific
+                              person/project
                             </FormDescription>
                           </div>
                         </FormItem>
@@ -1496,7 +1714,6 @@ export default function RegisterArtwork() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-
                 <FormField
                   control={form.control}
                   name="planToMintNFT"
@@ -1539,7 +1756,8 @@ export default function RegisterArtwork() {
                               10. Will this work be bonded to a specific contract address?
                             </FormLabel>
                             <FormDescription>
-                              Check if this work will be tied to a specific smart contract (NFT collection, token, etc.)
+                              Check if this work will be tied to a specific smart contract (NFT
+                              collection, token, etc.)
                             </FormDescription>
                           </div>
                         </FormItem>
@@ -1560,7 +1778,9 @@ export default function RegisterArtwork() {
                                 data-testid="input-contract-address"
                               />
                             </FormControl>
-                            <FormDescription>The blockchain contract address this work will be bonded to</FormDescription>
+                            <FormDescription>
+                              The blockchain contract address this work will be bonded to
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -1576,7 +1796,9 @@ export default function RegisterArtwork() {
                   name="intendedUse"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-semibold">11. How will you use this work? *</FormLabel>
+                      <FormLabel className="font-semibold">
+                        11. How will you use this work? *
+                      </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Portfolio display, client projects, merchandise, social media branding, NFT marketplace..."

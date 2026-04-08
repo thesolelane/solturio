@@ -30,7 +30,7 @@ export async function verifyTransactionOnChain(
   try {
     // Fetch transaction from blockchain
     const tx = await connection.getParsedTransaction(txHash, "confirmed");
-    
+
     if (!tx || !tx.transaction) {
       return { valid: false, error: "Transaction not found on-chain" };
     }
@@ -47,16 +47,22 @@ export async function verifyTransactionOnChain(
     for (const ix of instructions) {
       if ("parsed" in ix && ix.program === "spl-token") {
         const parsed = ix.parsed as any;
-        
+
         if (parsed.type === "transferChecked") {
           // Verify transfer details
           if (parsed.mint !== expectedMint) {
-            return { valid: false, error: `Wrong token mint: expected ${expectedMint}, got ${parsed.mint}` };
+            return {
+              valid: false,
+              error: `Wrong token mint: expected ${expectedMint}, got ${parsed.mint}`,
+            };
           }
 
           const transferAmount = BigInt(parsed.tokenAmount.amount);
           if (transferAmount !== expectedAmount) {
-            return { valid: false, error: `Wrong amount: expected ${expectedAmount}, got ${transferAmount}` };
+            return {
+              valid: false,
+              error: `Wrong amount: expected ${expectedAmount}, got ${transferAmount}`,
+            };
           }
 
           foundTransfer = true;

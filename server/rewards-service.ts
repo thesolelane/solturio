@@ -4,31 +4,27 @@
  * REGULATORY: Utility rewards only - no investment language
  */
 
-import { storage } from './storage';
-import { 
-  SOLT_REWARDS, 
-  getEarlyAdopterMultiplier,
-  SOLT_REWARDS_POOL 
-} from '@shared/pricing';
+import { storage } from "./storage";
+import { SOLT_REWARDS, getEarlyAdopterMultiplier, SOLT_REWARDS_POOL } from "@shared/pricing";
 
-type RewardAction = 
-  | 'profile_complete'
-  | 'email_verified'
-  | 'wallet_connected'
-  | 'first_image'
-  | 'additional_image'
-  | 'key_ceremony_complete'
-  | 'socials_linked'
-  | 'token_registered'
-  | 'ticker_verified'
-  | 'strong_registration'
-  | 'license_sc_created'
-  | 'quiz_win'
-  | 'referral_signup'
-  | 'referral_activated'
-  | 'referred_user_bonus'
-  | 'social_tag_cooperanthllc'
-  | 'social_tag_dex';
+type RewardAction =
+  | "profile_complete"
+  | "email_verified"
+  | "wallet_connected"
+  | "first_image"
+  | "additional_image"
+  | "key_ceremony_complete"
+  | "socials_linked"
+  | "token_registered"
+  | "ticker_verified"
+  | "strong_registration"
+  | "license_sc_created"
+  | "quiz_win"
+  | "referral_signup"
+  | "referral_activated"
+  | "referred_user_bonus"
+  | "social_tag_cooperanthllc"
+  | "social_tag_dex";
 
 interface RewardResult {
   success: boolean;
@@ -75,12 +71,26 @@ export async function awardReward(
     // Get user to check multiplier
     const user = await storage.getUser(userId);
     if (!user) {
-      return { success: false, baseAmount: 0, multiplier: 1, finalAmount: 0, newBalance: '0', error: 'User not found' };
+      return {
+        success: false,
+        baseAmount: 0,
+        multiplier: 1,
+        finalAmount: 0,
+        newBalance: "0",
+        error: "User not found",
+      };
     }
 
     const baseAmount = ACTION_REWARDS[action];
     if (!baseAmount) {
-      return { success: false, baseAmount: 0, multiplier: 1, finalAmount: 0, newBalance: '0', error: 'Invalid action' };
+      return {
+        success: false,
+        baseAmount: 0,
+        multiplier: 1,
+        finalAmount: 0,
+        newBalance: "0",
+        error: "Invalid action",
+      };
     }
 
     // Get user's early adopter multiplier
@@ -90,18 +100,18 @@ export async function awardReward(
     // SECURITY: Check pool cap before awarding
     const totalDistributed = await getTotalRewardsDistributed();
     const remainingPool = SOLT_REWARDS_POOL.total - totalDistributed;
-    
+
     if (remainingPool <= 0) {
-      return { 
-        success: false, 
-        baseAmount, 
-        multiplier, 
-        finalAmount: 0, 
-        newBalance: user.sltrBalance || '0', 
-        error: 'Rewards pool exhausted' 
+      return {
+        success: false,
+        baseAmount,
+        multiplier,
+        finalAmount: 0,
+        newBalance: user.sltrBalance || "0",
+        error: "Rewards pool exhausted",
       };
     }
-    
+
     // SECURITY: Cap reward to remaining pool if needed
     if (finalAmount > remainingPool) {
       console.warn(`Capping reward from ${finalAmount} to ${remainingPool} (pool cap)`);
@@ -109,8 +119,8 @@ export async function awardReward(
     }
 
     // Calculate new balance
-    const currentBalance = parseFloat(user.sltrBalance || '0');
-    const currentTotalEarned = parseFloat(user.sltrTotalEarned || '0');
+    const currentBalance = parseFloat(user.sltrBalance || "0");
+    const currentTotalEarned = parseFloat(user.sltrTotalEarned || "0");
     const newBalance = (currentBalance + finalAmount).toString();
     const newTotalEarned = (currentTotalEarned + finalAmount).toString();
 
@@ -127,11 +137,19 @@ export async function awardReward(
         await db.query(
           `INSERT INTO rewards_log (user_id, action_type, base_amount, multiplier, final_amount, related_entity_id, related_entity_type)
            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-          [userId, action, baseAmount.toString(), multiplier, finalAmount.toString(), relatedEntityId, relatedEntityType]
+          [
+            userId,
+            action,
+            baseAmount.toString(),
+            multiplier,
+            finalAmount.toString(),
+            relatedEntityId,
+            relatedEntityType,
+          ]
         );
       }
     } catch (logError) {
-      console.error('Failed to log reward:', logError);
+      console.error("Failed to log reward:", logError);
     }
 
     return {
@@ -142,13 +160,13 @@ export async function awardReward(
       newBalance,
     };
   } catch (error: any) {
-    console.error('Award reward error:', error);
+    console.error("Award reward error:", error);
     return {
       success: false,
       baseAmount: 0,
       multiplier: 1,
       finalAmount: 0,
-      newBalance: '0',
+      newBalance: "0",
       error: error.message,
     };
   }
@@ -166,10 +184,7 @@ export async function processReferralReward(
     const db = (storage as any).$client;
     if (!db) return null;
 
-    const result = await db.query(
-      `SELECT id FROM users WHERE referral_code = $1`,
-      [referralCode]
-    );
+    const result = await db.query(`SELECT id FROM users WHERE referral_code = $1`, [referralCode]);
 
     if (result.rows.length === 0) return null;
     const referrerId = result.rows[0].id;
@@ -177,17 +192,17 @@ export async function processReferralReward(
     // Award referrer
     const referrerReward = await awardReward(
       referrerId,
-      'referral_activated',
+      "referral_activated",
       referredUserId,
-      'referral'
+      "referral"
     );
 
     // Award referred user bonus
     const referredBonus = await awardReward(
       referredUserId,
-      'referred_user_bonus',
+      "referred_user_bonus",
       referrerId,
-      'referral'
+      "referral"
     );
 
     // Update referral tracking
@@ -199,7 +214,12 @@ export async function processReferralReward(
         referred_bonus_amount = $2,
         referred_bonus_paid_at = NOW()
        WHERE referrer_user_id = $3 AND referred_user_id = $4`,
-      [referrerReward.finalAmount.toString(), referredBonus.finalAmount.toString(), referrerId, referredUserId]
+      [
+        referrerReward.finalAmount.toString(),
+        referredBonus.finalAmount.toString(),
+        referrerId,
+        referredUserId,
+      ]
     );
 
     // Increment referrer's count
@@ -213,7 +233,7 @@ export async function processReferralReward(
 
     return { referrerReward, referredBonus };
   } catch (error) {
-    console.error('Process referral reward error:', error);
+    console.error("Process referral reward error:", error);
     return null;
   }
 }
@@ -233,7 +253,7 @@ export async function getUserRewardHistory(userId: string, limit: number = 50): 
 
     return result.rows;
   } catch (error) {
-    console.error('Get reward history error:', error);
+    console.error("Get reward history error:", error);
     return [];
   }
 }
@@ -252,7 +272,7 @@ export async function getTotalRewardsDistributed(): Promise<number> {
 
     return parseFloat(result.rows[0].total) || 0;
   } catch (error) {
-    console.error('Get total rewards error:', error);
+    console.error("Get total rewards error:", error);
     return 0;
   }
 }
@@ -278,11 +298,25 @@ export async function awardManualReward(
   try {
     const user = await storage.getUser(userId);
     if (!user) {
-      return { success: false, baseAmount: 0, multiplier: 1, finalAmount: 0, newBalance: '0', error: 'User not found' };
+      return {
+        success: false,
+        baseAmount: 0,
+        multiplier: 1,
+        finalAmount: 0,
+        newBalance: "0",
+        error: "User not found",
+      };
     }
 
     if (amount <= 0) {
-      return { success: false, baseAmount: 0, multiplier: 1, finalAmount: 0, newBalance: '0', error: 'Amount must be positive' };
+      return {
+        success: false,
+        baseAmount: 0,
+        multiplier: 1,
+        finalAmount: 0,
+        newBalance: "0",
+        error: "Amount must be positive",
+      };
     }
 
     // SECURITY: Enforce pool cap
@@ -293,8 +327,8 @@ export async function awardManualReward(
         baseAmount: amount,
         multiplier: 1,
         finalAmount: 0,
-        newBalance: user.sltrBalance || '0',
-        error: 'Rewards pool exhausted',
+        newBalance: user.sltrBalance || "0",
+        error: "Rewards pool exhausted",
       };
     }
 
@@ -305,8 +339,8 @@ export async function awardManualReward(
     }
 
     // Calculate new balance
-    const currentBalance = parseFloat(user.sltrBalance || '0');
-    const currentTotalEarned = parseFloat(user.sltrTotalEarned || '0');
+    const currentBalance = parseFloat(user.sltrBalance || "0");
+    const currentTotalEarned = parseFloat(user.sltrTotalEarned || "0");
     const newBalance = (currentBalance + finalAmount).toString();
     const newTotalEarned = (currentTotalEarned + finalAmount).toString();
 
@@ -323,11 +357,19 @@ export async function awardManualReward(
         await db.query(
           `INSERT INTO rewards_log (user_id, action_type, base_amount, multiplier, final_amount, related_entity_id, related_entity_type)
            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-          [userId, 'admin_manual', amount.toString(), 1, finalAmount.toString(), adminUserId, `reason:${reason}`]
+          [
+            userId,
+            "admin_manual",
+            amount.toString(),
+            1,
+            finalAmount.toString(),
+            adminUserId,
+            `reason:${reason}`,
+          ]
         );
       }
     } catch (logError) {
-      console.error('Failed to log admin reward:', logError);
+      console.error("Failed to log admin reward:", logError);
     }
 
     return {
@@ -338,13 +380,13 @@ export async function awardManualReward(
       newBalance,
     };
   } catch (error: any) {
-    console.error('Admin award reward error:', error);
+    console.error("Admin award reward error:", error);
     return {
       success: false,
       baseAmount: 0,
       multiplier: 1,
       finalAmount: 0,
-      newBalance: '0',
+      newBalance: "0",
       error: error.message,
     };
   }
@@ -354,8 +396,8 @@ export async function awardManualReward(
  * Generate unique referral code for user
  */
 export function generateReferralCode(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = 'SLT';
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "SLT";
   for (let i = 0; i < 6; i++) {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }

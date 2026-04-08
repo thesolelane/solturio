@@ -3,20 +3,20 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  CheckCircle2, 
-  Shield, 
-  AlertTriangle, 
-  TrendingUp, 
-  Clock, 
-  Coins, 
+import {
+  CheckCircle2,
+  Shield,
+  AlertTriangle,
+  TrendingUp,
+  Clock,
+  Coins,
   Lock,
   ExternalLink,
   RefreshCw,
   Zap,
   Users,
   Target,
-  BarChart3
+  BarChart3,
 } from "lucide-react";
 
 type OnChainConfig = {
@@ -36,110 +36,139 @@ type OnChainConfig = {
 };
 
 export default function TokenomicsPage() {
-  const { data: onChainConfig, isLoading: configLoading, refetch } = useQuery<OnChainConfig>({
-    queryKey: ['/api/tokenomics/on-chain-config'],
+  const {
+    data: onChainConfig,
+    isLoading: configLoading,
+    refetch,
+  } = useQuery<OnChainConfig>({
+    queryKey: ["/api/tokenomics/on-chain-config"],
   });
 
   const TOKENOMICS = {
     token: {
-      name: '$SOLT',
-      type: 'SPL Utility Token',
-      totalSupply: '400,000,000',
+      name: "$SOLT",
+      type: "SPL Utility Token",
+      totalSupply: "400,000,000",
       decimals: 9,
     },
     distribution: [
-      { category: 'Community Rewards Pool', percentage: 50, description: 'Platform engagement, quizzes, referrals' },
-      { category: 'Development & Operations', percentage: 20, description: 'Team vesting, infrastructure, development' },
-      { category: 'Ecosystem Growth', percentage: 15, description: 'Partnerships, integrations, marketing' },
-      { category: 'Reserve Fund', percentage: 10, description: 'Emergency reserves, future initiatives' },
-      { category: 'Initial Liquidity', percentage: 5, description: 'DEX liquidity provision' },
+      {
+        category: "Community Rewards Pool",
+        percentage: 50,
+        description: "Platform engagement, quizzes, referrals",
+      },
+      {
+        category: "Development & Operations",
+        percentage: 20,
+        description: "Team vesting, infrastructure, development",
+      },
+      {
+        category: "Ecosystem Growth",
+        percentage: 15,
+        description: "Partnerships, integrations, marketing",
+      },
+      {
+        category: "Reserve Fund",
+        percentage: 10,
+        description: "Emergency reserves, future initiatives",
+      },
+      { category: "Initial Liquidity", percentage: 5, description: "DEX liquidity provision" },
     ],
     vesting: {
-      team: '24 months with 6-month cliff',
-      advisors: '18 months with 3-month cliff',
-      community: 'Distributed based on activity, no cliff',
+      team: "24 months with 6-month cliff",
+      advisors: "18 months with 3-month cliff",
+      community: "Distributed based on activity, no cliff",
     },
   };
 
   const RISKS = [
     {
-      risk: 'Smart Contract Vulnerability',
-      likelihood: 'Low',
-      impact: 'High',
-      mitigation: 'Multiple audits, bug bounty program, gradual rollout with caps',
+      risk: "Smart Contract Vulnerability",
+      likelihood: "Low",
+      impact: "High",
+      mitigation: "Multiple audits, bug bounty program, gradual rollout with caps",
     },
     {
-      risk: 'Token Price Volatility',
-      likelihood: 'High',
-      impact: 'Medium',
-      mitigation: '$SOLT is utility-only, rewards capped, no trading promises',
+      risk: "Token Price Volatility",
+      likelihood: "High",
+      impact: "Medium",
+      mitigation: "$SOLT is utility-only, rewards capped, no trading promises",
     },
     {
-      risk: 'Regulatory Changes',
-      likelihood: 'Medium',
-      impact: 'High',
-      mitigation: 'Utility token classification, no investment promises, legal review',
+      risk: "Regulatory Changes",
+      likelihood: "Medium",
+      impact: "High",
+      mitigation: "Utility token classification, no investment promises, legal review",
     },
     {
-      risk: 'Low User Adoption',
-      likelihood: 'Medium',
-      impact: 'Medium',
-      mitigation: 'Focused marketing, partnership development, continuous UX improvement',
+      risk: "Low User Adoption",
+      likelihood: "Medium",
+      impact: "Medium",
+      mitigation: "Focused marketing, partnership development, continuous UX improvement",
     },
     {
-      risk: 'Crank Bot Downtime',
-      likelihood: 'Low',
-      impact: 'Low',
-      mitigation: 'Redundant infrastructure, monitoring alerts, manual fallback procedures',
+      risk: "Crank Bot Downtime",
+      likelihood: "Low",
+      impact: "Low",
+      mitigation: "Redundant infrastructure, monitoring alerts, manual fallback procedures",
     },
   ];
 
   const METRICS = [
-    { name: 'Total Users Registered', value: '---', target: '10,000', icon: Users },
-    { name: 'Logos Protected', value: '---', target: '50,000', icon: Shield },
-    { name: 'License Contracts Deployed', value: '---', target: '5,000', icon: Target },
-    { name: '$SOLT Distributed', value: '---', target: '50M', icon: Coins },
+    { name: "Total Users Registered", value: "---", target: "10,000", icon: Users },
+    { name: "Logos Protected", value: "---", target: "50,000", icon: Shield },
+    { name: "License Contracts Deployed", value: "---", target: "5,000", icon: Target },
+    { name: "$SOLT Distributed", value: "---", target: "50M", icon: Coins },
   ];
 
   const OPERATIONS = {
     crankBot: {
-      description: 'Automated service that processes pending reward distributions and updates on-chain state',
-      frequency: 'Every 5 minutes',
+      description:
+        "Automated service that processes pending reward distributions and updates on-chain state",
+      frequency: "Every 5 minutes",
       functions: [
-        'Process pending $SOLT reward claims',
-        'Update leaderboard snapshots',
-        'Verify subscription status',
-        'Clean up expired sessions',
+        "Process pending $SOLT reward claims",
+        "Update leaderboard snapshots",
+        "Verify subscription status",
+        "Clean up expired sessions",
       ],
-      monitoring: 'Real-time alerts via Telegram, automatic restart on failure',
-      fallback: 'Manual processing available via admin dashboard',
+      monitoring: "Real-time alerts via Telegram, automatic restart on failure",
+      fallback: "Manual processing available via admin dashboard",
     },
     rewardFlow: [
-      'User completes qualifying action (quiz, registration, referral)',
-      'Backend validates action and calculates reward amount',
-      'Reward entry created in database with pending status',
-      'Crank bot picks up pending rewards in next cycle',
-      'On-chain transaction executed from reward pool',
-      'Database updated with transaction signature',
-      'User notified of successful reward',
+      "User completes qualifying action (quiz, registration, referral)",
+      "Backend validates action and calculates reward amount",
+      "Reward entry created in database with pending status",
+      "Crank bot picks up pending rewards in next cycle",
+      "On-chain transaction executed from reward pool",
+      "Database updated with transaction signature",
+      "User notified of successful reward",
     ],
   };
 
   const getLikelihoodColor = (likelihood: string) => {
     switch (likelihood) {
-      case 'Low': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'High': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      default: return '';
+      case "Low":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "Medium":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "High":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      default:
+        return "";
     }
   };
 
   const getImpactColor = (impact: string) => {
     switch (impact) {
-      case 'Low': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'Medium': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
-      case 'High': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      default: return '';
+      case "Low":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      case "Medium":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200";
+      case "High":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      default:
+        return "";
     }
   };
 
@@ -154,10 +183,18 @@ export default function TokenomicsPage() {
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4" data-testid="tabs-tokenomics">
-          <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
-          <TabsTrigger value="risks" data-testid="tab-risks">Risks</TabsTrigger>
-          <TabsTrigger value="operations" data-testid="tab-operations">Operations</TabsTrigger>
-          <TabsTrigger value="verified" data-testid="tab-verified">On-Chain</TabsTrigger>
+          <TabsTrigger value="overview" data-testid="tab-overview">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="risks" data-testid="tab-risks">
+            Risks
+          </TabsTrigger>
+          <TabsTrigger value="operations" data-testid="tab-operations">
+            Operations
+          </TabsTrigger>
+          <TabsTrigger value="verified" data-testid="tab-verified">
+            On-Chain
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -222,7 +259,7 @@ export default function TokenomicsPage() {
                     <span className="text-primary font-bold">{item.percentage}%</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
-                    <div 
+                    <div
                       className="bg-primary h-2 rounded-full transition-all"
                       style={{ width: `${item.percentage}%` }}
                     />
@@ -258,7 +295,8 @@ export default function TokenomicsPage() {
               Risk Assessment & Mitigation
             </h2>
             <p className="text-muted-foreground mb-6">
-              We believe in full transparency. Here are the identified risks and our mitigation strategies.
+              We believe in full transparency. Here are the identified risks and our mitigation
+              strategies.
             </p>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -275,7 +313,9 @@ export default function TokenomicsPage() {
                     <tr key={index} className="border-b last:border-0">
                       <td className="py-3 px-2 font-medium">{risk.risk}</td>
                       <td className="py-3 px-2">
-                        <Badge className={getLikelihoodColor(risk.likelihood)}>{risk.likelihood}</Badge>
+                        <Badge className={getLikelihoodColor(risk.likelihood)}>
+                          {risk.likelihood}
+                        </Badge>
                       </td>
                       <td className="py-3 px-2">
                         <Badge className={getImpactColor(risk.impact)}>{risk.impact}</Badge>
@@ -294,11 +334,16 @@ export default function TokenomicsPage() {
               Important Disclaimers
             </h3>
             <ul className="text-sm text-muted-foreground space-y-2">
-              <li>$SOLT is a utility token only. It does not represent investment, equity, or ownership.</li>
+              <li>
+                $SOLT is a utility token only. It does not represent investment, equity, or
+                ownership.
+              </li>
               <li>Token value may fluctuate. Do not purchase expecting financial returns.</li>
               <li>All platform fees are non-refundable service fees.</li>
               <li>Past performance does not guarantee future results.</li>
-              <li>Cryptocurrency involves risk. Only participate with funds you can afford to lose.</li>
+              <li>
+                Cryptocurrency involves risk. Only participate with funds you can afford to lose.
+              </li>
             </ul>
           </Card>
         </TabsContent>
@@ -310,15 +355,17 @@ export default function TokenomicsPage() {
               Crank Bot Operations
             </h2>
             <p className="text-muted-foreground mb-4">{OPERATIONS.crankBot.description}</p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h3 className="font-medium mb-2 flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   Execution Frequency
                 </h3>
-                <p className="text-sm text-muted-foreground mb-4">{OPERATIONS.crankBot.frequency}</p>
-                
+                <p className="text-sm text-muted-foreground mb-4">
+                  {OPERATIONS.crankBot.frequency}
+                </p>
+
                 <h3 className="font-medium mb-2">Functions</h3>
                 <ul className="text-sm text-muted-foreground space-y-1">
                   {OPERATIONS.crankBot.functions.map((func, index) => (
@@ -329,11 +376,13 @@ export default function TokenomicsPage() {
                   ))}
                 </ul>
               </div>
-              
+
               <div>
                 <h3 className="font-medium mb-2">Monitoring</h3>
-                <p className="text-sm text-muted-foreground mb-4">{OPERATIONS.crankBot.monitoring}</p>
-                
+                <p className="text-sm text-muted-foreground mb-4">
+                  {OPERATIONS.crankBot.monitoring}
+                </p>
+
                 <h3 className="font-medium mb-2">Fallback Procedure</h3>
                 <p className="text-sm text-muted-foreground">{OPERATIONS.crankBot.fallback}</p>
               </div>
@@ -367,20 +416,21 @@ export default function TokenomicsPage() {
                 <CheckCircle2 className="w-5 h-5 text-green-500" />
                 Verified On-Chain Configuration
               </h2>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => refetch()}
                 disabled={configLoading}
                 data-testid="button-refresh-config"
               >
-                <RefreshCw className={`w-4 h-4 mr-2 ${configLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 mr-2 ${configLoading ? "animate-spin" : ""}`} />
                 Refresh
               </Button>
             </div>
-            
+
             <p className="text-muted-foreground mb-6">
-              These values are read directly from the Solana blockchain. Click the links to verify on Solscan.
+              These values are read directly from the Solana blockchain. Click the links to verify
+              on Solscan.
             </p>
 
             {configLoading ? (
@@ -408,11 +458,13 @@ export default function TokenomicsPage() {
                   <div className="p-4 bg-muted/50 rounded-lg">
                     <span className="text-xs text-muted-foreground">Mint Address</span>
                     <div className="flex items-center gap-2 mt-1">
-                      <code className="text-xs font-mono truncate">{onChainConfig.mintAddress}</code>
+                      <code className="text-xs font-mono truncate">
+                        {onChainConfig.mintAddress}
+                      </code>
                       <Button variant="ghost" size="icon" className="h-6 w-6" asChild>
-                        <a 
-                          href={`https://solscan.io/token/${onChainConfig.mintAddress}`} 
-                          target="_blank" 
+                        <a
+                          href={`https://solscan.io/token/${onChainConfig.mintAddress}`}
+                          target="_blank"
                           rel="noopener noreferrer"
                           data-testid="link-mint-solscan"
                         >
@@ -442,9 +494,9 @@ export default function TokenomicsPage() {
                     <div className="flex items-center gap-2 mt-1">
                       <code className="text-xs font-mono truncate">{onChainConfig.authority}</code>
                       <Button variant="ghost" size="icon" className="h-6 w-6" asChild>
-                        <a 
-                          href={`https://solscan.io/account/${onChainConfig.authority}`} 
-                          target="_blank" 
+                        <a
+                          href={`https://solscan.io/account/${onChainConfig.authority}`}
+                          target="_blank"
                           rel="noopener noreferrer"
                         >
                           <ExternalLink className="w-3 h-3" />
@@ -456,7 +508,7 @@ export default function TokenomicsPage() {
                   <div className="p-4 bg-muted/50 rounded-lg">
                     <span className="text-xs text-muted-foreground">Freeze Authority</span>
                     <p className="font-mono text-sm mt-1">
-                      {onChainConfig.freezeAuthority || 'None (Renounced)'}
+                      {onChainConfig.freezeAuthority || "None (Renounced)"}
                     </p>
                   </div>
                 </div>

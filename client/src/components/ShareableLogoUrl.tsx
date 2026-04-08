@@ -5,21 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Copy, 
-  CheckCircle, 
-  Link, 
-  Globe,
-  Shield,
-  AlertCircle,
-  ExternalLink
-} from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Copy, CheckCircle, Link, Globe, Shield, AlertCircle, ExternalLink } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -93,12 +80,12 @@ export function ShareableLogoUrl({ logo, className = "" }: ShareableLogoUrlProps
             <div className="text-sm">
               <p className="font-semibold mb-1">🏆 Gold Check = Use These URLs!</p>
               <p className="text-muted-foreground">
-                Gold verification ONLY works when you use the IPFS or Solturio URLs below.
-                External URLs won't show gold checks, even if you registered first!
+                Gold verification ONLY works when you use the IPFS or Solturio URLs below. External
+                URLs won't show gold checks, even if you registered first!
               </p>
               <p className="mt-2 font-semibold text-yellow-600">
-                ✓ Use IPFS URL = Gold check appears automatically<br/>
-                ✗ Use external URL = No gold check (loses verification benefit)
+                ✓ Use IPFS URL = Gold check appears automatically
+                <br />✗ Use external URL = No gold check (loses verification benefit)
               </p>
             </div>
           </div>
@@ -110,21 +97,19 @@ export function ShareableLogoUrl({ logo, className = "" }: ShareableLogoUrlProps
             <Label className="text-sm font-medium flex items-center gap-2">
               <Globe className="w-4 h-4" />
               IPFS URL (Permanent)
-              <Badge variant="default" className="text-xs">Recommended</Badge>
+              <Badge variant="default" className="text-xs">
+                Recommended
+              </Badge>
             </Label>
             <div className="flex gap-2">
-              <Input 
-                value={urls.ipfs || ''} 
-                readOnly 
-                className="font-mono text-xs"
-              />
+              <Input value={urls.ipfs || ""} readOnly className="font-mono text-xs" />
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyToClipboard(urls.ipfs!, 'IPFS')}
+                      onClick={() => copyToClipboard(urls.ipfs!, "IPFS")}
                       data-testid="button-copy-ipfs"
                     >
                       {copiedUrl === urls.ipfs ? (
@@ -139,11 +124,7 @@ export function ShareableLogoUrl({ logo, className = "" }: ShareableLogoUrlProps
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => window.open(urls.ipfs!, '_blank')}
-              >
+              <Button size="sm" variant="outline" onClick={() => window.open(urls.ipfs!, "_blank")}>
                 <ExternalLink className="w-4 h-4" />
               </Button>
             </div>
@@ -153,9 +134,7 @@ export function ShareableLogoUrl({ logo, className = "" }: ShareableLogoUrlProps
           </div>
         ) : (
           <div className="bg-muted/50 rounded-lg p-4 text-center">
-            <p className="text-sm text-muted-foreground mb-2">
-              IPFS URL not yet generated
-            </p>
+            <p className="text-sm text-muted-foreground mb-2">IPFS URL not yet generated</p>
             <Button size="sm" variant="outline">
               Upload to IPFS
             </Button>
@@ -169,15 +148,11 @@ export function ShareableLogoUrl({ logo, className = "" }: ShareableLogoUrlProps
             Solturio Verification Page
           </Label>
           <div className="flex gap-2">
-            <Input 
-              value={urls.solturio} 
-              readOnly 
-              className="font-mono text-xs"
-            />
+            <Input value={urls.solturio} readOnly className="font-mono text-xs" />
             <Button
               size="sm"
               variant="outline"
-              onClick={() => copyToClipboard(urls.solturio, 'Verification')}
+              onClick={() => copyToClipboard(urls.solturio, "Verification")}
               data-testid="button-copy-verification"
             >
               {copiedUrl === urls.solturio ? (
@@ -203,32 +178,33 @@ export function ShareableLogoUrl({ logo, className = "" }: ShareableLogoUrlProps
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Pre-Authorization Workflow</DialogTitle>
-              <DialogDescription>
-                Establish ownership BEFORE public use
-              </DialogDescription>
+              <DialogDescription>Establish ownership BEFORE public use</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
                 <h4 className="font-semibold mb-2">1. Register on Solturio First</h4>
                 <p className="text-sm text-muted-foreground">
-                  Upload and register your logos, tickers, and mascots here before using them anywhere else.
-                  This creates a blockchain timestamp that proves you had the assets before any public use.
+                  Upload and register your logos, tickers, and mascots here before using them
+                  anywhere else. This creates a blockchain timestamp that proves you had the assets
+                  before any public use.
                 </p>
               </div>
-              
+
               <div>
                 <h4 className="font-semibold mb-2">2. Use IPFS URL on Social Media</h4>
                 <p className="text-sm text-muted-foreground">
-                  When setting up profiles on X/Twitter, Discord, Telegram, or any platform,
-                  use the IPFS URL as your image source. This creates an immutable link to your ownership proof.
+                  When setting up profiles on X/Twitter, Discord, Telegram, or any platform, use the
+                  IPFS URL as your image source. This creates an immutable link to your ownership
+                  proof.
                 </p>
               </div>
 
               <div>
                 <h4 className="font-semibold mb-2">3. Register on DEXs with Proof</h4>
                 <p className="text-sm text-muted-foreground">
-                  When listing on DEXs or DeFi platforms, provide the IPFS URL and Solturio verification link.
-                  This proves you're the legitimate owner before the token/project goes public.
+                  When listing on DEXs or DeFi platforms, provide the IPFS URL and Solturio
+                  verification link. This proves you're the legitimate owner before the
+                  token/project goes public.
                 </p>
               </div>
 
@@ -237,8 +213,9 @@ export function ShareableLogoUrl({ logo, className = "" }: ShareableLogoUrlProps
                   Key Benefit: Undeniable Proof of First Use
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  By registering here first, you create timestamped evidence that predates any impersonator
-                  or trademark squatter. The blockchain timestamp is your proof of first use.
+                  By registering here first, you create timestamped evidence that predates any
+                  impersonator or trademark squatter. The blockchain timestamp is your proof of
+                  first use.
                 </p>
               </div>
             </div>

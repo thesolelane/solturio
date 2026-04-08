@@ -1,14 +1,14 @@
 /**
  * Crypto Payment Verification System
- * 
+ *
  * CRITICAL SECURITY: All payments MUST be verified on-chain before granting access
- * 
+ *
  * Supported Cryptocurrencies:
  * - SOL (native Solana token)
  * - BONK (SPL token)
  * - Arweave (AR)
  * - CATH (SPL token with 50% discount)
- * 
+ *
  * Verification Process:
  * 1. User submits transaction hash
  * 2. Backend fetches transaction from blockchain
@@ -19,16 +19,16 @@
  * 7. Prevents double-spending (transaction not already used)
  */
 
-import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 /**
  * Platform wallet addresses (recipient addresses)
  * IMPORTANT: These should be stored in environment variables in production
  */
 const PLATFORM_WALLETS = {
-  SOL: process.env.PLATFORM_SOL_WALLET || 'PLACEHOLDER_SOL_WALLET_ADDRESS',
-  BONK: process.env.PLATFORM_BONK_WALLET || 'PLACEHOLDER_BONK_WALLET_ADDRESS',
-  CATH: process.env.PLATFORM_CATH_WALLET || 'PLACEHOLDER_CATH_WALLET_ADDRESS',
+  SOL: process.env.PLATFORM_SOL_WALLET || "PLACEHOLDER_SOL_WALLET_ADDRESS",
+  BONK: process.env.PLATFORM_BONK_WALLET || "PLACEHOLDER_BONK_WALLET_ADDRESS",
+  CATH: process.env.PLATFORM_CATH_WALLET || "PLACEHOLDER_CATH_WALLET_ADDRESS",
 };
 
 /**
@@ -38,13 +38,13 @@ export const CRYPTO_PRICING = {
   WALLET_STANDARD: {
     SOL: 0.1,
     BONK: 100000, // Example: 100k BONK
-    CATH: 50000,  // 50% discount when using CATH
+    CATH: 50000, // 50% discount when using CATH
     ARWEAVE: 0.05, // Example: 0.05 AR
   },
   WALLET_PREMIUM: {
     SOL: 0.15,
     BONK: 150000,
-    CATH: 75000,  // 50% discount
+    CATH: 75000, // 50% discount
     ARWEAVE: 0.075,
   },
   LOGO_REGISTRATION: {
@@ -58,14 +58,14 @@ export const CRYPTO_PRICING = {
 /**
  * SPL Token Program IDs
  */
-const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCDYfVfbq4nDr8vFuWG';
+const TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCDYfVfbq4nDr8vFuWG";
 
 /**
  * Known token mint addresses
  */
 const TOKEN_MINTS = {
-  BONK: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
-  CATH: 'CATH_TOKEN_MINT_ADDRESS_PLACEHOLDER', // Replace with actual CATH mint address
+  BONK: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+  CATH: "CATH_TOKEN_MINT_ADDRESS_PLACEHOLDER", // Replace with actual CATH mint address
 };
 
 export interface PaymentVerificationResult {
@@ -88,8 +88,8 @@ export interface PaymentVerificationResult {
  * Uses environment variable or defaults to devnet for testing
  */
 function getSolanaConnection(): Connection {
-  const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com';
-  return new Connection(rpcUrl, 'confirmed');
+  const rpcUrl = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
+  return new Connection(rpcUrl, "confirmed");
 }
 
 /**
@@ -106,68 +106,68 @@ export async function verifySOLPayment(
 ): Promise<PaymentVerificationResult> {
   try {
     const connection = getSolanaConnection();
-    
+
     // Fetch transaction
     const transaction = await connection.getParsedTransaction(txHash, {
       maxSupportedTransactionVersion: 0,
     });
-    
+
     if (!transaction) {
       return {
         valid: false,
-        reason: 'Transaction not found on blockchain',
-        error: 'TRANSACTION_NOT_FOUND',
+        reason: "Transaction not found on blockchain",
+        error: "TRANSACTION_NOT_FOUND",
       };
     }
-    
+
     // Check if transaction is confirmed
     if (!transaction.meta) {
       return {
         valid: false,
-        reason: 'Transaction not confirmed yet',
-        error: 'NOT_CONFIRMED',
+        reason: "Transaction not confirmed yet",
+        error: "NOT_CONFIRMED",
       };
     }
-    
+
     // Check if transaction succeeded
     if (transaction.meta.err) {
       return {
         valid: false,
-        reason: 'Transaction failed on blockchain',
-        error: 'TRANSACTION_FAILED',
+        reason: "Transaction failed on blockchain",
+        error: "TRANSACTION_FAILED",
       };
     }
-    
+
     // Get transaction timestamp
     const timestamp = transaction.blockTime ? transaction.blockTime * 1000 : Date.now();
     const hoursSinceTransaction = (Date.now() - timestamp) / (1000 * 60 * 60);
-    
+
     // Check if transaction is within 24 hours
     if (hoursSinceTransaction > 24) {
       return {
         valid: false,
-        reason: 'Transaction is too old (must be within 24 hours)',
-        error: 'TRANSACTION_EXPIRED',
+        reason: "Transaction is too old (must be within 24 hours)",
+        error: "TRANSACTION_EXPIRED",
       };
     }
-    
+
     // Find the SOL transfer instruction
     const instructions = transaction.transaction.message.instructions;
     let foundTransfer = false;
     let actualAmount = 0;
-    let sender = '';
-    let recipient = '';
-    
+    let sender = "";
+    let recipient = "";
+
     for (const instruction of instructions) {
       // Check for system program transfer (SOL transfer)
-      if ('parsed' in instruction && instruction.program === 'system') {
+      if ("parsed" in instruction && instruction.program === "system") {
         const parsed = instruction.parsed;
-        if (parsed.type === 'transfer') {
+        if (parsed.type === "transfer") {
           const info = parsed.info;
           recipient = info.destination;
           sender = info.source;
           actualAmount = info.lamports / LAMPORTS_PER_SOL;
-          
+
           // Check if recipient matches expected wallet
           if (recipient === expectedRecipient) {
             foundTransfer = true;
@@ -176,26 +176,26 @@ export async function verifySOLPayment(
         }
       }
     }
-    
+
     if (!foundTransfer) {
       return {
         valid: false,
         reason: `No SOL transfer found to platform wallet ${expectedRecipient}`,
-        error: 'RECIPIENT_MISMATCH',
+        error: "RECIPIENT_MISMATCH",
       };
     }
-    
+
     // Check amount (allow 1% variance for floating point)
     const amountVariance = Math.abs(actualAmount - expectedAmount) / expectedAmount;
     if (amountVariance > 0.01) {
       return {
         valid: false,
         reason: `Payment amount mismatch. Expected ${expectedAmount} SOL, got ${actualAmount} SOL`,
-        error: 'AMOUNT_MISMATCH',
+        error: "AMOUNT_MISMATCH",
         transactionDetails: {
           signature: txHash,
           amount: actualAmount,
-          currency: 'SOL',
+          currency: "SOL",
           sender,
           recipient,
           timestamp,
@@ -203,27 +203,26 @@ export async function verifySOLPayment(
         },
       };
     }
-    
+
     // All checks passed
     return {
       valid: true,
       transactionDetails: {
         signature: txHash,
         amount: actualAmount,
-        currency: 'SOL',
+        currency: "SOL",
         sender,
         recipient,
         timestamp,
         confirmed: true,
       },
     };
-    
   } catch (error: any) {
-    console.error('Error verifying SOL payment:', error);
+    console.error("Error verifying SOL payment:", error);
     return {
       valid: false,
-      reason: 'Failed to verify payment on blockchain',
-      error: error.message || 'VERIFICATION_ERROR',
+      reason: "Failed to verify payment on blockchain",
+      error: error.message || "VERIFICATION_ERROR",
     };
   }
 }
@@ -244,84 +243,85 @@ export async function verifySPLTokenPayment(
 ): Promise<PaymentVerificationResult> {
   try {
     const connection = getSolanaConnection();
-    
+
     // Fetch transaction
     const transaction = await connection.getParsedTransaction(txHash, {
       maxSupportedTransactionVersion: 0,
     });
-    
+
     if (!transaction) {
       return {
         valid: false,
-        reason: 'Transaction not found on blockchain',
-        error: 'TRANSACTION_NOT_FOUND',
+        reason: "Transaction not found on blockchain",
+        error: "TRANSACTION_NOT_FOUND",
       };
     }
-    
+
     // Check confirmation
     if (!transaction.meta) {
       return {
         valid: false,
-        reason: 'Transaction not confirmed yet',
-        error: 'NOT_CONFIRMED',
+        reason: "Transaction not confirmed yet",
+        error: "NOT_CONFIRMED",
       };
     }
-    
+
     // Check success
     if (transaction.meta.err) {
       return {
         valid: false,
-        reason: 'Transaction failed on blockchain',
-        error: 'TRANSACTION_FAILED',
+        reason: "Transaction failed on blockchain",
+        error: "TRANSACTION_FAILED",
       };
     }
-    
+
     // Check timestamp
     const timestamp = transaction.blockTime ? transaction.blockTime * 1000 : Date.now();
     const hoursSinceTransaction = (Date.now() - timestamp) / (1000 * 60 * 60);
-    
+
     if (hoursSinceTransaction > 24) {
       return {
         valid: false,
-        reason: 'Transaction is too old (must be within 24 hours)',
-        error: 'TRANSACTION_EXPIRED',
+        reason: "Transaction is too old (must be within 24 hours)",
+        error: "TRANSACTION_EXPIRED",
       };
     }
-    
+
     // Find token transfer instruction
     const instructions = transaction.transaction.message.instructions;
     let foundTransfer = false;
     let actualAmount = 0;
-    let sender = '';
-    let recipient = '';
-    let tokenName = 'Unknown Token';
-    
+    let sender = "";
+    let recipient = "";
+    let tokenName = "Unknown Token";
+
     for (const instruction of instructions) {
-      if ('parsed' in instruction && instruction.program === 'spl-token') {
+      if ("parsed" in instruction && instruction.program === "spl-token") {
         const parsed = instruction.parsed;
-        
+
         // Check for transfer or transferChecked
-        if (parsed.type === 'transfer' || parsed.type === 'transferChecked') {
+        if (parsed.type === "transfer" || parsed.type === "transferChecked") {
           const info = parsed.info;
-          
+
           // Verify token mint matches
           if (info.mint && info.mint !== tokenMint) {
             continue;
           }
-          
+
           sender = info.source;
           recipient = info.destination;
-          actualAmount = parsed.type === 'transferChecked' 
-            ? parseFloat(info.tokenAmount?.uiAmount || '0')
-            : parseFloat(info.amount || '0');
-          
+          actualAmount =
+            parsed.type === "transferChecked"
+              ? parseFloat(info.tokenAmount?.uiAmount || "0")
+              : parseFloat(info.amount || "0");
+
           // Determine token name
           if (tokenMint === TOKEN_MINTS.BONK) {
-            tokenName = 'BONK';
+            tokenName = "BONK";
           } else if (tokenMint === TOKEN_MINTS.CATH) {
-            tokenName = 'CATH';
+            tokenName = "CATH";
           }
-          
+
           // Check recipient
           if (recipient === expectedRecipient) {
             foundTransfer = true;
@@ -330,22 +330,22 @@ export async function verifySPLTokenPayment(
         }
       }
     }
-    
+
     if (!foundTransfer) {
       return {
         valid: false,
         reason: `No ${tokenName} transfer found to platform wallet`,
-        error: 'RECIPIENT_MISMATCH',
+        error: "RECIPIENT_MISMATCH",
       };
     }
-    
+
     // Check amount (1% variance tolerance)
     const amountVariance = Math.abs(actualAmount - expectedAmount) / expectedAmount;
     if (amountVariance > 0.01) {
       return {
         valid: false,
         reason: `Payment amount mismatch. Expected ${expectedAmount} ${tokenName}, got ${actualAmount} ${tokenName}`,
-        error: 'AMOUNT_MISMATCH',
+        error: "AMOUNT_MISMATCH",
         transactionDetails: {
           signature: txHash,
           amount: actualAmount,
@@ -357,7 +357,7 @@ export async function verifySPLTokenPayment(
         },
       };
     }
-    
+
     // Success
     return {
       valid: true,
@@ -371,13 +371,12 @@ export async function verifySPLTokenPayment(
         confirmed: true,
       },
     };
-    
   } catch (error: any) {
-    console.error('Error verifying SPL token payment:', error);
+    console.error("Error verifying SPL token payment:", error);
     return {
       valid: false,
-      reason: 'Failed to verify token payment on blockchain',
-      error: error.message || 'VERIFICATION_ERROR',
+      reason: "Failed to verify token payment on blockchain",
+      error: error.message || "VERIFICATION_ERROR",
     };
   }
 }
@@ -388,45 +387,44 @@ export async function verifySPLTokenPayment(
  */
 export async function verifyPayment(
   txHash: string,
-  paymentType: 'WALLET_STANDARD' | 'WALLET_PREMIUM' | 'LOGO_REGISTRATION',
-  currency: 'SOL' | 'BONK' | 'CATH' | 'ARWEAVE'
+  paymentType: "WALLET_STANDARD" | "WALLET_PREMIUM" | "LOGO_REGISTRATION",
+  currency: "SOL" | "BONK" | "CATH" | "ARWEAVE"
 ): Promise<PaymentVerificationResult> {
-  
   // Get expected amount based on payment type and currency
   const expectedAmount = CRYPTO_PRICING[paymentType][currency];
-  
+
   if (!expectedAmount) {
     return {
       valid: false,
       reason: `Invalid payment type or currency: ${paymentType} / ${currency}`,
-      error: 'INVALID_PAYMENT_CONFIG',
+      error: "INVALID_PAYMENT_CONFIG",
     };
   }
-  
+
   // Route to appropriate verification function
   switch (currency) {
-    case 'SOL':
+    case "SOL":
       return verifySOLPayment(txHash, expectedAmount, PLATFORM_WALLETS.SOL);
-    
-    case 'BONK':
+
+    case "BONK":
       return verifySPLTokenPayment(txHash, expectedAmount, TOKEN_MINTS.BONK, PLATFORM_WALLETS.BONK);
-    
-    case 'CATH':
+
+    case "CATH":
       return verifySPLTokenPayment(txHash, expectedAmount, TOKEN_MINTS.CATH, PLATFORM_WALLETS.CATH);
-    
-    case 'ARWEAVE':
+
+    case "ARWEAVE":
       // TODO: Implement Arweave verification
       return {
         valid: false,
-        reason: 'Arweave payment verification not yet implemented',
-        error: 'NOT_IMPLEMENTED',
+        reason: "Arweave payment verification not yet implemented",
+        error: "NOT_IMPLEMENTED",
       };
-    
+
     default:
       return {
         valid: false,
         reason: `Unsupported currency: ${currency}`,
-        error: 'UNSUPPORTED_CURRENCY',
+        error: "UNSUPPORTED_CURRENCY",
       };
   }
 }
@@ -435,16 +433,13 @@ export async function verifyPayment(
  * Check if transaction hash has already been used
  * Prevents double-spending attacks
  */
-export async function isTransactionUsed(
-  txHash: string,
-  storage: any
-): Promise<boolean> {
+export async function isTransactionUsed(txHash: string, storage: any): Promise<boolean> {
   try {
     // Check if this transaction hash exists in payments table
     const existingPayment = await storage.getPaymentByTxHash(txHash);
     return !!existingPayment;
   } catch (error) {
-    console.error('Error checking transaction usage:', error);
+    console.error("Error checking transaction usage:", error);
     // Fail-safe: assume transaction is used if we can't check
     return true;
   }

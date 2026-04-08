@@ -10,9 +10,9 @@
 
 // Admin emails - bypass payment requirement entirely
 export const ADMIN_EMAILS = [
-  'admin@solturio.app',
-  'acooper@cooperanth.com',
-  'cooper@preferredbuildersusa.com',
+  "admin@solturio.app",
+  "acooper@cooperanth.com",
+  "cooper@preferredbuildersusa.com",
 ];
 
 // Check if email is admin
@@ -26,7 +26,7 @@ export function isAdminEmail(email: string | null | undefined): boolean {
 // ============================================================================
 
 // Platform launch date for promo calculations (update when known)
-export const MAINNET_LAUNCH_DATE = new Date('2025-03-01');
+export const MAINNET_LAUNCH_DATE = new Date("2025-03-01");
 export const PROMO_DURATION_DAYS = 60;
 
 // Check if we're in promo period
@@ -46,13 +46,13 @@ export const SUBSCRIPTION_PRICING = {
   PROMO: {
     solEquivalent: 0.14,
     durationDays: 365,
-    description: 'Early adopter special - 1 year access',
+    description: "Early adopter special - 1 year access",
   },
   // Standard: 0.5 SOL worth of $CATH for 1 year (after promo)
   STANDARD: {
     solEquivalent: 0.5,
     durationDays: 365,
-    description: 'Annual platform access',
+    description: "Annual platform access",
   },
 };
 
@@ -66,9 +66,9 @@ export function getCurrentSubscriptionPricing() {
 // ============================================================================
 
 export const LICENSE_FEE = {
-  amount: '0.025', // SOL
-  currency: 'SOL' as const,
-  description: 'Smart contract creation fee',
+  amount: "0.025", // SOL
+  currency: "SOL" as const,
+  description: "Smart contract creation fee",
 };
 
 // ============================================================================
@@ -76,16 +76,16 @@ export const LICENSE_FEE = {
 // ============================================================================
 
 export const TOKEN_MINTS = {
-  CATH: '48rmvKgpGpUNUuH3n2UYTZS2AUxZEkaCiNjQ57q1duMA',
-  SOL: 'So11111111111111111111111111111111111111112', // Wrapped SOL
-  BONK: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
-  SOLT: 'SOLT_MINT_ADDRESS_PLACEHOLDER', // Solturio rewards token - update when created
+  CATH: "48rmvKgpGpUNUuH3n2UYTZS2AUxZEkaCiNjQ57q1duMA",
+  SOL: "So11111111111111111111111111111111111111112", // Wrapped SOL
+  BONK: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+  SOLT: "SOLT_MINT_ADDRESS_PLACEHOLDER", // Solturio rewards token - update when created
 };
 
 export const PLATFORM_WALLETS = {
-  REVENUE: process.env.PLATFORM_REVENUE_WALLET || 'PLACEHOLDER_REVENUE_WALLET',
-  OPERATIONS: process.env.PLATFORM_OPERATIONS_WALLET || 'PLACEHOLDER_OPS_WALLET',
-  REWARDS: process.env.PLATFORM_REWARDS_WALLET || 'PLACEHOLDER_REWARDS_WALLET',
+  REVENUE: process.env.PLATFORM_REVENUE_WALLET || "PLACEHOLDER_REVENUE_WALLET",
+  OPERATIONS: process.env.PLATFORM_OPERATIONS_WALLET || "PLACEHOLDER_OPS_WALLET",
+  REWARDS: process.env.PLATFORM_REWARDS_WALLET || "PLACEHOLDER_REWARDS_WALLET",
 };
 
 // ============================================================================
@@ -95,9 +95,9 @@ export const PLATFORM_WALLETS = {
 export const SOLT_REWARDS_POOL = {
   total: 50_000_000, // 50M $SOLT tokens
   allocations: {
-    platformActions: 0.40, // 40% = 20M
+    platformActions: 0.4, // 40% = 20M
     referrals: 0.25, // 25% = 12.5M
-    ipQuiz: 0.20, // 20% = 10M
+    ipQuiz: 0.2, // 20% = 10M
     socialEngagement: 0.15, // 15% = 7.5M
   },
 };
@@ -120,21 +120,21 @@ export const SOLT_REWARDS = {
   ADDITIONAL_IMAGE: 50,
   KEY_CEREMONY_COMPLETE: 200,
   SOCIALS_LINKED: 100,
-  
+
   // Token launch actions
   TOKEN_REGISTERED: 100,
   TICKER_VERIFIED: 200,
   STRONG_REGISTRATION: 150,
-  
+
   // Ongoing actions
   LICENSE_SC_CREATED: 200,
   QUIZ_WIN_NO_BET: 25,
-  
+
   // Referrals
   REFERRAL_SIGNUP: 100,
   REFERRAL_ACTIVATED: 300,
   REFERRED_USER_BONUS: 250, // Bonus for new user who was referred
-  
+
   // Social media
   TAG_COOPERANTHLLC: 50,
   TAG_DEX_MENTION_SOLTURIO: 100,
@@ -143,12 +143,13 @@ export const SOLT_REWARDS = {
 
 // Calculate total setup rewards (for display)
 export function calculateSetupRewards(multiplier: number = 1): number {
-  const base = SOLT_REWARDS.PROFILE_COMPLETE + 
-               SOLT_REWARDS.EMAIL_VERIFIED + 
-               SOLT_REWARDS.WALLET_CONNECTED + 
-               SOLT_REWARDS.FIRST_IMAGE + 
-               SOLT_REWARDS.KEY_CEREMONY_COMPLETE + 
-               SOLT_REWARDS.SOCIALS_LINKED;
+  const base =
+    SOLT_REWARDS.PROFILE_COMPLETE +
+    SOLT_REWARDS.EMAIL_VERIFIED +
+    SOLT_REWARDS.WALLET_CONNECTED +
+    SOLT_REWARDS.FIRST_IMAGE +
+    SOLT_REWARDS.KEY_CEREMONY_COMPLETE +
+    SOLT_REWARDS.SOCIALS_LINKED;
   return base * multiplier;
 }
 
@@ -167,21 +168,21 @@ export function getEarlyAdopterMultiplier(userNumber: number): number {
 export const PRICING = {
   FREE_UPLOADS_LIMIT: 2,
   MINTING_FEE: {
-    SOL: '0.01',
-    CATH: '100',
+    SOL: "0.01",
+    CATH: "100",
   },
   MONTHLY_RENTAL: {
-    SOL: '0.005',
-    CATH: '50',
+    SOL: "0.005",
+    CATH: "50",
   },
   QUIZ_REWARDS: {
-    EASY: '5',
-    MEDIUM: '10',
-    HARD: '20',
+    EASY: "5",
+    MEDIUM: "10",
+    HARD: "20",
   },
 } as const;
 
-export type PaymentToken = 'SOL' | 'CATH' | 'SOLT';
+export type PaymentToken = "SOL" | "CATH" | "SOLT";
 
 // Legacy helpers
 export function isEligibleForFreeUpload(logoCount: number): boolean {
@@ -195,7 +196,7 @@ export function getRemainingFreeUploads(logoCount: number): number {
 
 export function calculateUploadCost(logoCount: number, token: PaymentToken): string {
   if (isEligibleForFreeUpload(logoCount)) {
-    return '0';
+    return "0";
   }
-  return token === 'SOLT' ? '0' : PRICING.MINTING_FEE[token as 'SOL' | 'CATH'];
+  return token === "SOLT" ? "0" : PRICING.MINTING_FEE[token as "SOL" | "CATH"];
 }

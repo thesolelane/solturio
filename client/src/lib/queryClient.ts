@@ -12,10 +12,10 @@ async function throwIfResNotOk(res: Response) {
  * CSRF protection requires this token to be sent with all state-changing requests
  */
 function getCsrfToken(): string | null {
-  const cookies = document.cookie.split(';');
+  const cookies = document.cookie.split(";");
   for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=');
-    if (name === 'XSRF-TOKEN') {
+    const [name, value] = cookie.trim().split("=");
+    if (name === "XSRF-TOKEN") {
       return decodeURIComponent(value);
     }
   }
@@ -25,16 +25,16 @@ function getCsrfToken(): string | null {
 export async function apiRequest(
   method: string,
   url: string,
-  data?: unknown | undefined,
+  data?: unknown | undefined
 ): Promise<Response> {
   const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
-  
+
   // Include CSRF token for all state-changing requests
   const csrfToken = getCsrfToken();
   if (csrfToken) {
-    headers['x-csrf-token'] = csrfToken;
+    headers["x-csrf-token"] = csrfToken;
   }
-  
+
   const res = await fetch(url, {
     method,
     headers,
@@ -50,18 +50,15 @@ export async function apiRequest(
  * Upload file with FormData and CSRF protection
  * Use this for multipart/form-data uploads (images, files)
  */
-export async function uploadFormData(
-  url: string,
-  formData: FormData,
-): Promise<Response> {
+export async function uploadFormData(url: string, formData: FormData): Promise<Response> {
   const headers: Record<string, string> = {};
-  
+
   // Include CSRF token in headers (not in FormData to avoid conflicts)
   const csrfToken = getCsrfToken();
   if (csrfToken) {
-    headers['x-csrf-token'] = csrfToken;
+    headers["x-csrf-token"] = csrfToken;
   }
-  
+
   const res = await fetch(url, {
     method: "POST",
     headers,
@@ -74,9 +71,7 @@ export async function uploadFormData(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
+export const getQueryFn: <T>(options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const res = await fetch(queryKey.join("/") as string, {
