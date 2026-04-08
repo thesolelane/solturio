@@ -305,7 +305,8 @@ export default function Upload() {
         formData.append(`patent_app_${index}`, logo.patentAppNumber);
       });
 
-      return await uploadFormData("/api/logos/upload", formData);
+      const res = await uploadFormData("/api/logos/upload", formData);
+      return res.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });

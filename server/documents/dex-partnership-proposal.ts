@@ -261,11 +261,7 @@ export function generateDEXPartnershipProposal(dexName: string = "Your Platform"
       doc.font("Helvetica").fontSize(11);
       doc.text(
         '"Since integrating Solturio, we\'ve seen a 90% drop in scam reports and our users feel much safer trading on our platform."',
-        {
-          indent: 20,
-          italics: true,
-          paragraphGap: 5,
-        }
+        { indent: 20, italics: true, paragraphGap: 5 } as any
       );
       doc.font("Helvetica-Bold").fontSize(10);
       doc.text("- DEX Platform Beta Tester", { indent: 20 });

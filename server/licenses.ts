@@ -153,8 +153,12 @@ licensesRouter.post("/licenses/:licenseId/pay", isAuthenticated, async (req: any
 
     // Log payment
     await storage.createPayment({
+      userId,
       transactionSignature: paymentTxHash,
+      fromWallet: "unknown",
+      toWallet: "unknown",
       amount: amount?.toString() || "0",
+      tokenType: "SOL",
       status: "completed",
       paymentType: "LICENSE_PAYMENT",
     });

@@ -38,14 +38,11 @@ export function NFTMintingUI({
 
   const mintMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("/api/nft/mint", {
-        method: "POST",
-        body: JSON.stringify({
-          logoId,
-          logoName,
-          logoDescription,
-          registrationType,
-        }),
+      const response = await apiRequest("POST", "/api/nft/mint", {
+        logoId,
+        logoName,
+        logoDescription,
+        registrationType,
       });
       if (!response.ok) {
         throw new Error(await response.text());

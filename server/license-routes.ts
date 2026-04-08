@@ -45,7 +45,7 @@ licenseRouter.get("/", isAuthenticated, async (req: any, res) => {
     const licensorLicenses = await storage.getLicenseContractsByLicensor(userId);
 
     // Get licenses as licensee (by all wallet addresses)
-    let licenseeLicenses: any[] = [];
+    const licenseeLicenses: any[] = [];
     for (const wallet of userWallets) {
       const licenses = await storage.getLicenseContractsByLicensee(wallet);
       licenseeLicenses.push(...licenses);
@@ -69,7 +69,7 @@ licenseRouter.get("/", isAuthenticated, async (req: any, res) => {
     // Enrich with logo info
     const enrichedLicenses = await Promise.all(
       allLicenses.map(async (license) => {
-        const logo = await storage.getLogoById(license.logoId);
+        const logo = await storage.getLogoById(license.logoId ?? "");
         return {
           ...license,
           logo: logo
@@ -180,7 +180,7 @@ licenseRouter.get("/search-transaction", isAuthenticated, async (req: any, res) 
 
     const enriched = await Promise.all(
       results.map(async (license) => {
-        const logo = await storage.getLogoById(license.logoId);
+        const logo = await storage.getLogoById(license.logoId ?? "");
         return {
           ...license,
           logo: logo
@@ -227,7 +227,7 @@ licenseRouter.get("/:id", isAuthenticated, async (req: any, res) => {
       return res.status(403).json({ error: "Not authorized to view this license" });
     }
 
-    const logo = await storage.getLogoById(license.logoId);
+    const logo = await storage.getLogoById(license.logoId ?? "");
 
     res.json({
       ...license,
@@ -278,14 +278,14 @@ licenseRouter.post("/", isAuthenticated, requireActiveSubscription, async (req: 
     const data = validationResult.data;
 
     // Verify logo ownership
-    const logo = await storage.getLogoById(data.logoId);
+    const logo = await storage.getLogoById(data.logoId ?? "");
     if (!logo || logo.userId !== userId) {
       return res.status(403).json({ error: "You do not own this logo" });
     }
 
     // Check if this is an exclusive license and logo already has active exclusive license
     if (data.licenseType === "exclusive" || data.licenseType === "full_transfer") {
-      const existingLicenses = await storage.getLicenseContractsByLogo(data.logoId);
+      const existingLicenses = await storage.getLicenseContractsByLogo(data.logoId ?? "");
       const hasActiveExclusive = existingLicenses.some(
         (l) =>
           (l.licenseType === "exclusive" || l.licenseType === "full_transfer") &&
@@ -302,7 +302,7 @@ licenseRouter.post("/", isAuthenticated, requireActiveSubscription, async (req: 
 
     // Calculate expiry if not perpetual
     let expiresAt = null;
-    let startsAt = new Date();
+    const startsAt = new Date();
     if (!data.isPerpetual && data.durationDays) {
       expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + data.durationDays);
@@ -581,7 +581,7 @@ licenseRouter.get("/public/:slug", async (req, res) => {
       return res.status(404).json({ error: "License not found" });
     }
 
-    const logo = await storage.getLogoById(license.logoId);
+    const logo = await storage.getLogoById(license.logoId ?? "");
     const licensor = await storage.getUser(license.licensorUserId);
 
     // Return public-safe data only

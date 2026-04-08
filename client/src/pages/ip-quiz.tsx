@@ -95,15 +95,12 @@ export default function IPQuiz() {
       answer: string;
       hintUsed: boolean;
     }) => {
-      return apiRequest("/api/quiz/answer", {
-        method: "POST",
-        body: {
-          questionId,
-          answer,
-          timeToAnswer: 30 - timeLeft,
-          hintUsed,
-          originalPoints: selectedPoints,
-        },
+      return apiRequest("POST", "/api/quiz/answer", {
+        questionId,
+        answer,
+        timeToAnswer: 30 - timeLeft,
+        hintUsed,
+        originalPoints: selectedPoints,
       });
     },
     onSuccess: (data: any) => {

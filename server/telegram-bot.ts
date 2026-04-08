@@ -478,7 +478,6 @@ class SolturioQuizBot {
         userAnswer: answer.answer,
         isCorrect: answer.isCorrect,
         pointsEarned: experience, // Store experience for display
-        questionPointValue: this.currentSession.points,
         timeToAnswer: answer.responseTime,
       });
 

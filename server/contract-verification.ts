@@ -45,7 +45,7 @@ export async function bindLogoToContract(params: {
   }
 
   // Determine verification level based on timing
-  const registrationDate = new Date(logo.createdAt);
+  const registrationDate = new Date(logo.createdAt ?? new Date());
   const isPrelaunch = registrationDate < deploymentDate;
   const daysBefore = Math.floor(
     (deploymentDate.getTime() - registrationDate.getTime()) / (1000 * 60 * 60 * 24)
@@ -72,7 +72,7 @@ export async function bindLogoToContract(params: {
   };
 
   // Store in database (would be implemented in storage.ts)
-  await storage.createContractBinding?.(binding);
+  await (storage as any).createContractBinding?.(binding);
 
   // If gold verification, generate certificate
   if (verificationLevel === "gold") {
@@ -90,7 +90,10 @@ export async function checkGoldVerification(
   chainId: number
 ): Promise<VerificationStatus | null> {
   // Get binding for this contract
-  const binding = await storage.getContractBinding?.(contractAddress.toLowerCase(), chainId);
+  const binding = await (storage as any).getContractBinding?.(
+    contractAddress.toLowerCase(),
+    chainId
+  );
   if (!binding) {
     return null;
   }
@@ -103,11 +106,12 @@ export async function checkGoldVerification(
   return {
     hasGoldCheck: binding.verificationLevel === "gold",
     contractAddress: binding.contractAddress,
-    registrationDate: logo.createdAt,
+    registrationDate: logo.createdAt ?? new Date(),
     launchDate: binding.bindingDate,
     daysBeforeLaunch: binding.prelaunchRegistration
       ? Math.floor(
-          (binding.bindingDate.getTime() - logo.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+          (binding.bindingDate.getTime() - (logo.createdAt ?? new Date()).getTime()) /
+            (1000 * 60 * 60 * 24)
         )
       : undefined,
     verificationProof: `https://solturio.app/verify/contract/${contractAddress}`,

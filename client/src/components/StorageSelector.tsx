@@ -20,6 +20,11 @@ import { useQuery } from "@tanstack/react-query";
 
 export type StorageType = "ipfs" | "arweave" | "both";
 
+interface StorageStatus {
+  ipfs?: { configured?: boolean; authenticated?: boolean };
+  arweave?: { configured?: boolean; balance?: string };
+}
+
 interface StorageOption {
   id: StorageType;
   name: string;
@@ -85,7 +90,7 @@ export function StorageSelector({ value, onChange, fileSize }: StorageSelectorPr
   const [estimatedCost, setEstimatedCost] = useState<{ ar?: string; usd?: string } | null>(null);
 
   // Check storage service status
-  const { data: storageStatus, isLoading } = useQuery({
+  const { data: storageStatus, isLoading } = useQuery<StorageStatus>({
     queryKey: ["/api/storage/status"],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
@@ -121,16 +126,16 @@ export function StorageSelector({ value, onChange, fileSize }: StorageSelectorPr
 
     if (storageStatus) {
       if (option.id === "ipfs") {
-        isConfigured = storageStatus.ipfs?.configured && storageStatus.ipfs?.authenticated;
+        isConfigured = !!storageStatus.ipfs?.configured && !!storageStatus.ipfs?.authenticated;
         statusMessage = isConfigured ? "Ready" : "Not configured";
       } else if (option.id === "arweave") {
-        isConfigured = storageStatus.arweave?.configured;
+        isConfigured = !!storageStatus.arweave?.configured;
         statusMessage = isConfigured
-          ? `Balance: ${storageStatus.arweave.balance || "0"} AR`
+          ? `Balance: ${storageStatus.arweave?.balance || "0"} AR`
           : "Not configured";
       } else if (option.id === "both") {
-        const ipfsReady = storageStatus.ipfs?.configured && storageStatus.ipfs?.authenticated;
-        const arweaveReady = storageStatus.arweave?.configured;
+        const ipfsReady = !!storageStatus.ipfs?.configured && !!storageStatus.ipfs?.authenticated;
+        const arweaveReady = !!storageStatus.arweave?.configured;
         isConfigured = ipfsReady && arweaveReady;
         statusMessage = isConfigured ? "Both services ready" : "Some services not configured";
       }

@@ -66,7 +66,7 @@ export async function verifyTokenLogo(request: VerificationRequest): Promise<Ver
 
     // Get the earliest registration (true owner)
     const originalLogo = allLogos.sort(
-      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      (a, b) => new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
     )[0];
 
     // Get authorized usages for this logo
@@ -75,7 +75,9 @@ export async function verifyTokenLogo(request: VerificationRequest): Promise<Ver
     // Check if this token/chain is authorized
     const isAuthorized = authorizedUsages.some(
       (usage) =>
-        usage.platform === "dex" && usage.url.includes(request.tokenAddress) && usage.isActive
+        usage.usagePlatform === "dex" &&
+        usage.usageUrl.includes(request.tokenAddress) &&
+        usage.status === "active"
     );
 
     // Get collection for company name
@@ -88,13 +90,13 @@ export async function verifyTokenLogo(request: VerificationRequest): Promise<Ver
       legitimate: isAuthorized,
       owner: {
         companyName: collection?.companyName || "Unknown",
-        registrationDate: originalLogo.createdAt.toISOString(),
+        registrationDate: (originalLogo.createdAt ?? new Date()).toISOString(),
         solturioId: originalLogo.id,
       },
       proof: {
         ipfsHash: originalLogo.ipfsHash || "",
         fileHash: originalLogo.fileHash,
-        transactionHash: originalLogo.transactionHash,
+        transactionHash: originalLogo.transactionHash ?? undefined,
         certificateUrl: `https://solturio.app/api/logos/${originalLogo.id}/certificate`,
       },
       warning: isAuthorized

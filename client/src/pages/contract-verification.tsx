@@ -59,7 +59,7 @@ export default function ContractVerification() {
       contractAddress: string;
       chainId: number;
       deploymentDate: string;
-    }) => apiRequest("/api/contract/bind", "POST", data),
+    }) => apiRequest("POST", "/api/contract/bind", data).then((r) => r.json()),
     onSuccess: (result) => {
       toast({
         title: result.verificationLevel === "gold" ? "🏆 Gold Verification!" : "Contract Bound",
@@ -117,7 +117,7 @@ export default function ContractVerification() {
   const calculateDaysBeforeLaunch = () => {
     if (!selectedLogo || !deploymentDate) return null;
 
-    const registration = new Date(selectedLogo.createdAt);
+    const registration = new Date(selectedLogo.createdAt ?? new Date());
     const deployment = new Date(deploymentDate);
 
     if (registration >= deployment) return null;
@@ -227,7 +227,7 @@ export default function ContractVerification() {
                           <div className="flex items-center gap-2">
                             <span>{logo.fileName}</span>
                             <Badge variant="outline" className="text-xs">
-                              {new Date(logo.createdAt).toLocaleDateString()}
+                              {new Date(logo.createdAt ?? new Date()).toLocaleDateString()}
                             </Badge>
                           </div>
                         </SelectItem>
