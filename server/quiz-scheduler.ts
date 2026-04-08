@@ -1,4 +1,4 @@
-import cron from "node-cron";
+import cron, { ScheduledTask } from "node-cron";
 import { quizBot } from "./telegram-bot";
 
 /**
@@ -13,13 +13,13 @@ import { quizBot } from "./telegram-bot";
 const QUIZ_CHAT_ID = process.env.TELEGRAM_QUIZ_CHAT_ID || "";
 
 class QuizScheduler {
-  private morningAnnouncementJob: cron.ScheduledTask | null = null;
-  private morningStartJob: cron.ScheduledTask | null = null;
-  private morningEndJob: cron.ScheduledTask | null = null;
-  private afternoonAnnouncementJob: cron.ScheduledTask | null = null;
-  private afternoonStartJob: cron.ScheduledTask | null = null;
-  private afternoonEndJob: cron.ScheduledTask | null = null;
-  private dailyLeaderboardJob: cron.ScheduledTask | null = null;
+  private morningAnnouncementJob: ScheduledTask | null = null;
+  private morningStartJob: ScheduledTask | null = null;
+  private morningEndJob: ScheduledTask | null = null;
+  private afternoonAnnouncementJob: ScheduledTask | null = null;
+  private afternoonStartJob: ScheduledTask | null = null;
+  private afternoonEndJob: ScheduledTask | null = null;
+  private dailyLeaderboardJob: ScheduledTask | null = null;
 
   constructor() {
     this.setupSchedule();

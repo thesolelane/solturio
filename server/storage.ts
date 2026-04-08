@@ -605,17 +605,15 @@ export class DatabaseStorage implements IStorage {
   // Quiz operations
   async getQuizQuestions(category?: string, points?: number): Promise<any[]> {
     const { quizQuestions } = await import("@shared/schema");
-    let query = db.select().from(quizQuestions).where(eq(quizQuestions.isActive, true));
 
-    // Apply filters if provided
-    if (category) {
-      query = query.where(eq(quizQuestions.category, category));
-    }
-    if (points) {
-      query = query.where(eq(quizQuestions.points, points));
-    }
+    const conditions = [eq(quizQuestions.isActive, true)];
+    if (category) conditions.push(eq(quizQuestions.category, category));
+    if (points) conditions.push(eq(quizQuestions.points, points));
 
-    return query;
+    return db
+      .select()
+      .from(quizQuestions)
+      .where(and(...conditions));
   }
 
   async getQuizStats(userId: string): Promise<any> {

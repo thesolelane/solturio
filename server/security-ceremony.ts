@@ -27,7 +27,7 @@ export function generateChallenge(userId: string): string {
   });
 
   // Clean old challenges
-  for (const [key, value] of activeChallenges) {
+  for (const [key, value] of Array.from(activeChallenges)) {
     if (Date.now() - value.timestamp > CHALLENGE_TIMEOUT) {
       activeChallenges.delete(key);
     }

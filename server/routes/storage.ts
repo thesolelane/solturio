@@ -1,9 +1,16 @@
-import { Router } from "express";
+import { Router, Request } from "express";
 import { requireAuth } from "../middleware/auth";
 import { ipfsService } from "../services/ipfs";
 import { arweaveService } from "../services/arweave";
 import multer from "multer";
 import sharp from "sharp";
+
+interface AuthedUser {
+  id: string;
+  email: string;
+}
+
+type AuthedRequest = Request & { user: AuthedUser };
 
 const router = Router();
 const upload = multer({
@@ -55,7 +62,7 @@ router.post("/ipfs/upload", requireAuth, upload.single("file"), async (req, res)
       originalName: req.file.originalname,
       mimeType: req.file.mimetype,
       size: req.file.size,
-      uploadedBy: req.user!.email,
+      uploadedBy: (req as AuthedRequest).user.email,
       uploadedAt: new Date().toISOString(),
       platform: "Solturio",
       ...req.body.metadata, // Additional metadata from request
@@ -98,7 +105,7 @@ router.post("/arweave/upload", requireAuth, upload.single("file"), async (req, r
     const tags = [
       { name: "Original-Name", value: req.file.originalname },
       { name: "Content-Type", value: req.file.mimetype },
-      { name: "Uploaded-By", value: req.user!.email },
+      { name: "Uploaded-By", value: (req as AuthedRequest).user.email },
       { name: "Platform", value: "Solturio" },
     ];
 
@@ -145,7 +152,7 @@ router.post("/ipfs/metadata", requireAuth, async (req, res) => {
     const enrichedMetadata = {
       ...metadata,
       platform: "Solturio",
-      uploadedBy: req.user!.email,
+      uploadedBy: (req as AuthedRequest).user.email,
       uploadedAt: new Date().toISOString(),
     };
 
@@ -186,7 +193,7 @@ router.post("/arweave/metadata", requireAuth, async (req, res) => {
     const enrichedMetadata = {
       ...metadata,
       platform: "Solturio",
-      uploadedBy: req.user!.email,
+      uploadedBy: (req as AuthedRequest).user.email,
       uploadedAt: new Date().toISOString(),
     };
 
@@ -194,7 +201,7 @@ router.post("/arweave/metadata", requireAuth, async (req, res) => {
     const arweaveTags = [
       { name: "Type", value: "metadata" },
       { name: "Platform", value: "Solturio" },
-      { name: "Uploaded-By", value: req.user!.email },
+      { name: "Uploaded-By", value: (req as AuthedRequest).user.email },
       ...tags,
     ];
 

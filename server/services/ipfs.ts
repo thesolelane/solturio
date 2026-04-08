@@ -49,7 +49,8 @@ class IPFSService {
         pinataMetadata: {
           name: fileName,
           keyvalues: metadata || {},
-        },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any,
         pinataOptions: {
           cidVersion: 1,
         },
@@ -83,7 +84,8 @@ class IPFSService {
         pinataMetadata: {
           name: name,
           keyvalues: metadata || {},
-        },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any,
         pinataOptions: {
           cidVersion: 1,
         },
