@@ -4,7 +4,7 @@ import { createServer, type Server } from "http";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { csrfProtection } from "./csrf";
 import { storage } from "./storage";
-import { createHash, randomUUID } from "crypto";
+import { createHash } from "crypto";
 import { isSolturioWallet, getRestrictionErrorMessage } from "./wallet-restrictions";
 import { licensesRouter } from "./licenses";
 import { licenseRouter } from "./license-routes";
@@ -23,7 +23,7 @@ import { auditLogger } from "./audit-logger";
 import { Connection, PublicKey } from "@solana/web3.js";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
-import { upload } from "./upload-helpers";
+import { upload, extractImageMetadata } from "./upload-helpers";
 
 import { adminRouter } from "./admin-routes";
 import { logoRouter } from "./logo-routes";
@@ -239,8 +239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         collections: publicCollections.map((c) => ({
           id: c.id,
           name: c.name,
-          ticker: c.ticker,
-          registrationType: c.registrationType,
+          symbol: c.symbol,
           status: c.status,
           mintedAt: c.mintedAt,
         })),
@@ -263,49 +262,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post(
-    "/api/extension/token",
-    extensionRateLimiter,
-    isAuthenticated,
-    async (req: any, res) => {
-      try {
-        const userId = req.user.claims.sub;
-        const user = await storage.getUser(userId);
+  app.post("/api/extension/token", extensionRateLimiter, isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
 
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
-
-        const jwtSecret = process.env.SESSION_SECRET;
-        if (!jwtSecret) {
-          return res.status(500).json({ message: "Server configuration error" });
-        }
-
-        const payload = {
-          sub: userId,
-          email: user.email,
-          scopes: ["extension:verify", "extension:register", "read:portfolio"],
-        };
-
-        const token = jwt.sign(payload, jwtSecret, {
-          expiresIn: "7d",
-          issuer: "solturio.app",
-          audience: "solturio-extension",
-        });
-
-        auditLogger.log({
-          action: "extension_token_generated",
-          userId,
-          details: { scopes: payload.scopes },
-        });
-
-        res.json({ token });
-      } catch (error) {
-        console.error("Error generating extension token:", error);
-        res.status(500).json({ message: "Failed to generate extension token" });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
+
+      const jwtSecret = process.env.SESSION_SECRET;
+      if (!jwtSecret) {
+        return res.status(500).json({ message: "Server configuration error" });
+      }
+
+      const payload = {
+        sub: userId,
+        email: user.email,
+        scopes: ["extension:verify", "extension:register", "read:portfolio"],
+      };
+
+      const token = jwt.sign(payload, jwtSecret, {
+        expiresIn: "7d",
+        issuer: "solturio.app",
+        audience: "solturio-extension",
+      });
+
+      auditLogger.log({
+        action: "extension_token_generated",
+        userId,
+        details: { scopes: payload.scopes },
+      });
+
+      res.json({ token });
+    } catch (error) {
+      console.error("Error generating extension token:", error);
+      res.status(500).json({ message: "Failed to generate extension token" });
     }
-  );
+  });
 
   const isExtensionAuthenticated: any = async (req: any, res: any, next: any) => {
     try {
@@ -395,7 +389,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             companyName: collection?.companyName || "Unknown",
             ipfsHash: original.ipfsHash,
             transactionHash: original.transactionHash,
-            blockNumber: original.blockNumber,
           },
           totalRegistrations: logos.length,
           checkedAt: new Date().toISOString(),
@@ -444,7 +437,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })),
           stats: {
             totalLogos: stats.totalLogos || 0,
-            totalCollections: stats.totalCollections || 0,
+            totalCollections: stats.mintedCollections || 0,
           },
           retrievedAt: new Date().toISOString(),
         });
@@ -474,7 +467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "User not found" });
         }
 
-        if (!user.subscriptionStatus || user.subscriptionStatus !== "active") {
+        if (!user.accountStatus || user.accountStatus !== "active") {
           return res.status(403).json({
             message: "Active subscription required",
             code: "SUBSCRIPTION_REQUIRED",
@@ -502,16 +495,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        const logoId = randomUUID();
+        const imageMeta = await extractImageMetadata(req.file.buffer, req.file.mimetype).catch(
+          () => ({
+            width: 0,
+            height: 0,
+            format: "unknown",
+            colorPalette: [] as string[],
+            dominantColor: null as string | null,
+          })
+        );
+
         const logo = await storage.createLogo({
-          id: logoId,
           userId,
           collectionId: collectionId || null,
           fileName: req.file.originalname,
           fileHash,
-          fileData: req.file.buffer,
           mimeType: req.file.mimetype,
           fileSize: req.file.size,
+          width: imageMeta.width,
+          height: imageMeta.height,
+          format: imageMeta.format,
+          colorPalette: imageMeta.colorPalette,
+          dominantColor: imageMeta.dominantColor,
           description:
             description || `Registered via extension from ${sourceUrl || "unknown source"}`,
           ownershipDescription: "Registered via Solturio browser extension",
@@ -522,7 +527,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           action: "extension_register",
           userId,
           details: {
-            logoId,
+            logoId: logo.id,
             fileName: req.file.originalname,
             sourceUrl,
           },
@@ -564,7 +569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           firstName: user.firstName,
           lastName: user.lastName,
           profileImageUrl: user.profileImageUrl,
-          subscriptionStatus: user.subscriptionStatus,
+          subscriptionStatus: user.accountStatus,
           scopes: req.extensionUser.scopes,
         });
       } catch (error) {

@@ -36,11 +36,11 @@ class AuditLogger {
     // Rotate logs if too many
     if (this.logs.size > this.maxLogs) {
       const firstKey = this.logs.keys().next().value;
-      this.logs.delete(firstKey);
+      if (firstKey) this.logs.delete(firstKey);
     }
 
     // Console log important actions
-    if (entry.statusCode >= 400) {
+    if (entry.statusCode !== undefined && entry.statusCode >= 400) {
       console.warn(
         `[AUDIT] ${entry.method} ${entry.endpoint} - ${entry.statusCode} - User: ${entry.userId}`
       );
