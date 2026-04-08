@@ -1,13 +1,35 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Copyright, Verified, AlertCircle } from "lucide-react";
+import { Shield, Copyright, Verified, AlertCircle, Globe, ExternalLink } from "lucide-react";
+
+const VALID_TABS = ["symbols", "trademark", "copyright", "classes", "foreign-ip"] as const;
+type TabValue = (typeof VALID_TABS)[number];
+
+function getInitialTab(): TabValue {
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get("tab");
+  if (tab && VALID_TABS.includes(tab as TabValue)) {
+    return tab as TabValue;
+  }
+  return "symbols";
+}
 
 export default function KnowledgeBase() {
+  const [activeTab, setActiveTab] = useState<TabValue>(getInitialTab);
+
   useEffect(() => {
     document.title = "IP Knowledge Base - Solturio";
   }, []);
+
+  function handleTabChange(value: string) {
+    if (!VALID_TABS.includes(value as TabValue)) return;
+    setActiveTab(value as TabValue);
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", value);
+    window.history.replaceState(null, "", url.toString());
+  }
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
@@ -48,8 +70,8 @@ export default function KnowledgeBase() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="symbols" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="symbols" data-testid="tab-symbols">
             IP Symbols
           </TabsTrigger>
@@ -61,6 +83,9 @@ export default function KnowledgeBase() {
           </TabsTrigger>
           <TabsTrigger value="classes" data-testid="tab-classes">
             Trademark Classes
+          </TabsTrigger>
+          <TabsTrigger value="foreign-ip" data-testid="tab-foreign-ip">
+            Foreign IP
           </TabsTrigger>
         </TabsList>
 
@@ -650,6 +675,304 @@ export default function KnowledgeBase() {
                   </div>
                 </CardContent>
               </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="foreign-ip" className="space-y-6">
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="w-5 h-5 text-primary" />
+                Foreign IP Protection in the United States
+              </CardTitle>
+              <CardDescription>
+                How international creators can protect their intellectual property under U.S. law
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                If you are a creator outside the United States, U.S. law still offers significant
+                protection for your works, trademarks, and inventions. The sections below explain
+                your rights and filing options under copyright, trademark, and patent law — all
+                sourced from official U.S. government authorities.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-destructive/40 bg-destructive/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <AlertCircle className="w-5 h-5" />
+                Critical Rule: U.S. Attorney Requirement (Since August 3, 2019)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-sm font-semibold">
+                ALL trademark applicants whose permanent legal residence or principal place of
+                business is outside the United States MUST be represented by a U.S.-licensed
+                attorney before the USPTO.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                This rule applies to every stage of USPTO proceedings — filing, responses to office
+                actions, maintenance filings, and appeals. Foreign applicants cannot represent
+                themselves.
+              </p>
+              <div className="flex items-center gap-2 mt-3">
+                <Badge variant="outline" className="text-xs">
+                  Source: USPTO.gov
+                </Badge>
+                <a
+                  href="https://www.uspto.gov/trademarks/apply/foreign-trademark-applicants"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary flex items-center gap-1 hover:underline"
+                  data-testid="link-attorney-requirement"
+                >
+                  Verify on USPTO.gov <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Copyright className="w-5 h-5 text-primary" />
+                Copyright for Foreign Nationals
+              </CardTitle>
+              <CardDescription>Automatic and voluntary protection under U.S. law</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div>
+                <h3 className="font-semibold mb-2">Automatic Protection — Berne Convention</h3>
+                <p className="text-sm text-muted-foreground">
+                  If you are a national or resident of one of the 179+ member countries of the Berne
+                  Convention, your works receive automatic copyright protection in the United States
+                  the moment they are created and fixed in a tangible form. No registration,
+                  application, or deposit is required for this baseline protection to apply.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">
+                  Why Voluntarily Register with the U.S. Copyright Office?
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  While Berne protection is automatic, voluntary registration with the U.S.
+                  Copyright Office unlocks critical enforcement tools:
+                </p>
+                <ul className="text-sm text-muted-foreground space-y-1 ml-4">
+                  <li className="flex gap-2">
+                    <span className="text-primary">•</span>
+                    <span>
+                      The right to sue for <strong>statutory damages</strong> (up to $150,000 per
+                      work for willful infringement) — without needing to prove actual damages
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-primary">•</span>
+                    <span>
+                      The right to recover <strong>attorney's fees</strong> from the infringer
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-primary">•</span>
+                    <span>
+                      A <strong>public record</strong> of your copyright claim
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-primary">•</span>
+                    <span>
+                      The ability to record your copyright with U.S. Customs to stop infringing
+                      imports
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <Badge variant="outline" className="text-xs">
+                  Source: Copyright.gov (Circular 38a)
+                </Badge>
+                <a
+                  href="https://www.copyright.gov/circs/circ38a.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary flex items-center gap-1 hover:underline"
+                  data-testid="link-circular-38a"
+                >
+                  Circular 38a — International Copyright Relations{" "}
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-primary" />
+                Trademark for Foreign Applicants
+              </CardTitle>
+              <CardDescription>
+                Filing paths and requirements for non-U.S. residents
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div>
+                <h3 className="font-semibold mb-2">U.S. Attorney Requirement</h3>
+                <p className="text-sm text-muted-foreground">
+                  As of August 3, 2019, all foreign-domiciled applicants must hire a U.S.-licensed
+                  attorney to file and prosecute a U.S. trademark application with the USPTO. This
+                  includes applicants from every country, regardless of their home country's IP
+                  system.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-3">Section 44 Filing Paths</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Card className="border-primary/30">
+                    <CardContent className="pt-5 space-y-2">
+                      <p className="font-semibold text-sm">Section 44(d) — Priority Filing</p>
+                      <p className="text-sm text-muted-foreground">
+                        Based on a <strong>pending foreign trademark application</strong>. Allows
+                        you to claim priority from your home-country filing date, provided you file
+                        in the U.S. within <strong>6 months</strong> of that foreign application.
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-primary/30">
+                    <CardContent className="pt-5 space-y-2">
+                      <p className="font-semibold text-sm">Section 44(e) — Existing Registration</p>
+                      <p className="text-sm text-muted-foreground">
+                        Based on an <strong>existing foreign trademark registration</strong>. You
+                        can file a U.S. application without proving current use in U.S. commerce,
+                        relying on your home-country registration as the basis.
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Madrid Protocol Option</h3>
+                <p className="text-sm text-muted-foreground">
+                  Foreign applicants can also seek U.S. trademark protection through the Madrid
+                  Protocol — a WIPO-administered system that lets you file a single international
+                  application covering 100+ countries. The application is filed through your home
+                  country's IP office and WIPO routes it to each designated country, including the
+                  U.S. USPTO then examines the U.S. portion under U.S. law.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <Badge variant="outline" className="text-xs">
+                  Source: USPTO.gov
+                </Badge>
+                <a
+                  href="https://www.uspto.gov/trademarks/apply/foreign-trademark-applicants"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary flex items-center gap-1 hover:underline"
+                  data-testid="link-foreign-trademark"
+                >
+                  USPTO — Foreign Trademark Applicants <ExternalLink className="w-3 h-3" />
+                </a>
+                <a
+                  href="https://www.wipo.int/madrid/en/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary flex items-center gap-1 hover:underline"
+                  data-testid="link-madrid-protocol"
+                >
+                  WIPO Madrid Protocol <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Verified className="w-5 h-5 text-primary" />
+                Patents for Foreign Nationals
+              </CardTitle>
+              <CardDescription>
+                International priority and cooperative filing options
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div>
+                <h3 className="font-semibold mb-2">Paris Convention Priority</h3>
+                <p className="text-sm text-muted-foreground">
+                  If you file a patent application in your home country, you have a
+                  <strong> 12-month window</strong> to file a corresponding U.S. patent application
+                  and claim priority from your home-country filing date. This means the U.S.
+                  application is treated as if it were filed on the same date as your original
+                  foreign application — preserving your priority against intervening publications or
+                  competing applications.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">PCT — Patent Cooperation Treaty</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  The PCT is administered by WIPO and allows inventors to file a single
+                  international patent application covering 150+ countries simultaneously. Key
+                  features:
+                </p>
+                <ul className="text-sm text-muted-foreground space-y-1 ml-4">
+                  <li className="flex gap-2">
+                    <span className="text-primary">•</span>
+                    <span>One application, one filing fee, one set of formal requirements</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-primary">•</span>
+                    <span>
+                      Delays the need to enter national phase (pay individual country fees) for up
+                      to <strong>30 months</strong> from the priority date
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-primary">•</span>
+                    <span>
+                      Includes an international search and preliminary examination to assess
+                      patentability before committing to national filings
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-primary">•</span>
+                    <span>U.S. national phase entry is handled by the USPTO</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <Badge variant="outline" className="text-xs">
+                  Source: USPTO.gov
+                </Badge>
+                <a
+                  href="https://www.uspto.gov/patents/basics/international-protection/pct-information"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary flex items-center gap-1 hover:underline"
+                  data-testid="link-pct-info"
+                >
+                  USPTO — PCT Information <ExternalLink className="w-3 h-3" />
+                </a>
+                <a
+                  href="https://www.wipo.int/pct/en/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary flex items-center gap-1 hover:underline"
+                  data-testid="link-wipo-pct"
+                >
+                  WIPO PCT <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

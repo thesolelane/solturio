@@ -3,7 +3,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ExternalLink, Shield, FileText, DollarSign, Clock, CheckCircle2 } from "lucide-react";
+import {
+  ExternalLink,
+  Shield,
+  FileText,
+  DollarSign,
+  Clock,
+  CheckCircle2,
+  Globe,
+} from "lucide-react";
+import { Link } from "wouter";
 
 export default function IPGuide() {
   useEffect(() => {
@@ -394,6 +403,90 @@ export default function IPGuide() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Card
+        className="mt-8 border-primary/30 bg-primary/5"
+        data-testid="card-international-creators"
+      >
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="w-5 h-5 text-primary" />
+            For International Creators
+          </CardTitle>
+          <CardDescription>
+            Key requirements and options if your residence or principal place of business is outside
+            the United States
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">Copyright (Berne Convention)</p>
+              <p className="text-sm text-muted-foreground">
+                Works by nationals of 179+ Berne member countries receive automatic U.S. copyright
+                protection. Voluntary registration with the U.S. Copyright Office unlocks statutory
+                damages and attorney's fees in infringement suits.
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">Trademark (Attorney Required)</p>
+              <p className="text-sm text-muted-foreground">
+                Since August 3, 2019, all foreign-domiciled applicants must use a U.S.-licensed
+                attorney. You may file via Section 44(d) (priority from a pending foreign
+                application) or Section 44(e) (based on an existing foreign registration), or
+                through the Madrid Protocol covering 100+ countries.
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">Patents (Paris Convention &amp; PCT)</p>
+              <p className="text-sm text-muted-foreground">
+                File in the U.S. within 12 months of your home-country patent application to claim
+                Paris Convention priority. The PCT allows a single international application
+                covering 150+ countries with up to 30 months before national phase entry.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <Button asChild variant="default" data-testid="button-foreign-ip-kb">
+              <Link to="/knowledge-base?tab=foreign-ip">
+                Learn More in the Knowledge Base
+                <ExternalLink className="w-4 h-4 ml-2" />
+              </Link>
+            </Button>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            Sources:{" "}
+            <a
+              href="https://www.uspto.gov/trademarks/apply/foreign-trademark-applicants"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              USPTO.gov
+            </a>
+            {" · "}
+            <a
+              href="https://www.copyright.gov/circs/circ38a.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              Copyright.gov (Circular 38a)
+            </a>
+            {" · "}
+            <a
+              href="https://www.wipo.int/pct/en/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              WIPO.int
+            </a>
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

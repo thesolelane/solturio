@@ -51,9 +51,10 @@ quizRouter.post("/quiz/answer", isAuthenticated, async (req: any, res) => {
 
 quizRouter.post("/quiz/seed", async (req, res) => {
   try {
-    const { sampleQuestions } = await import("./seed-quiz-questions");
-    await storage.createQuizQuestions(sampleQuestions);
-    res.json({ message: `Successfully seeded ${sampleQuestions.length} quiz questions` });
+    const { sampleQuestions, foreignIpQuestions } = await import("./seed-quiz-questions");
+    const allQuestions = [...sampleQuestions, ...foreignIpQuestions];
+    await storage.createQuizQuestions(allQuestions);
+    res.json({ message: `Successfully seeded ${allQuestions.length} quiz questions` });
   } catch (error) {
     console.error("Error seeding quiz questions:", error);
     res.status(500).json({ error: "Failed to seed questions" });

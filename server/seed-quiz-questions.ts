@@ -272,16 +272,280 @@ export const sampleQuestions = [
   },
 ];
 
+// Foreign IP in the U.S. — 12 new questions
+export const foreignIpQuestions = [
+  // Easy
+  {
+    category: "Foreign IP in the U.S.",
+    difficulty: "easy",
+    points: 100,
+    question:
+      "Under the Berne Convention, do foreign nationals automatically receive U.S. copyright protection for their works?",
+    options: [
+      "Yes, if their country is a Berne member",
+      "No, they must register with the U.S. Copyright Office",
+      "Only if they reside in the U.S.",
+      "Only for works published after 2000",
+    ],
+    answer: "Yes, if their country is a Berne member",
+    hint: "The Berne Convention has nearly 180 member countries.",
+    explanation:
+      "Nationals of Berne Convention member countries (179+) receive automatic U.S. copyright protection upon creation of their work — no registration required for baseline protection.",
+    sourceAuthority: "Copyright.gov",
+    sourceUrl: "https://www.copyright.gov/circs/circ38a.pdf",
+    sourceCitation: "Circular 38a — International Copyright Relations of the United States",
+    roundNumber: 1,
+    questionOrder: 16,
+  },
+  {
+    category: "Foreign IP in the U.S.",
+    difficulty: "easy",
+    points: 100,
+    question:
+      "Since August 3, 2019, what must all foreign-domiciled trademark applicants do before the USPTO?",
+    options: [
+      "File through the Madrid Protocol",
+      "Be represented by a U.S.-licensed attorney",
+      "Provide a certified translation of their mark",
+      "Show proof of use in U.S. commerce",
+    ],
+    answer: "Be represented by a U.S.-licensed attorney",
+    hint: "This rule took effect on a specific date in 2019.",
+    explanation:
+      "As of August 3, 2019, all applicants whose permanent legal residence or principal place of business is outside the U.S. must be represented by a U.S.-licensed attorney in all USPTO proceedings.",
+    sourceAuthority: "USPTO",
+    sourceUrl: "https://www.uspto.gov/trademarks/apply/foreign-trademark-applicants",
+    sourceCitation: "USPTO — Foreign Trademark Applicants",
+    roundNumber: 1,
+    questionOrder: 17,
+  },
+  {
+    category: "Foreign IP in the U.S.",
+    difficulty: "easy",
+    points: 100,
+    question:
+      "Approximately how many countries are members of the Berne Convention for copyright protection?",
+    options: ["50+", "100+", "179+", "250+"],
+    answer: "179+",
+    hint: "It covers the vast majority of countries in the world.",
+    explanation:
+      "The Berne Convention has 179+ member countries. Works by nationals or residents of any member country receive automatic copyright protection in every other member country.",
+    sourceAuthority: "Copyright.gov",
+    sourceUrl: "https://www.copyright.gov/circs/circ38a.pdf",
+    sourceCitation: "Circular 38a — International Copyright Relations of the United States",
+    roundNumber: 1,
+    questionOrder: 18,
+  },
+  {
+    category: "Foreign IP in the U.S.",
+    difficulty: "easy",
+    points: 100,
+    question: "What does the Madrid Protocol allow trademark owners to do?",
+    options: [
+      "File a single application in their home country to seek protection in multiple countries",
+      "Bypass the USPTO examination process",
+      "Register a trademark without an attorney in the U.S.",
+      "Extend a patent into trademark protection",
+    ],
+    answer:
+      "File a single application in their home country to seek protection in multiple countries",
+    hint: "It is administered by WIPO and covers 100+ countries.",
+    explanation:
+      "The Madrid Protocol is a WIPO-administered system allowing owners to file a single international trademark application covering 100+ member countries through their home country's IP office.",
+    sourceAuthority: "USPTO",
+    sourceUrl: "https://www.uspto.gov/trademarks/apply/madrid-protocol",
+    sourceCitation: "USPTO — Madrid Protocol",
+    roundNumber: 1,
+    questionOrder: 19,
+  },
+  // Medium
+  {
+    category: "Foreign IP in the U.S.",
+    difficulty: "medium",
+    points: 200,
+    question:
+      "What key benefit does voluntary U.S. Copyright Office registration unlock for foreign nationals who already have Berne protection?",
+    options: [
+      "Automatic protection in all 179+ Berne member countries",
+      "The right to sue for statutory damages and attorney's fees",
+      "Priority over domestically registered works",
+      "Exemption from the DMCA notice-and-takedown process",
+    ],
+    answer: "The right to sue for statutory damages and attorney's fees",
+    hint: "Without registration, foreign nationals can only sue for actual damages proven in court.",
+    explanation:
+      "While Berne gives automatic protection, voluntary U.S. Copyright Office registration unlocks the right to seek statutory damages (up to $150,000 per work) and attorney's fees — powerful tools that are otherwise unavailable.",
+    sourceAuthority: "Copyright.gov",
+    sourceUrl: "https://www.copyright.gov/circs/circ38a.pdf",
+    sourceCitation: "Circular 38a — International Copyright Relations of the United States",
+    roundNumber: 2,
+    questionOrder: 20,
+  },
+  {
+    category: "Foreign IP in the U.S.",
+    difficulty: "medium",
+    points: 200,
+    question:
+      "A creator in Germany filed a trademark application in Germany on January 1. Under the Paris Convention, by what date must they file in the U.S. to claim priority from that German filing date?",
+    options: [
+      "March 1 (2 months)",
+      "July 1 (6 months)",
+      "January 1 of the following year (12 months)",
+      "January 1 two years later (24 months)",
+    ],
+    answer: "July 1 (6 months)",
+    hint: "The Paris Convention priority period for trademarks differs from patents.",
+    explanation:
+      "Under the Paris Convention, trademark applicants have a 6-month priority window from their home-country filing date to file in the U.S. and claim that earlier priority date. Patents have a 12-month window.",
+    sourceAuthority: "USPTO",
+    sourceUrl: "https://www.uspto.gov/trademarks/apply/foreign-trademark-applicants",
+    sourceCitation: "USPTO — Foreign Trademark Applicants",
+    roundNumber: 2,
+    questionOrder: 21,
+  },
+  {
+    category: "Foreign IP in the U.S.",
+    difficulty: "medium",
+    points: 200,
+    question:
+      "A foreign inventor files a patent in Japan on March 1. Under the Paris Convention, what is the latest date they can file a U.S. patent application and still claim priority from the Japanese filing?",
+    options: [
+      "September 1 (6 months later)",
+      "March 1 the following year (12 months later)",
+      "March 1 two years later (24 months later)",
+      "June 1 (3 months later)",
+    ],
+    answer: "March 1 the following year (12 months later)",
+    hint: "The patent priority window under the Paris Convention is one year.",
+    explanation:
+      "The Paris Convention provides a 12-month priority period for patent applications. Filing in the U.S. within 12 months of the home-country application allows the U.S. application to claim the foreign priority date.",
+    sourceAuthority: "USPTO",
+    sourceUrl: "https://www.uspto.gov/patents/basics/international-protection/pct-information",
+    sourceCitation: "USPTO — PCT and International Patent Protection",
+    roundNumber: 2,
+    questionOrder: 22,
+  },
+  {
+    category: "Foreign IP in the U.S.",
+    difficulty: "medium",
+    points: 200,
+    question:
+      "Which USPTO filing basis allows a foreign trademark applicant to rely on a pending foreign trademark application (not yet registered)?",
+    options: [
+      "Section 44(e)",
+      "Section 44(d)",
+      "Section 1(a) — use in commerce",
+      "Section 66(a) — Madrid Protocol",
+    ],
+    answer: "Section 44(d)",
+    hint: "The letter 'd' stands for a pending foreign application as the filing basis.",
+    explanation:
+      "Section 44(d) allows a foreign applicant to claim a priority date from their pending home-country application, provided the U.S. filing is made within 6 months of the foreign filing date. Section 44(e) requires an existing registration.",
+    sourceAuthority: "USPTO",
+    sourceUrl: "https://www.uspto.gov/trademarks/apply/foreign-trademark-applicants",
+    sourceCitation: "USPTO — Foreign Trademark Applicants",
+    roundNumber: 2,
+    questionOrder: 23,
+  },
+  // Hard / Expert
+  {
+    category: "Foreign IP in the U.S.",
+    difficulty: "hard",
+    points: 400,
+    question:
+      "A foreign trademark applicant files a U.S. application under Section 44(e). What does this filing basis require?",
+    options: [
+      "A pending trademark application in the applicant's home country",
+      "An existing trademark registration in the applicant's home country",
+      "Proof of use of the mark in U.S. commerce",
+      "Membership in the Madrid Protocol system",
+    ],
+    answer: "An existing trademark registration in the applicant's home country",
+    hint: "The 'e' filing basis requires something already granted, not pending.",
+    explanation:
+      "Section 44(e) allows a U.S. trademark application based on an existing, issued foreign registration. Unlike Section 44(d), there is no time limit — but the foreign registration must be active and the foreign country must have a treaty with the U.S.",
+    sourceAuthority: "USPTO",
+    sourceUrl: "https://www.uspto.gov/trademarks/apply/foreign-trademark-applicants",
+    sourceCitation: "USPTO — Foreign Trademark Applicants",
+    roundNumber: 3,
+    questionOrder: 24,
+  },
+  {
+    category: "Foreign IP in the U.S.",
+    difficulty: "hard",
+    points: 400,
+    question:
+      "Under the PCT, how long does an applicant typically have from the priority date before they must enter the national phase (pay country-specific fees)?",
+    options: ["12 months", "18 months", "30 months", "36 months"],
+    answer: "30 months",
+    hint: "The PCT national phase deadline extends beyond the Paris Convention priority period.",
+    explanation:
+      "The PCT system gives applicants up to 30 months from the earliest priority date before they must enter the national phase in each designated country and pay country-specific fees — providing significant time to assess commercial potential.",
+    sourceAuthority: "USPTO",
+    sourceUrl: "https://www.uspto.gov/patents/basics/international-protection/pct-information",
+    sourceCitation: "USPTO — PCT and International Patent Protection",
+    roundNumber: 3,
+    questionOrder: 25,
+  },
+  {
+    category: "Foreign IP in the U.S.",
+    difficulty: "hard",
+    points: 400,
+    question:
+      "Which of the following accurately describes the scope of the PCT (Patent Cooperation Treaty)?",
+    options: [
+      "It automatically grants patents in all member countries with one application",
+      "It allows a single international application that is later examined country-by-country in national phase",
+      "It replaces the Paris Convention for all patent priority claims",
+      "It only applies to software patents filed via the EPO",
+    ],
+    answer:
+      "It allows a single international application that is later examined country-by-country in national phase",
+    hint: "The PCT does not grant patents — that power remains with each national/regional office.",
+    explanation:
+      "The PCT provides a streamlined international filing procedure covering 150+ countries. However, it does not result in a single international patent — each country still examines and grants (or refuses) the patent in its own national phase proceedings.",
+    sourceAuthority: "USPTO",
+    sourceUrl: "https://www.uspto.gov/patents/basics/international-protection/pct-information",
+    sourceCitation: "USPTO — PCT and International Patent Protection",
+    roundNumber: 3,
+    questionOrder: 26,
+  },
+  {
+    category: "Foreign IP in the U.S.",
+    difficulty: "hard",
+    points: 500,
+    question:
+      "A foreign creator's Berne-protected work is infringed in the United States. They did NOT register with the U.S. Copyright Office. Which remedy is NOT available to them?",
+    options: [
+      "Injunctive relief to stop the infringement",
+      "Actual damages proven in court",
+      "Statutory damages of up to $150,000 per work",
+      "Recovery of lost profits attributable to infringement",
+    ],
+    answer: "Statutory damages of up to $150,000 per work",
+    hint: "Statutory damages require U.S. copyright registration before the infringement occurred.",
+    explanation:
+      "Under U.S. copyright law, statutory damages and attorney's fees are only available if the copyright was registered with the U.S. Copyright Office before the infringement began (or within 3 months of first publication). Without registration, foreign nationals are limited to actual damages and lost profits.",
+    sourceAuthority: "Copyright.gov",
+    sourceUrl: "https://www.copyright.gov/circs/circ38a.pdf",
+    sourceCitation: "Circular 38a — International Copyright Relations of the United States",
+    roundNumber: 3,
+    questionOrder: 27,
+  },
+];
+
 export async function seedQuizQuestions() {
   console.log("Seeding quiz questions...");
 
+  const allQuestions = [...sampleQuestions, ...foreignIpQuestions];
+
   try {
     // Insert all questions
-    for (const question of sampleQuestions) {
+    for (const question of allQuestions) {
       await db.insert(quizQuestions).values(question);
     }
 
-    console.log(`Successfully seeded ${sampleQuestions.length} quiz questions`);
+    console.log(`Successfully seeded ${allQuestions.length} quiz questions`);
   } catch (error) {
     console.error("Error seeding quiz questions:", error);
     throw error;
