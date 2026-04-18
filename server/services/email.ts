@@ -1,9 +1,10 @@
 import sgMail from "@sendgrid/mail";
+import { env } from "../env";
 
 // Initialize SendGrid if API key is provided
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const NOREPLY_EMAIL = process.env.NOREPLY_EMAIL || "noreply@solturio.com";
-const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || "support@solturio.com";
+const SENDGRID_API_KEY = env.sendgridApiKey;
+const NOREPLY_EMAIL = env.noreplyEmail;
+const SUPPORT_EMAIL = env.supportEmail;
 
 if (SENDGRID_API_KEY) {
   sgMail.setApiKey(SENDGRID_API_KEY);
@@ -200,6 +201,49 @@ export async function sendWalletCreated(userEmail: string, walletDomain: string)
       </div>
     `,
     text: `Your Solturio wallet ${walletDomain} has been created. Save your recovery phrase and complete the key handover ceremony.`,
+  });
+}
+
+export async function sendEmailVerificationEmail(
+  userEmail: string,
+  verificationUrl: string,
+  firstName?: string | null
+): Promise<boolean> {
+  const greeting = firstName ? `Hi ${firstName},` : "Hi,";
+
+  return sendTransactionalEmail({
+    to: userEmail,
+    subject: "Verify Your Email - Solturio",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2C3E50;">Verify Your Email</h2>
+
+        <p>${greeting}</p>
+        <p>Confirm your email address to unlock wallet generation and protected account actions on Solturio.</p>
+
+        <p style="margin: 24px 0;">
+          <a
+            href="${verificationUrl}"
+            style="background: #2563eb; color: white; padding: 12px 20px; text-decoration: none; border-radius: 6px; display: inline-block;"
+          >
+            Verify Email
+          </a>
+        </p>
+
+        <p>This verification link expires in 24 hours.</p>
+        <p>If you did not request this, you can safely ignore this email.</p>
+
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
+
+        <p style="color: #888; font-size: 12px;">
+          Need help? Email <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>
+        </p>
+      </div>
+    `,
+    text:
+      `${greeting}\n\n` +
+      `Verify your email for Solturio by opening this link:\n${verificationUrl}\n\n` +
+      `This link expires in 24 hours.`,
   });
 }
 

@@ -1,15 +1,14 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
+import { env, requireEnv } from "./env";
 
 const ALGORITHM = "aes-256-cbc";
 
 function getEncryptionKey(): Buffer {
-  const rawKey = process.env.SECRETS_ENCRYPTION_KEY;
-  if (!rawKey) {
-    throw new Error(
-      "SECRETS_ENCRYPTION_KEY environment variable is not set. " +
-        "Generate a 64-char hex key with: openssl rand -hex 32"
-    );
-  }
+  const rawKey = requireEnv(
+    "SECRETS_ENCRYPTION_KEY",
+    env.secretsEncryptionKey,
+    "SECRETS_ENCRYPTION_KEY environment variable is not set. Generate a 64-char hex key with: openssl rand -hex 32"
+  );
   const keyHex = rawKey.trim();
   if (keyHex.length !== 64) {
     throw new Error(

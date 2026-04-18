@@ -1,14 +1,15 @@
 import PinataClient from "@pinata/sdk";
 import type { PinataPinOptions } from "@pinata/sdk";
 import { Readable } from "stream";
+import { env } from "../env";
 
 class IPFSService {
   private pinata: PinataClient | null = null;
 
   constructor() {
     // Initialize Pinata if API keys are available
-    const apiKey = process.env.PINATA_API_KEY;
-    const secretKey = process.env.PINATA_SECRET_KEY;
+    const apiKey = env.pinataApiKey;
+    const secretKey = env.pinataSecretKey;
 
     if (apiKey && secretKey) {
       this.pinata = new PinataClient(apiKey, secretKey);
@@ -140,8 +141,8 @@ class IPFSService {
 
   getGatewayUrl(ipfsHash: string): string {
     // Use Pinata's dedicated gateway if JWT is available, otherwise public gateway
-    const pinataGateway = process.env.PINATA_GATEWAY || "gateway.pinata.cloud";
-    const jwt = process.env.PINATA_JWT;
+    const pinataGateway = env.pinataGateway;
+    const jwt = env.pinataJwt;
 
     if (jwt) {
       return `https://${pinataGateway}/ipfs/${ipfsHash}?pinataGatewayToken=${jwt}`;

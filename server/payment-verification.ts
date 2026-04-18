@@ -19,16 +19,18 @@
  * 7. Prevents double-spending (transaction not already used)
  */
 
-import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { env } from "./env";
+import { getErrorMessage } from "./http-types";
 
 /**
  * Platform wallet addresses (recipient addresses)
  * IMPORTANT: These should be stored in environment variables in production
  */
 const PLATFORM_WALLETS = {
-  SOL: process.env.PLATFORM_SOL_WALLET || "PLACEHOLDER_SOL_WALLET_ADDRESS",
-  BONK: process.env.PLATFORM_BONK_WALLET || "PLACEHOLDER_BONK_WALLET_ADDRESS",
-  CATH: process.env.PLATFORM_CATH_WALLET || "PLACEHOLDER_CATH_WALLET_ADDRESS",
+  SOL: env.platformSolWallet || "PLACEHOLDER_SOL_WALLET_ADDRESS",
+  BONK: env.platformBonkWallet || "PLACEHOLDER_BONK_WALLET_ADDRESS",
+  CATH: env.platformCathWallet || "PLACEHOLDER_CATH_WALLET_ADDRESS",
 };
 
 /**
@@ -58,15 +60,28 @@ export const CRYPTO_PRICING = {
 /**
  * SPL Token Program IDs
  */
-const TOKEN_PROGRAM_ID = "TokenkegQfeZyiNwAJbNbGKPFXCDYfVfbq4nDr8vFuWG";
-
-/**
- * Known token mint addresses
- */
 const TOKEN_MINTS = {
   BONK: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
   CATH: "CATH_TOKEN_MINT_ADDRESS_PLACEHOLDER", // Replace with actual CATH mint address
 };
+
+interface ParsedTransferInstruction {
+  type?: string;
+  info: {
+    destination?: string;
+    source?: string;
+    lamports?: number;
+    mint?: string;
+    amount?: string;
+    tokenAmount?: {
+      uiAmount?: number | string | null;
+    };
+  };
+}
+
+interface PaymentLookupStorage {
+  getPaymentByTxHash(txHash: string): Promise<unknown>;
+}
 
 export interface PaymentVerificationResult {
   valid: boolean;
@@ -88,7 +103,7 @@ export interface PaymentVerificationResult {
  * Uses environment variable or defaults to devnet for testing
  */
 function getSolanaConnection(): Connection {
-  const rpcUrl = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
+  const rpcUrl = env.solanaRpcUrl || "https://api.devnet.solana.com";
   return new Connection(rpcUrl, "confirmed");
 }
 
@@ -161,12 +176,12 @@ export async function verifySOLPayment(
     for (const instruction of instructions) {
       // Check for system program transfer (SOL transfer)
       if ("parsed" in instruction && instruction.program === "system") {
-        const parsed = instruction.parsed;
+        const parsed = instruction.parsed as ParsedTransferInstruction;
         if (parsed.type === "transfer") {
           const info = parsed.info;
-          recipient = info.destination;
-          sender = info.source;
-          actualAmount = info.lamports / LAMPORTS_PER_SOL;
+          recipient = info.destination || "";
+          sender = info.source || "";
+          actualAmount = (info.lamports || 0) / LAMPORTS_PER_SOL;
 
           // Check if recipient matches expected wallet
           if (recipient === expectedRecipient) {
@@ -217,12 +232,12 @@ export async function verifySOLPayment(
         confirmed: true,
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error verifying SOL payment:", error);
     return {
       valid: false,
       reason: "Failed to verify payment on blockchain",
-      error: error.message || "VERIFICATION_ERROR",
+      error: getErrorMessage(error) || "VERIFICATION_ERROR",
     };
   }
 }
@@ -297,7 +312,7 @@ export async function verifySPLTokenPayment(
 
     for (const instruction of instructions) {
       if ("parsed" in instruction && instruction.program === "spl-token") {
-        const parsed = instruction.parsed;
+        const parsed = instruction.parsed as ParsedTransferInstruction;
 
         // Check for transfer or transferChecked
         if (parsed.type === "transfer" || parsed.type === "transferChecked") {
@@ -308,11 +323,11 @@ export async function verifySPLTokenPayment(
             continue;
           }
 
-          sender = info.source;
-          recipient = info.destination;
+          sender = info.source || "";
+          recipient = info.destination || "";
           actualAmount =
             parsed.type === "transferChecked"
-              ? parseFloat(info.tokenAmount?.uiAmount || "0")
+              ? parseFloat(String(info.tokenAmount?.uiAmount || "0"))
               : parseFloat(info.amount || "0");
 
           // Determine token name
@@ -371,12 +386,12 @@ export async function verifySPLTokenPayment(
         confirmed: true,
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error verifying SPL token payment:", error);
     return {
       valid: false,
       reason: "Failed to verify token payment on blockchain",
-      error: error.message || "VERIFICATION_ERROR",
+      error: getErrorMessage(error) || "VERIFICATION_ERROR",
     };
   }
 }
@@ -433,7 +448,10 @@ export async function verifyPayment(
  * Check if transaction hash has already been used
  * Prevents double-spending attacks
  */
-export async function isTransactionUsed(txHash: string, storage: any): Promise<boolean> {
+export async function isTransactionUsed(
+  txHash: string,
+  storage: PaymentLookupStorage
+): Promise<boolean> {
   try {
     // Check if this transaction hash exists in payments table
     const existingPayment = await storage.getPaymentByTxHash(txHash);

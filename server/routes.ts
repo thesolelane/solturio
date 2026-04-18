@@ -5,7 +5,6 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { csrfProtection } from "./csrf";
 import { storage } from "./storage";
 import { createHash } from "crypto";
-import { isSolturioWallet, getRestrictionErrorMessage } from "./wallet-restrictions";
 import { licensesRouter } from "./licenses";
 import { licenseRouter } from "./license-routes";
 import { treasuryRouter } from "./treasury";
@@ -23,7 +22,21 @@ import { auditLogger } from "./audit-logger";
 import { Connection, PublicKey } from "@solana/web3.js";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
-import { upload, extractImageMetadata } from "./upload-helpers";
+import {
+  upload,
+  extractImageMetadata,
+  assertValidUploadFile,
+  InvalidUploadError,
+} from "./upload-helpers";
+import { env } from "./env";
+import {
+  getErrorMessage,
+  type AppNextFunction,
+  type AppResponse,
+  type AuthenticatedRequest,
+  type ExtensionAuthenticatedRequest,
+  type ExtensionSessionUser,
+} from "./http-types";
 
 import { adminRouter } from "./admin-routes";
 import { logoRouter } from "./logo-routes";
@@ -58,23 +71,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(csrfProtection);
 
   app.get("/api/health", (req, res) => {
-    const telegramStatus = (global as any).telegramBotStatus || "unknown";
+    const telegramStatus =
+      (globalThis as typeof globalThis & { telegramBotStatus?: string }).telegramBotStatus ||
+      "unknown";
     res.json({
       status: "ok",
       timestamp: new Date().toISOString(),
       services: {
         database: "online",
         telegram: telegramStatus,
-        arweave: process.env.ARWEAVE_WALLET_KEY ? "configured" : "not_configured",
-        pinata: process.env.PINATA_API_KEY ? "configured" : "not_configured",
-        sendgrid: process.env.SENDGRID_API_KEY ? "configured" : "not_configured",
+        arweave: env.arweaveWalletKey ? "configured" : "not_configured",
+        pinata: env.pinataApiKey ? "configured" : "not_configured",
+        sendgrid: env.sendgridApiKey ? "configured" : "not_configured",
       },
     });
   });
 
   app.get("/api/tokenomics/on-chain-config", async (req, res) => {
     try {
-      const SOLT_MINT_ADDRESS = process.env.SOLT_MINT_ADDRESS;
+      const SOLT_MINT_ADDRESS = env.soltMintAddress;
 
       if (!SOLT_MINT_ADDRESS) {
         return res.json(null);
@@ -82,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         const connection = new Connection(
-          process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com",
+          env.solanaRpcUrl || "https://api.mainnet-beta.solana.com",
           "confirmed"
         );
 
@@ -226,7 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         verified: true,
         walletAddress,
-        walletDomain: (user as any).solturioWalletDomain || null,
+        walletDomain: user.walletName || null,
         creator: {
           firstName: user.firstName || null,
           lastName: user.lastName || null,
@@ -252,57 +267,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  app.get(
+    "/api/auth/user",
+    isAuthenticated,
+    async (req: AuthenticatedRequest, res: AppResponse) => {
+      try {
+        const userId = req.user?.claims?.sub;
+        if (!userId) {
+          return res.status(401).json({ message: "Unauthorized" });
+        }
 
-  app.post("/api/extension/token", extensionRateLimiter, isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        const user = await storage.getUser(userId);
+        res.json(user);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        res.status(500).json({ message: "Failed to fetch user" });
       }
-
-      const jwtSecret = process.env.SESSION_SECRET;
-      if (!jwtSecret) {
-        return res.status(500).json({ message: "Server configuration error" });
-      }
-
-      const payload = {
-        sub: userId,
-        email: user.email,
-        scopes: ["extension:verify", "extension:register", "read:portfolio"],
-      };
-
-      const token = jwt.sign(payload, jwtSecret, {
-        expiresIn: "7d",
-        issuer: "solturio.app",
-        audience: "solturio-extension",
-      });
-
-      auditLogger.log({
-        action: "extension_token_generated",
-        userId,
-        details: { scopes: payload.scopes },
-      });
-
-      res.json({ token });
-    } catch (error) {
-      console.error("Error generating extension token:", error);
-      res.status(500).json({ message: "Failed to generate extension token" });
     }
-  });
+  );
 
-  const isExtensionAuthenticated: any = async (req: any, res: any, next: any) => {
+  app.post(
+    "/api/extension/token",
+    extensionRateLimiter,
+    isAuthenticated,
+    async (req: AuthenticatedRequest, res: AppResponse) => {
+      try {
+        const userId = req.user?.claims?.sub;
+        if (!userId) {
+          return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        const user = await storage.getUser(userId);
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const jwtSecret = env.sessionSecret;
+        if (!jwtSecret) {
+          return res.status(500).json({ message: "Server configuration error" });
+        }
+
+        const payload = {
+          sub: userId,
+          email: user.email,
+          scopes: ["extension:verify", "extension:register", "read:portfolio"],
+        };
+
+        const token = jwt.sign(payload, jwtSecret, {
+          expiresIn: "7d",
+          issuer: "solturio.app",
+          audience: "solturio-extension",
+        });
+
+        auditLogger.log({
+          action: "extension_token_generated",
+          userId,
+          details: { scopes: payload.scopes },
+        });
+
+        res.json({ token });
+      } catch (error) {
+        console.error("Error generating extension token:", error);
+        res.status(500).json({ message: "Failed to generate extension token" });
+      }
+    }
+  );
+
+  const isExtensionAuthenticated = async (
+    req: ExtensionAuthenticatedRequest,
+    res: AppResponse,
+    next: AppNextFunction
+  ) => {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -310,7 +346,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const token = authHeader.substring(7);
-      const jwtSecret = process.env.SESSION_SECRET;
+      const jwtSecret = env.sessionSecret;
 
       if (!jwtSecret) {
         return res.status(500).json({ message: "Server configuration error" });
@@ -319,20 +355,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const decoded = jwt.verify(token, jwtSecret, {
         issuer: "solturio.app",
         audience: "solturio-extension",
-      }) as { sub: string; email: string; scopes: string[] };
+      }) as { sub: string; email?: string; scopes: string[] };
 
-      req.extensionUser = {
+      const extensionUser: ExtensionSessionUser = {
         userId: decoded.sub,
         email: decoded.email,
         scopes: decoded.scopes,
       };
+      req.extensionUser = extensionUser;
 
       next();
-    } catch (error: any) {
-      if (error.name === "TokenExpiredError") {
+    } catch (error: unknown) {
+      if (error instanceof jwt.TokenExpiredError) {
         return res.status(401).json({ message: "Token expired" });
       }
-      if (error.name === "JsonWebTokenError") {
+      if (error instanceof jwt.JsonWebTokenError) {
         return res.status(401).json({ message: "Invalid token" });
       }
       console.error("Extension auth error:", error);
@@ -348,9 +385,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/extension/verify",
     extensionRateLimiter,
     isExtensionAuthenticated,
-    async (req: any, res) => {
+    async (req: ExtensionAuthenticatedRequest, res: AppResponse) => {
       try {
-        if (!hasScope(req.extensionUser.scopes, "extension:verify")) {
+        if (!req.extensionUser || !hasScope(req.extensionUser.scopes, "extension:verify")) {
           return res.status(403).json({ message: "Insufficient permissions" });
         }
 
@@ -406,9 +443,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/extension/portfolio",
     extensionRateLimiter,
     isExtensionAuthenticated,
-    async (req: any, res) => {
+    async (req: ExtensionAuthenticatedRequest, res: AppResponse) => {
       try {
-        if (!hasScope(req.extensionUser.scopes, "read:portfolio")) {
+        if (!req.extensionUser || !hasScope(req.extensionUser.scopes, "read:portfolio")) {
           return res.status(403).json({ message: "Insufficient permissions" });
         }
 
@@ -455,9 +492,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     extensionRegisterRateLimiter,
     isExtensionAuthenticated,
     upload.single("file"),
-    async (req: any, res) => {
+    async (req: ExtensionAuthenticatedRequest, res: AppResponse) => {
       try {
-        if (!hasScope(req.extensionUser.scopes, "extension:register")) {
+        if (!req.extensionUser || !hasScope(req.extensionUser.scopes, "extension:register")) {
           return res.status(403).json({ message: "Insufficient permissions" });
         }
 
@@ -478,6 +515,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!req.file) {
           return res.status(400).json({ message: "File is required" });
         }
+
+        await assertValidUploadFile(req.file);
 
         const { collectionId, description, sourceUrl } = req.body;
 
@@ -544,9 +583,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           message: "Content registered successfully",
         });
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Extension register error:", error);
-        res.status(500).json({ message: "Registration failed" });
+        if (error instanceof InvalidUploadError) {
+          return res.status(400).json({ message: error.message });
+        }
+        res.status(500).json({ message: getErrorMessage(error) || "Registration failed" });
       }
     }
   );
@@ -555,8 +597,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/extension/me",
     extensionRateLimiter,
     isExtensionAuthenticated,
-    async (req: any, res) => {
+    async (req: ExtensionAuthenticatedRequest, res: AppResponse) => {
       try {
+        if (!req.extensionUser) {
+          return res.status(401).json({ message: "Authentication failed" });
+        }
+
         const userId = req.extensionUser.userId;
         const user = await storage.getUser(userId);
 
@@ -580,9 +626,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  app.get("/api/stats", isAuthenticated, async (req: any, res) => {
+  app.get("/api/stats", isAuthenticated, async (req: AuthenticatedRequest, res: AppResponse) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
       const stats = await storage.getUserStats(userId);
       res.json(stats);
     } catch (error) {
@@ -631,22 +681,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   applyValidationToRoutes(app);
 
-  app.use((err: any, req: any, res: any, next: any) => {
-    const requestId = req.requestId || `req_${Date.now()}`;
-    const formatted = formatError(err, requestId);
+  app.use(
+    (
+      err: Error & { statusCode?: number },
+      req: AuthenticatedRequest,
+      res: AppResponse,
+      _next: AppNextFunction
+    ) => {
+      const requestId = req.requestId || `req_${Date.now()}`;
+      const formatted = formatError(err, requestId);
 
-    auditLogger.log({
-      action: "ERROR",
-      endpoint: req.path,
-      method: req.method,
-      statusCode: err.statusCode || 500,
-      requestId,
-      userId: req.user?.claims?.sub,
-      details: { error: err.message },
-    });
+      auditLogger.log({
+        action: "ERROR",
+        endpoint: req.path,
+        method: req.method,
+        statusCode: err.statusCode || 500,
+        requestId,
+        userId: req.user?.claims?.sub,
+        details: { error: err.message },
+      });
 
-    res.status(err.statusCode || 500).json(formatted);
-  });
+      res.status(err.statusCode || 500).json(formatted);
+    }
+  );
 
   const httpServer = createServer(app);
   return httpServer;

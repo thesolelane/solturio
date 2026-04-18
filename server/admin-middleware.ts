@@ -1,33 +1,56 @@
 import { storage } from "./storage";
+import type { User } from "@shared/schema";
+import { auditLogger } from "./audit-logger";
+import {
+  getErrorMessage,
+  type AppNextFunction,
+  type AppResponse,
+  type AuthenticatedRequest,
+} from "./http-types";
+import { hasAdminAccess } from "./admin-access";
 
-export const ADMIN_EMAILS = [
-  "admin@solturio.app",
-  "acooper@cooperanth.com",
-  "cooper@preferredbuildersusa.com",
-];
+export { hasAdminAccess } from "./admin-access";
 
-export async function isAdmin(req: any, res: any, next: any) {
+export async function requireAdmin(
+  req: AuthenticatedRequest,
+  res: AppResponse,
+  next: AppNextFunction
+) {
   if (!req.user?.claims?.sub) {
-    return res.status(401).json({ message: "Authentication required" });
+    return res.status(401).json({
+      success: false,
+      message: "Authentication required",
+      error: "Authentication required",
+    });
   }
 
   try {
-    const user = await storage.getUser(req.user.claims.sub);
-    if (!user) {
-      return res.status(403).json({ message: "Admin access required" });
+    const userId = req.user.claims.sub;
+    const user = await storage.getUser(userId);
+    if (!hasAdminAccess(user)) {
+      auditLogger.log({
+        action: "ADMIN_ACCESS_DENIED",
+        endpoint: req.path,
+        method: req.method,
+        statusCode: 403,
+        userId,
+        details: { email: user?.email, reason: "User is not an admin" },
+      });
+      return res
+        .status(403)
+        .json({ success: false, message: "Admin access required", error: "Admin access required" });
     }
 
-    const emailMatch =
-      user.email && ADMIN_EMAILS.map((e) => e.toLowerCase()).includes(user.email.toLowerCase());
-    const dbAdmin = user.isAdmin === true;
-
-    if (!emailMatch && !dbAdmin) {
-      return res.status(403).json({ message: "Admin access required" });
-    }
-
+    req.adminUser = user;
     next();
   } catch (error) {
     console.error("Admin middleware error:", error);
-    return res.status(500).json({ message: "Failed to verify admin access" });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to verify admin access",
+      error: getErrorMessage(error),
+    });
   }
 }
+
+export const isAdmin = requireAdmin;

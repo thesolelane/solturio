@@ -1,4 +1,6 @@
 import { Router } from "express";
+import type { Request } from "express";
+import rateLimit from "express-rate-limit";
 import { isAuthenticated } from "./replitAuth";
 import { storage } from "./storage";
 import {
@@ -7,8 +9,24 @@ import {
   decryptData,
 } from "./wallet";
 import { type User } from "@shared/schema";
+import { sendEmailVerificationEmail } from "./services/email";
+import { env } from "./env";
+import { getNextCeremonyRoute, resolveAppBaseUrl } from "./account-flow";
 
 export const accountRouter = Router();
+
+const sendVerificationRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+  message: { message: "Too many verification email requests. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { xForwardedForHeader: false, trustProxy: false },
+});
+
+function getAppBaseUrl(req: Request): string {
+  return resolveAppBaseUrl(env.baseUrl, req.protocol, req.get("host") ?? undefined);
+}
 
 accountRouter.post("/account/link-wallet", isAuthenticated, async (req: any, res) => {
   try {
@@ -31,21 +49,60 @@ accountRouter.post("/account/link-wallet", isAuthenticated, async (req: any, res
   }
 });
 
-accountRouter.post("/account/send-verification", isAuthenticated, async (req: any, res) => {
-  try {
-    const userId = req.user.claims.sub;
-    const user = await storage.getUser(userId);
+accountRouter.post(
+  "/account/send-verification",
+  sendVerificationRateLimiter,
+  isAuthenticated,
+  async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
 
-    if (!user?.email) {
-      return res.status(400).json({ message: "No email address found" });
+      if (!user?.email) {
+        return res.status(400).json({ message: "No email address found" });
+      }
+
+      if (user.emailVerified) {
+        return res.json({ message: "Email already verified", alreadyVerified: true });
+      }
+
+      const verification = await storage.createUserEmailVerification(userId);
+      if (!verification) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const verificationUrl =
+        `${getAppBaseUrl(req)}/api/account/verify-email/` +
+        `${encodeURIComponent(verification.verificationToken)}`;
+      const sent = await sendEmailVerificationEmail(
+        user.email,
+        verificationUrl,
+        user.firstName ?? user.lastName
+      );
+
+      if (!sent) {
+        return res.status(503).json({
+          message: "Email service unavailable. Verification email could not be sent.",
+        });
+      }
+
+      res.json({ message: "Verification email sent" });
+    } catch (error: any) {
+      console.error("Error sending verification:", error);
+      res.status(500).json({ message: error.message || "Failed to send verification email" });
     }
+  }
+);
 
-    await storage.updateEmailVerified(userId, true);
+accountRouter.get("/account/verify-email/:token", async (req, res) => {
+  try {
+    const verifiedUser = await storage.verifyUserEmail(req.params.token);
+    const status = verifiedUser ? "success" : "invalid";
 
-    res.json({ message: "Email verification sent" });
+    res.redirect(`${getAppBaseUrl(req)}/account?emailVerification=${status}`);
   } catch (error: any) {
-    console.error("Error sending verification:", error);
-    res.status(500).json({ message: error.message || "Failed to send verification email" });
+    console.error("Error verifying email:", error);
+    res.redirect(`${getAppBaseUrl(req)}/account?emailVerification=error`);
   }
 });
 
@@ -116,91 +173,70 @@ accountRouter.patch("/account/social-handles", isAuthenticated, async (req: any,
   }
 });
 
-accountRouter.post(
-  "/account/generate-solturio-wallet",
-  isAuthenticated,
-  async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      if (!user.emailVerified) {
-        return res.status(403).json({
-          message: "Email verification required before wallet generation",
-          requiresEmailVerification: true,
-        });
-      }
-
-      if (user.solanaPublicKey) {
-        return res.status(400).json({
-          message: "Solturio wallet already exists",
-          publicKey: user.solanaPublicKey,
-        });
-      }
-
-      const allUsers = await storage.getAllUsers();
-      const existingWalletNames = allUsers
-        .map((u: User) => u.walletName)
-        .filter(Boolean) as string[];
-      const accountNumber = getNextAccountNumber(existingWalletNames);
-
-      const wallet = await generateSolanaWalletNew({
-        walletType: "standard",
-        accountNumber,
-      });
-
-      const updatedUser = await storage.createSolturioWallet(
-        userId,
-        wallet.publicKey,
-        wallet.encryptedPrivateKey
-      );
-
-      res.json({
-        message: "Solturio wallet created successfully",
-        publicKey: wallet.publicKey,
-        createdAt: updatedUser.solanaWalletCreatedAt,
-      });
-    } catch (error: any) {
-      console.error("Error generating Solturio wallet:", error);
-      res.status(500).json({ message: error.message || "Failed to generate wallet" });
-    }
-  }
-);
-
-accountRouter.post("/account/export-private-key", isAuthenticated, async (req: any, res) => {
+accountRouter.post("/account/generate-solturio-wallet", isAuthenticated, async (req: any, res) => {
   try {
     const userId = req.user.claims.sub;
-    const { challenge, signature } = req.body;
     const user = await storage.getUser(userId);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (!challenge || !signature) {
-      return res.status(400).json({
-        message: "Challenge-response required for security",
-        step: 1,
-        instructions:
-          "GET /api/security/challenge first, then sign the challenge with your wallet",
+    if (!user.emailVerified) {
+      return res.status(403).json({
+        message: "Email verification required before wallet generation",
+        requiresEmailVerification: true,
       });
+    }
+
+    if (user.solanaPublicKey) {
+      return res.status(400).json({
+        message: "Solturio wallet already exists",
+        publicKey: user.solanaPublicKey,
+      });
+    }
+
+    const allUsers = await storage.getAllUsers();
+    const existingWalletNames = allUsers.map((u: User) => u.walletName).filter(Boolean) as string[];
+    const accountNumber = getNextAccountNumber(existingWalletNames);
+
+    const wallet = await generateSolanaWalletNew({
+      walletType: "standard",
+      accountNumber,
+    });
+
+    const updatedUser = await storage.createSolturioWallet(userId, {
+      publicKey: wallet.publicKey,
+      encryptedPrivateKey: wallet.encryptedPrivateKey,
+      encryptedRecoveryPhrase: wallet.encryptedMnemonic,
+      walletSalt: wallet.salt,
+      walletType: wallet.walletType,
+      walletName: wallet.walletName,
+    });
+
+    res.json({
+      message: "Solturio wallet created successfully",
+      publicKey: wallet.publicKey,
+      createdAt: updatedUser.solanaWalletCreatedAt,
+    });
+  } catch (error: any) {
+    console.error("Error generating Solturio wallet:", error);
+    res.status(500).json({ message: error.message || "Failed to generate wallet" });
+  }
+});
+
+accountRouter.post("/account/export-private-key", isAuthenticated, async (req: any, res) => {
+  try {
+    const userId = req.user.claims.sub;
+    const user = await storage.getUser(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
     if (!user.solanaPublicKey) {
       return res.status(400).json({
         message: "No wallet found. Please create a wallet first.",
-      });
-    }
-    const { verifyChallengeSignature } = await import("./security-ceremony");
-    const verified = verifyChallengeSignature(challenge, signature, user.solanaPublicKey);
-
-    if (!verified) {
-      return res.status(401).json({
-        message: "Challenge verification failed. Invalid signature or expired challenge.",
       });
     }
 
@@ -211,10 +247,20 @@ accountRouter.post("/account/export-private-key", isAuthenticated, async (req: a
       });
     }
 
-    if (!user.solanaEncryptedPrivateKey || !user.walletSalt) {
-      return res
-        .status(404)
-        .json({ message: "No Solturio wallet found or missing wallet salt" });
+    if (!user.ceremonyCompleted || !user.recoveryPhraseVerified) {
+      return res.status(403).json({
+        message: "Complete the Key Handover Ceremony before exporting your private key.",
+        requiresCeremony: true,
+        ceremonyRoute: getNextCeremonyRoute(user),
+      });
+    }
+
+    if (!user.solanaEncryptedPrivateKey || !user.walletSalt || !user.encryptedRecoveryPhrase) {
+      return res.status(409).json({
+        message:
+          "This wallet is missing recovery material required for secure export. Please contact support before continuing.",
+        missingExportMaterial: true,
+      });
     }
 
     const privateKeyHex = await decryptData(user.solanaEncryptedPrivateKey, user.walletSalt);
@@ -312,9 +358,8 @@ accountRouter.get("/verify/hash/:hash", async (req, res) => {
 
 accountRouter.get("/documents/solana-foundation-proposal", async (req, res) => {
   try {
-    const { generateSolanaFoundationProposal } = await import(
-      "./documents/solana-foundation-proposal"
-    );
+    const { generateSolanaFoundationProposal } =
+      await import("./documents/solana-foundation-proposal");
     const pdfBuffer = await generateSolanaFoundationProposal();
 
     res.setHeader("Content-Type", "application/pdf");
@@ -332,9 +377,7 @@ accountRouter.get("/documents/solana-foundation-proposal", async (req, res) => {
 accountRouter.post("/documents/dex-partnership-proposal", async (req, res) => {
   try {
     const { dexName } = req.body;
-    const { generateDEXPartnershipProposal } = await import(
-      "./documents/dex-partnership-proposal"
-    );
+    const { generateDEXPartnershipProposal } = await import("./documents/dex-partnership-proposal");
     const pdfBuffer = await generateDEXPartnershipProposal(dexName || "Your Platform");
 
     res.setHeader("Content-Type", "application/pdf");

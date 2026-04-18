@@ -4,12 +4,14 @@
  * - HTTP status codes
  * - Error tracking
  */
+import { env } from "./env";
+import { getErrorMessage } from "./http-types";
 
 export interface StandardError {
   success: false;
   error: string;
   code: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   timestamp: string;
   requestId?: string;
 }
@@ -25,7 +27,7 @@ export class APIError extends Error {
   constructor(
     public code: string,
     public statusCode: number,
-    public details?: Record<string, any>
+    public details?: Record<string, unknown>
   ) {
     super(code);
     this.name = "APIError";
@@ -69,7 +71,7 @@ export const ERROR_CODES = {
   BLOCKCHAIN_ERROR: { code: "BLOCKCHAIN_ERROR", status: 500 },
 };
 
-export function formatError(error: any, requestId?: string): StandardError {
+export function formatError(error: unknown, requestId?: string): StandardError {
   const now = new Date().toISOString();
 
   if (error instanceof APIError) {
@@ -85,9 +87,9 @@ export function formatError(error: any, requestId?: string): StandardError {
 
   return {
     success: false,
-    error: error.message || "An error occurred",
+    error: getErrorMessage(error),
     code: "INTERNAL_ERROR",
-    details: process.env.NODE_ENV === "development" ? { stack: error.stack } : undefined,
+    details: env.isDevelopment && error instanceof Error ? { stack: error.stack } : undefined,
     timestamp: now,
     requestId,
   };

@@ -18,7 +18,7 @@ Solturio is a decentralized web application that enables creators, brands, and p
 
 ### Environment Variables
 
-Required secrets (add to Replit Secrets or `.env`):
+Required secrets (add to Replit Secrets or a local `.env` in the project root):
 
 ```
 DATABASE_URL=your_postgres_connection_string
@@ -37,14 +37,56 @@ SC_API_URL=smart_contract_api_url
 SC_API_SECRET=smart_contract_api_secret
 ```
 
+### Beta / Production Switching
+
+The app supports a guarded Supabase target switch for local work:
+
+```env
+SOLTURIO_ENV_TARGET=beta
+```
+
+Use separate ignored files for each target's real secrets:
+
+- `.env.beta.local`
+- `.env.production.local`
+
+Production secrets stay locked until you explicitly activate them:
+
+```env
+SOLTURIO_ENV_TARGET=production
+SOLTURIO_PRODUCTION_UNLOCK=ACTIVATE_PRODUCTION
+```
+
+Without that unlock value, the app refuses to load the production target. This is an accidental-activation safeguard, not a replacement for access control.
+
+### Auth Provider
+
+Self-hosted environments can use local bootstrap auth instead of Replit:
+
+```env
+AUTH_PROVIDER=local
+LOCAL_AUTH_ACCESS_CODE=replace-with-a-long-random-bootstrap-code
+```
+
+In local auth mode, `/api/login` redirects to the built-in `/login` page and creates a normal Solturio user/session after the email + access code check.
+
+If you want to fall back to Replit later:
+
+```env
+AUTH_PROVIDER=replit
+REPLIT_DOMAINS=your-app.example.com
+REPL_ID=your_replit_app_id
+ISSUER_URL=https://replit.com/oidc
+```
+
 ### Installation
 
 ```bash
 # Install dependencies
 npm install
 
-# Push database schema
-npm run db:push
+# Apply checked-in migrations
+npm run db:migrate
 
 # Start development server
 npm run dev

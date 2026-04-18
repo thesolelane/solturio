@@ -8,9 +8,10 @@
 
 import crypto from "crypto";
 import { auditLogger } from "./audit-logger";
+import { env } from "./env";
 
-const SC_API_URL = process.env.SC_API_URL || "";
-const SC_API_SECRET = process.env.SC_API_SECRET || "";
+const SC_API_URL = env.scApiUrl || "";
+const SC_API_SECRET = env.scApiSecret || "";
 
 interface SCRequestOptions {
   method: "GET" | "POST" | "PUT" | "DELETE";

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { isAuthenticated } from "./replitAuth";
+import { env } from "./env";
 
 export const trademarkRouter = Router();
 
@@ -25,7 +26,7 @@ trademarkRouter.get("/trademark/search", isAuthenticated, async (req: any, res) 
       return res.status(400).json({ message: "markName is required" });
     }
 
-    const apiKey = process.env.USPTO_ODP_API_KEY;
+    const apiKey = env.usptoOdpApiKey;
     let results: any[] = [];
     let total = 0;
 
@@ -97,7 +98,7 @@ trademarkRouter.get("/trademark/image/:serialNumber", isAuthenticated, async (re
       return res.status(400).json({ message: "Invalid serial number" });
     }
 
-    const apiKey = process.env.USPTO_ODP_API_KEY;
+    const apiKey = env.usptoOdpApiKey;
     const url = `${USPTO_TSDR_BASE}/rawImage/${serialNumber}`;
     const headers: Record<string, string> = { Accept: "image/*" };
     if (apiKey) {

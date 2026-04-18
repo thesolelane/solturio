@@ -13,6 +13,7 @@
  */
 
 import { Connection, PublicKey } from "@solana/web3.js";
+import { env } from "../env";
 
 export interface NFTMetadata {
   name: string;
@@ -58,9 +59,9 @@ export interface MintResult {
   error?: string;
 }
 
-const SOLANA_RPC = process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
+const SOLANA_RPC = env.solanaRpcUrl || "https://api.mainnet-beta.solana.com";
 const SOLTURIO_PROGRAM_ID =
-  process.env.SOLTURIO_NFT_PROGRAM_ID || "TokenkegQfeZyiNwAJbNbGKPFXCDYfVfbq4nDr8vFuWG";
+  env.solturioNftProgramId || "TokenkegQfeZyiNwAJbNbGKPFXCDYfVfbq4nDr8vFuWG";
 
 /**
  * Build NFT metadata JSON for on-chain storage

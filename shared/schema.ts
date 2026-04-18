@@ -37,6 +37,8 @@ export const users = pgTable("users", {
   walletAddress: varchar("wallet_address"),
   walletVerified: boolean("wallet_verified").default(false), // Confirmed via signature
   emailVerified: boolean("email_verified").default(false), // 2FA analog - must verify email
+  emailVerificationToken: varchar("email_verification_token"),
+  emailVerificationTokenExpiresAt: timestamp("email_verification_token_expires_at"),
 
   // Solturio-generated Solana wallet (created when first artwork/logo registered)
   walletType: varchar("wallet_type", { length: 20 }), // 'standard' or 'premium'

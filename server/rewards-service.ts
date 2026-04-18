@@ -5,7 +5,8 @@
  */
 
 import { storage } from "./storage";
-import { SOLT_REWARDS, getEarlyAdopterMultiplier, SOLT_REWARDS_POOL } from "@shared/pricing";
+import { SOLT_REWARDS, SOLT_REWARDS_POOL } from "@shared/pricing";
+import { getErrorMessage } from "./http-types";
 
 type RewardAction =
   | "profile_complete"
@@ -33,6 +34,23 @@ interface RewardResult {
   finalAmount: number;
   newBalance: string;
   error?: string;
+}
+
+interface RewardsLogRow {
+  total?: string | null;
+  id?: string;
+}
+
+interface QueryResult<T> {
+  rows: T[];
+}
+
+interface QueryableClient {
+  query<T>(sql: string, params?: unknown[]): Promise<QueryResult<T>>;
+}
+
+function getDbClient(): QueryableClient | null {
+  return (storage as unknown as { $client?: QueryableClient }).$client ?? null;
 }
 
 // Map action types to base reward amounts
@@ -65,7 +83,7 @@ export async function awardReward(
   action: RewardAction,
   relatedEntityId?: string,
   relatedEntityType?: string,
-  metadata?: Record<string, any>
+  _metadata?: Record<string, unknown>
 ): Promise<RewardResult> {
   try {
     // Get user to check multiplier
@@ -132,7 +150,7 @@ export async function awardReward(
 
     // Log the reward (using raw SQL since we don't have storage method yet)
     try {
-      const db = (storage as any).$client;
+      const db = getDbClient();
       if (db) {
         await db.query(
           `INSERT INTO rewards_log (user_id, action_type, base_amount, multiplier, final_amount, related_entity_id, related_entity_type)
@@ -159,7 +177,7 @@ export async function awardReward(
       finalAmount,
       newBalance,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Award reward error:", error);
     return {
       success: false,
@@ -167,7 +185,7 @@ export async function awardReward(
       multiplier: 1,
       finalAmount: 0,
       newBalance: "0",
-      error: error.message,
+      error: getErrorMessage(error),
     };
   }
 }
@@ -181,13 +199,16 @@ export async function processReferralReward(
 ): Promise<{ referrerReward: RewardResult; referredBonus: RewardResult } | null> {
   try {
     // Find the referrer
-    const db = (storage as any).$client;
+    const db = getDbClient();
     if (!db) return null;
 
-    const result = await db.query(`SELECT id FROM users WHERE referral_code = $1`, [referralCode]);
+    const result = await db.query<{ id: string }>(`SELECT id FROM users WHERE referral_code = $1`, [
+      referralCode,
+    ]);
 
-    if (result.rows.length === 0) return null;
-    const referrerId = result.rows[0].id;
+    const referrer = result.rows[0];
+    if (!referrer?.id) return null;
+    const referrerId = referrer.id;
 
     // Award referrer
     const referrerReward = await awardReward(
@@ -241,12 +262,15 @@ export async function processReferralReward(
 /**
  * Get user's reward history
  */
-export async function getUserRewardHistory(userId: string, limit: number = 50): Promise<any[]> {
+export async function getUserRewardHistory(
+  userId: string,
+  limit: number = 50
+): Promise<Record<string, unknown>[]> {
   try {
-    const db = (storage as any).$client;
+    const db = getDbClient();
     if (!db) return [];
 
-    const result = await db.query(
+    const result = await db.query<Record<string, unknown>>(
       `SELECT * FROM rewards_log WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2`,
       [userId, limit]
     );
@@ -263,14 +287,15 @@ export async function getUserRewardHistory(userId: string, limit: number = 50): 
  */
 export async function getTotalRewardsDistributed(): Promise<number> {
   try {
-    const db = (storage as any).$client;
+    const db = getDbClient();
     if (!db) return 0;
 
-    const result = await db.query(
+    const result = await db.query<RewardsLogRow>(
       `SELECT COALESCE(SUM(final_amount::numeric), 0) as total FROM rewards_log`
     );
 
-    return parseFloat(result.rows[0].total) || 0;
+    const totals = result.rows[0];
+    return parseFloat(totals?.total || "0") || 0;
   } catch (error) {
     console.error("Get total rewards error:", error);
     return 0;
@@ -352,7 +377,7 @@ export async function awardManualReward(
 
     // Log the admin reward with audit trail
     try {
-      const db = (storage as any).$client;
+      const db = getDbClient();
       if (db) {
         await db.query(
           `INSERT INTO rewards_log (user_id, action_type, base_amount, multiplier, final_amount, related_entity_id, related_entity_type)
@@ -379,7 +404,7 @@ export async function awardManualReward(
       finalAmount,
       newBalance,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Admin award reward error:", error);
     return {
       success: false,
@@ -387,7 +412,7 @@ export async function awardManualReward(
       multiplier: 1,
       finalAmount: 0,
       newBalance: "0",
-      error: error.message,
+      error: getErrorMessage(error),
     };
   }
 }

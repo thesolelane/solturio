@@ -8,10 +8,11 @@
 
 import { Connection, clusterApiUrl, PublicKey } from "@solana/web3.js";
 import { scRequest, isConfigured as scConfigured } from "./sc-client";
+import { env } from "./env";
 
-const SOLANA_CLUSTER = process.env.SOLANA_CLUSTER || "devnet";
+const SOLANA_CLUSTER = env.solanaCluster;
 const CATH_MINT = "48rmvKgpGpUNUuH3n2UYTZS2AUxZEkaCiNjQ57q1duMA";
-const TREASURY_CATH_ACCOUNT = process.env.TREASURY_CATH_ACCOUNT || "";
+const TREASURY_CATH_ACCOUNT = env.treasuryCathAccount || "";
 
 export const connection = new Connection(clusterApiUrl(SOLANA_CLUSTER as any));
 

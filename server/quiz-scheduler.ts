@@ -1,5 +1,6 @@
 import cron, { ScheduledTask } from "node-cron";
 import { quizBot } from "./telegram-bot";
+import { env } from "./env";
 
 /**
  * Solturio Quiz Scheduler
@@ -10,7 +11,7 @@ import { quizBot } from "./telegram-bot";
  * Posts daily leaderboard at 2:01 PM
  */
 
-const QUIZ_CHAT_ID = process.env.TELEGRAM_QUIZ_CHAT_ID || "";
+const QUIZ_CHAT_ID = env.telegramQuizChatId || "";
 
 class QuizScheduler {
   private morningAnnouncementJob: ScheduledTask | null = null;

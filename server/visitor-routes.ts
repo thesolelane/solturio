@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { isAuthenticated } from "./replitAuth";
 import { storage } from "./storage";
+import { env } from "./env";
 
 export const visitorRouter = Router();
 
@@ -27,15 +28,15 @@ visitorRouter.post("/visitor/register", async (req, res) => {
 
     const visitor = await storage.createVisitorAccount(email, marketingOptIn || false);
 
-    if (process.env.NODE_ENV !== "production") {
+    if (!env.isProduction) {
       await storage.verifyVisitorEmail(visitor.verificationToken!);
     }
 
     res.json({
       message: "Account created successfully",
       visitorId: visitor.id,
-      requiresVerification: process.env.NODE_ENV === "production",
-      ...(process.env.NODE_ENV !== "production" && {
+      requiresVerification: env.isProduction,
+      ...(!env.isProduction && {
         verificationToken: visitor.verificationToken,
       }),
     });

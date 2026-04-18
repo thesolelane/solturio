@@ -1,8 +1,9 @@
 import { Keypair } from "@solana/web3.js";
 import crypto from "crypto";
+import { env } from "./env";
 
 // Require strong encryption key - fail if not set
-const ENCRYPTION_KEY = process.env.WALLET_ENCRYPTION_KEY || process.env.SESSION_SECRET;
+const ENCRYPTION_KEY = env.walletEncryptionKey || env.sessionSecret;
 if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length < 32) {
   console.error(
     "CRITICAL: WALLET_ENCRYPTION_KEY or SESSION_SECRET must be set and at least 32 characters"
@@ -11,7 +12,7 @@ if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length < 32) {
     "For development, SESSION_SECRET should be sufficient. For production, set a dedicated WALLET_ENCRYPTION_KEY."
   );
   // In development, allow SESSION_SECRET. In production, this should fail hard.
-  if (process.env.NODE_ENV === "production") {
+  if (env.isProduction) {
     throw new Error("WALLET_ENCRYPTION_KEY must be set in production");
   }
 }

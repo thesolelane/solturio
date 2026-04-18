@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
-  Shield,
   Wallet,
   Mail,
   Bell,
@@ -17,7 +16,6 @@ import {
   Copy,
   Download,
   ExternalLink,
-  Github,
   Moon,
   Sun,
   Palette,
@@ -35,6 +33,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { BrandLogo } from "@/components/brand-logo";
 import {
   Dialog,
   DialogContent,
@@ -46,11 +45,12 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { User } from "@shared/schema";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 export default function AccountPage() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const [, setLocation] = useLocation();
   const [walletInput, setWalletInput] = useState("");
   const [socialHandles, setSocialHandles] = useState({
     twitterHandle: "",
@@ -83,6 +83,20 @@ export default function AccountPage() {
   const [exportedPrivateKey, setExportedPrivateKey] = useState<number[] | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
+  const parseErrorPayload = (error: any): Record<string, any> | null => {
+    const message = error?.message;
+    if (typeof message !== "string") return null;
+
+    const jsonStart = message.indexOf("{");
+    if (jsonStart === -1) return null;
+
+    try {
+      return JSON.parse(message.slice(jsonStart));
+    } catch {
+      return null;
+    }
+  };
+
   // Load theme on mount
   useEffect(() => {
     const stored = localStorage.getItem("theme") as "light" | "dark" | null;
@@ -108,6 +122,38 @@ export default function AccountPage() {
   useEffect(() => {
     document.title = "Account Settings - Solturio";
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const verificationStatus = params.get("emailVerification");
+
+    if (!verificationStatus) return;
+
+    if (verificationStatus === "success") {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({
+        title: "Email Verified",
+        description: "Your email has been verified successfully.",
+      });
+    } else if (verificationStatus === "invalid") {
+      toast({
+        title: "Verification Link Invalid",
+        description: "That verification link is invalid or has expired.",
+        variant: "destructive",
+      });
+    } else if (verificationStatus === "error") {
+      toast({
+        title: "Verification Failed",
+        description: "We could not complete email verification. Please try again.",
+        variant: "destructive",
+      });
+    }
+
+    params.delete("emailVerification");
+    const search = params.toString();
+    const nextUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname;
+    window.history.replaceState({}, "", nextUrl);
+  }, [toast]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -152,7 +198,16 @@ export default function AccountPage() {
       const response = await apiRequest("POST", "/api/account/send-verification");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: { alreadyVerified?: boolean }) => {
+      if (data.alreadyVerified) {
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+        toast({
+          title: "Email Already Verified",
+          description: "Your account is already verified.",
+        });
+        return;
+      }
+
       toast({
         title: "Verification Email Sent",
         description: "Please check your inbox and click the verification link.",
@@ -276,6 +331,26 @@ export default function AccountPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     },
     onError: (error: any) => {
+      const payload = parseErrorPayload(error);
+
+      if (payload?.requiresCeremony && payload.ceremonyRoute) {
+        toast({
+          title: "Complete Key Handover Ceremony",
+          description: payload.message || "Finish the ceremony before exporting your private key.",
+        });
+        setLocation(payload.ceremonyRoute);
+        return;
+      }
+
+      if (payload?.missingExportMaterial) {
+        toast({
+          title: "Export Not Available Yet",
+          description: payload.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
         title: "Error",
         description: error.message || "Failed to export private key",
@@ -291,7 +366,7 @@ export default function AccountPage() {
         title: "Copied!",
         description: `${label} copied to clipboard`,
       });
-    } catch (err) {
+    } catch {
       toast({
         title: "Copy Failed",
         description: "Could not copy to clipboard",
@@ -357,6 +432,14 @@ export default function AccountPage() {
   const isWalletLinked = !!user?.walletAddress;
   const isEmailVerified = user?.emailVerified || false;
   const canUploadOrPay = isWalletLinked && isEmailVerified;
+  const hasCeremonyExportMaterial = !!user?.walletSalt && !!user?.encryptedRecoveryPhrase;
+  const nextCeremonyRoute = user?.ceremonyCompleted
+    ? "/account"
+    : user?.recoveryPhraseVerified
+      ? "/ceremony/stage-6-terms"
+      : user?.recoveryPhraseShownAt
+        ? "/ceremony/stage-5-verification"
+        : "/ceremony/stage-4-reveal";
 
   return (
     <div className="min-h-screen bg-background">
@@ -365,18 +448,7 @@ export default function AccountPage() {
         <div className="h-20 flex items-center px-6 lg:px-8">
           <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {/* Light Mode Logo - Dark colored logo for light backgrounds */}
-              <img
-                src="/solturio-logo-light-mode.png"
-                alt="Solturio Logo for Light Mode"
-                className="w-14 h-14 object-contain dark:hidden"
-              />
-              {/* Dark Mode Logo - White colored logo for dark backgrounds */}
-              <img
-                src="/solturio-logo-dark-mode.png"
-                alt="Solturio Logo for Dark Mode"
-                className="w-14 h-14 object-contain hidden dark:block"
-              />
+              <BrandLogo className="w-14 h-14 object-contain" />
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
                 Solturio
               </span>
@@ -570,39 +642,68 @@ export default function AccountPage() {
                       </div>
                     </div>
 
-                    <div className="bg-blue-500/10 border border-blue-500/20 rounded p-3 space-y-2">
-                      <p className="text-sm font-medium">Import to Phantom Wallet</p>
-                      <p className="text-xs text-muted-foreground">
-                        Your NFTs will be minted to this address. Export the private key below to
-                        import into Phantom and manage your NFTs directly.
-                      </p>
-                      <div className="flex gap-2 mt-2">
-                        <Button
-                          size="sm"
-                          onClick={() => exportPrivateKeyMutation.mutate()}
-                          disabled={exportPrivateKeyMutation.isPending}
-                          data-testid="button-export-private-key"
-                        >
-                          {exportPrivateKeyMutation.isPending ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Loading...
-                            </>
-                          ) : (
-                            <>
-                              <Download className="w-4 h-4 mr-2" />
-                              Export Private Key
-                            </>
-                          )}
-                        </Button>
-                        <Button size="sm" variant="outline" asChild>
-                          <a href="https://phantom.app/" target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            Get Phantom
-                          </a>
-                        </Button>
+                    {!hasCeremonyExportMaterial ? (
+                      <Alert className="border-destructive/30 bg-destructive/5">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Wallet Export Needs Support</AlertTitle>
+                        <AlertDescription>
+                          This wallet is missing the recovery material required for secure export.
+                          Please contact support before attempting a private-key export.
+                        </AlertDescription>
+                      </Alert>
+                    ) : !user?.ceremonyCompleted ? (
+                      <Alert className="border-primary/30 bg-primary/5">
+                        <Key className="h-4 w-4" />
+                        <AlertTitle>Complete Key Handover Ceremony First</AlertTitle>
+                        <AlertDescription className="flex items-center justify-between gap-4">
+                          <span className="text-sm">
+                            Export unlocks after you reveal, verify, and accept the recovery-phrase
+                            ceremony.
+                          </span>
+                          <Button size="sm" asChild data-testid="button-continue-ceremony">
+                            <Link href={nextCeremonyRoute}>Continue Ceremony</Link>
+                          </Button>
+                        </AlertDescription>
+                      </Alert>
+                    ) : (
+                      <div className="bg-blue-500/10 border border-blue-500/20 rounded p-3 space-y-2">
+                        <p className="text-sm font-medium">Import to Phantom Wallet</p>
+                        <p className="text-xs text-muted-foreground">
+                          Your NFTs will be minted to this address. Export the private key below to
+                          import into Phantom and manage your NFTs directly.
+                        </p>
+                        <div className="flex gap-2 mt-2">
+                          <Button
+                            size="sm"
+                            onClick={() => exportPrivateKeyMutation.mutate()}
+                            disabled={exportPrivateKeyMutation.isPending}
+                            data-testid="button-export-private-key"
+                          >
+                            {exportPrivateKeyMutation.isPending ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Loading...
+                              </>
+                            ) : (
+                              <>
+                                <Download className="w-4 h-4 mr-2" />
+                                Export Private Key
+                              </>
+                            )}
+                          </Button>
+                          <Button size="sm" variant="outline" asChild>
+                            <a
+                              href="https://phantom.app/"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Get Phantom
+                            </a>
+                          </Button>
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {user.hasExportedPrivateKey && (
                       <Alert>
@@ -842,7 +943,10 @@ export default function AccountPage() {
                       setSocialHandles({ ...socialHandles, twitterHandle: e.target.value })
                     }
                     onBlur={(e) =>
-                      setSocialHandles({ ...socialHandles, twitterHandle: stripLeadingAt(e.target.value) })
+                      setSocialHandles({
+                        ...socialHandles,
+                        twitterHandle: stripLeadingAt(e.target.value),
+                      })
                     }
                     className="pl-7"
                     data-testid="input-twitter"
@@ -884,7 +988,10 @@ export default function AccountPage() {
                       setSocialHandles({ ...socialHandles, telegramHandle: e.target.value })
                     }
                     onBlur={(e) =>
-                      setSocialHandles({ ...socialHandles, telegramHandle: stripLeadingAt(e.target.value) })
+                      setSocialHandles({
+                        ...socialHandles,
+                        telegramHandle: stripLeadingAt(e.target.value),
+                      })
                     }
                     className="pl-7"
                     data-testid="input-telegram"
@@ -922,7 +1029,10 @@ export default function AccountPage() {
                     setSocialHandles({ ...socialHandles, discordHandle: e.target.value })
                   }
                   onBlur={(e) =>
-                    setSocialHandles({ ...socialHandles, discordHandle: stripLeadingAt(e.target.value) })
+                    setSocialHandles({
+                      ...socialHandles,
+                      discordHandle: stripLeadingAt(e.target.value),
+                    })
                   }
                   data-testid="input-discord"
                 />
@@ -962,7 +1072,10 @@ export default function AccountPage() {
                       setSocialHandles({ ...socialHandles, instagramHandle: e.target.value })
                     }
                     onBlur={(e) =>
-                      setSocialHandles({ ...socialHandles, instagramHandle: stripLeadingAt(e.target.value) })
+                      setSocialHandles({
+                        ...socialHandles,
+                        instagramHandle: stripLeadingAt(e.target.value),
+                      })
                     }
                     className="pl-7"
                     data-testid="input-instagram"
@@ -1035,14 +1148,15 @@ export default function AccountPage() {
                     onBlur={(e) => setWebsiteError(validateUrl(e.target.value))}
                     data-testid="input-website"
                   />
-                  {websiteError && (
-                    <p className="text-sm text-destructive">{websiteError}</p>
-                  )}
+                  {websiteError && <p className="text-sm text-destructive">{websiteError}</p>}
                 </div>
                 <Button
                   onClick={() => {
                     const err = validateUrl(socialHandles.websiteUrl);
-                    if (err) { setWebsiteError(err); return; }
+                    if (err) {
+                      setWebsiteError(err);
+                      return;
+                    }
                     updateSocialHandlesMutation.mutate({ websiteUrl: socialHandles.websiteUrl });
                   }}
                   disabled={updateSocialHandlesMutation.isPending}
@@ -1072,7 +1186,9 @@ export default function AccountPage() {
                   data-testid="input-bio"
                 />
                 <div className="flex items-center justify-between">
-                  <span className={`text-xs ${socialHandles.bio.length >= BIO_MAX ? "text-destructive" : "text-muted-foreground"}`}>
+                  <span
+                    className={`text-xs ${socialHandles.bio.length >= BIO_MAX ? "text-destructive" : "text-muted-foreground"}`}
+                  >
                     {socialHandles.bio.length}/{BIO_MAX}
                   </span>
                   <Button

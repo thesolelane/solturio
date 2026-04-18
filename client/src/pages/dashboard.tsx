@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { BrandLogo } from "@/components/brand-logo";
 import type { Logo, Collection } from "@shared/schema";
 import { Link } from "wouter";
 import { NFTMintingUI } from "@/components/nft-minting-ui";
@@ -310,18 +311,7 @@ export default function Dashboard() {
         <div className="h-20 flex items-center px-6 lg:px-8">
           <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {/* Light Mode Logo - Dark colored logo for light backgrounds */}
-              <img
-                src="/solturio-logo-light-mode.png"
-                alt="Solturio Logo for Light Mode"
-                className="w-14 h-14 object-contain dark:hidden"
-              />
-              {/* Dark Mode Logo - White colored logo for dark backgrounds */}
-              <img
-                src="/solturio-logo-dark-mode.png"
-                alt="Solturio Logo for Dark Mode"
-                className="w-14 h-14 object-contain hidden dark:block"
-              />
+              <BrandLogo className="w-14 h-14 object-contain" />
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
                 Solturio
               </span>

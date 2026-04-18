@@ -1,5 +1,6 @@
 import Arweave from "arweave";
 import type { JWKInterface } from "arweave/node/lib/wallet";
+import { env } from "../env";
 
 class ArweaveService {
   private arweave: Arweave;
@@ -18,7 +19,7 @@ class ArweaveService {
   }
 
   private loadWallet(): void {
-    const walletKey = process.env.ARWEAVE_WALLET_KEY;
+    const walletKey = env.arweaveWalletKey;
     if (walletKey) {
       try {
         this.wallet = JSON.parse(walletKey);

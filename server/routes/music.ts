@@ -6,6 +6,7 @@ import { encryptAesGcm } from "../lib/crypto-aes";
 import { hybridContextHash, hybridId } from "../lib/hybrid";
 import { storage } from "../storage";
 import type { MasterAccessResponse } from "@shared/schema";
+import { env, requireEnv } from "../env";
 
 const upload = multer({ storage: multer.memoryStorage() });
 export const musicRouter = Router();
@@ -76,7 +77,10 @@ musicRouter.post("/upload", upload.single("file"), async (req, res) => {
 
   const previewBuf = file.buffer;
 
-  const masterKey = Buffer.from(process.env.MUSIC_MASTER_KEK!, "hex").subarray(0, 32);
+  const masterKey = Buffer.from(
+    requireEnv("MUSIC_MASTER_KEK", env.musicMasterKek),
+    "hex"
+  ).subarray(0, 32);
   const { iv, enc, tag } = encryptAesGcm(file.buffer, masterKey);
   const encryptedMaster = Buffer.concat([iv, tag, enc]);
 
@@ -117,7 +121,7 @@ musicRouter.post("/upload", upload.single("file"), async (req, res) => {
  */
 async function checkMasterLicense(userId: string, trackId: string): Promise<boolean> {
   // Test mode: bypass license check
-  if (process.env.STUB_LICENSED === "true") {
+  if (env.stubLicensed) {
     return true;
   }
 
@@ -183,7 +187,7 @@ musicRouter.get("/tracks/:id/stream", async (req, res) => {
 
   // When STUB_LICENSED is set, serve a test audio response
   // In production, this would fetch encrypted audio from Arweave and decrypt
-  if (process.env.STUB_LICENSED === "true") {
+  if (env.stubLicensed) {
     // Return a simple sine wave audio as test (generate minimal WAV header)
     // This is a 1-second 440Hz sine wave at 8000Hz sample rate, 8-bit mono
     const sampleRate = 8000;

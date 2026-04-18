@@ -1,12 +1,13 @@
 import axios from "axios";
 import FormData from "form-data";
 import { createHash } from "crypto";
+import { env } from "./env";
 
 // IPFS configuration - uses Pinata for reliable pinning
 // User will need to provide their own Pinata keys for production
-const PINATA_API_KEY = process.env.PINATA_API_KEY || "";
-const PINATA_SECRET_KEY = process.env.PINATA_SECRET_KEY || "";
-const PINATA_JWT = process.env.PINATA_JWT || "";
+const PINATA_API_KEY = env.pinataApiKey || "";
+const PINATA_SECRET_KEY = env.pinataSecretKey || "";
+const PINATA_JWT = env.pinataJwt || "";
 
 // Public IPFS gateways for retrieval
 const IPFS_GATEWAYS = [

@@ -3,8 +3,9 @@ import { message } from "telegraf/filters";
 import { db } from "./db";
 import { quizQuestions, quizAttempts, telegramLeaderboard } from "../shared/schema";
 import { eq, desc, sql } from "drizzle-orm";
+import { env } from "./env";
 
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const BOT_TOKEN = env.telegramBotToken;
 
 if (!BOT_TOKEN) {
   console.error("TELEGRAM_BOT_TOKEN is not set in environment variables");

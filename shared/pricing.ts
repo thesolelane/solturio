@@ -3,6 +3,7 @@
  * Updated: December 2024 - New Payment Model
  * REGULATORY: All payments are non-refundable service fees, not custody
  */
+import { env } from "../server/env.ts";
 
 // ============================================================================
 // ADMIN CONFIGURATION
@@ -83,9 +84,9 @@ export const TOKEN_MINTS = {
 };
 
 export const PLATFORM_WALLETS = {
-  REVENUE: process.env.PLATFORM_REVENUE_WALLET || "PLACEHOLDER_REVENUE_WALLET",
-  OPERATIONS: process.env.PLATFORM_OPERATIONS_WALLET || "PLACEHOLDER_OPS_WALLET",
-  REWARDS: process.env.PLATFORM_REWARDS_WALLET || "PLACEHOLDER_REWARDS_WALLET",
+  REVENUE: env.platformRevenueWallet || "PLACEHOLDER_REVENUE_WALLET",
+  OPERATIONS: env.platformOperationsWallet || "PLACEHOLDER_OPS_WALLET",
+  REWARDS: env.platformRewardsWallet || "PLACEHOLDER_REWARDS_WALLET",
 };
 
 // ============================================================================

@@ -33,6 +33,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { BrandLogo } from "@/components/brand-logo";
 import {
   Select,
   SelectContent,
@@ -313,16 +314,7 @@ export default function Licenses() {
         <div className="h-20 flex items-center px-6 lg:px-8">
           <div className="max-w-7xl mx-auto w-full flex items-center justify-between gap-4">
             <Link href="/" className="flex items-center gap-3 hover-elevate">
-              <img
-                src="/solturio-logo-light-mode.png"
-                alt="Solturio Logo for Light Mode"
-                className="w-14 h-14 object-contain dark:hidden"
-              />
-              <img
-                src="/solturio-logo-dark-mode.png"
-                alt="Solturio Logo for Dark Mode"
-                className="w-14 h-14 object-contain hidden dark:block"
-              />
+              <BrandLogo className="w-14 h-14 object-contain" />
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
                 Solturio
               </span>

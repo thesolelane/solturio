@@ -3,6 +3,7 @@ import { Shield, Lock, Clock, CheckCircle2, ArrowRight, Search } from "lucide-re
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { BrandLogo } from "@/components/brand-logo";
 // Using public folder logos directly
 
 export default function Landing() {
@@ -17,18 +18,7 @@ export default function Landing() {
         <div className="h-20 flex items-center px-6 lg:px-8">
           <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {/* Light Mode Logo - Dark colored logo for light backgrounds */}
-              <img
-                src="/solturio-logo-dark.png"
-                alt="Solturio Logo"
-                className="w-14 h-14 object-contain dark:hidden"
-              />
-              {/* Dark Mode Logo - White colored logo for dark backgrounds */}
-              <img
-                src="/solturio-logo-white.png"
-                alt="Solturio Logo"
-                className="w-14 h-14 object-contain hidden dark:block"
-              />
+              <BrandLogo />
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
                 Solturio
               </span>
@@ -45,16 +35,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto text-center">
           {/* Solturio Logo */}
           <div className="mb-8 flex justify-center">
-            <img
-              src="/solturio-logo-dark.png"
-              alt="Solturio"
-              className="w-48 h-48 object-contain dark:hidden"
-            />
-            <img
-              src="/solturio-logo-white.png"
-              alt="Solturio"
-              className="w-48 h-48 object-contain hidden dark:block"
-            />
+            <BrandLogo alt="Solturio" className="w-48 h-48 object-contain" />
           </div>
           <h1 className="text-4xl lg:text-5xl font-semibold mb-4">Plant Your Standard on Chain</h1>
           <div className="text-sm text-muted-foreground mb-6 font-medium">

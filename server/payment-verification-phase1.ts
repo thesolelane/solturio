@@ -8,11 +8,13 @@
  * 4. Enhanced on-chain verification with token mint validation
  */
 
-import { Connection, PublicKey, LAMPORTS_PER_SOL, clusterApiUrl } from "@solana/web3.js";
+import { Connection, LAMPORTS_PER_SOL, clusterApiUrl } from "@solana/web3.js";
+import { env } from "./env";
+import { getErrorMessage } from "./http-types";
 
 const CATH_MINT = "48rmvKgpGpUNUuH3n2UYTZS2AUxZEkaCiNjQ57q1duMA";
-const TREASURY_CATH_ACCOUNT = process.env.TREASURY_CATH_ACCOUNT || "PLACEHOLDER_CATH_ACCOUNT";
-const TREASURY_SOL_WALLET = process.env.TREASURY_SOL_WALLET || "PLACEHOLDER_SOL_WALLET";
+const TREASURY_CATH_ACCOUNT = env.treasuryCathAccount || "PLACEHOLDER_CATH_ACCOUNT";
+const TREASURY_SOL_WALLET = env.treasurySolWallet || "PLACEHOLDER_SOL_WALLET";
 
 // PHASE 1: Hardcoded currency per payment type
 export const PAYMENT_CURRENCY_MAP = {
@@ -30,7 +32,23 @@ export const CRYPTO_PRICING_PHASE1 = {
   IP_REGISTRATION: { CATH: 100 }, // IP registration: 100 $CATH
   LOGO_REGISTRATION: { CATH: 100 }, // Logo registration: 100 $CATH
   LICENSE_CREATION: { CATH: 50 }, // License creation: 50 $CATH
-};
+} as const;
+
+type Phase1PaymentType = keyof typeof PAYMENT_CURRENCY_MAP;
+
+interface ParsedTransferInstruction {
+  type?: string;
+  info: {
+    destination?: string;
+    source?: string;
+    lamports?: number;
+    mint?: string;
+    amount?: string;
+    tokenAmount?: {
+      uiAmount?: number | string | null;
+    };
+  };
+}
 
 export interface PaymentVerificationResult {
   valid: boolean;
@@ -49,7 +67,7 @@ export interface PaymentVerificationResult {
 }
 
 function getSolanaConnection(): Connection {
-  const rpcUrl = process.env.SOLANA_RPC_URL || clusterApiUrl("mainnet-beta");
+  const rpcUrl = env.solanaRpcUrl || clusterApiUrl("mainnet-beta");
   return new Connection(rpcUrl, "confirmed");
 }
 
@@ -69,11 +87,20 @@ export function getPaymentCurrency(paymentType: string): "SOL" | "CATH" {
  */
 export function getExpectedAmount(paymentType: string): number {
   const currency = getPaymentCurrency(paymentType);
-  const pricing = CRYPTO_PRICING_PHASE1[paymentType as keyof typeof CRYPTO_PRICING_PHASE1] as any;
+  const pricing = CRYPTO_PRICING_PHASE1[paymentType as Phase1PaymentType];
   if (!pricing) {
     throw new Error(`No pricing for payment type: ${paymentType}`);
   }
-  return pricing[currency];
+
+  if (currency === "SOL" && "SOL" in pricing) {
+    return pricing.SOL;
+  }
+
+  if (currency === "CATH" && "CATH" in pricing) {
+    return pricing.CATH;
+  }
+
+  throw new Error(`No ${currency} pricing for payment type: ${paymentType}`);
 }
 
 /**
@@ -118,14 +145,14 @@ export async function verifySOLPayment(
 
     for (const instruction of transaction.transaction.message.instructions) {
       if ("parsed" in instruction && instruction.program === "system") {
-        const parsed = instruction.parsed;
+        const parsed = instruction.parsed as ParsedTransferInstruction;
         if (parsed.type === "transfer") {
           const info = parsed.info;
           if (info.destination === expectedRecipient) {
             foundTransfer = true;
-            sender = info.source;
-            recipient = info.destination;
-            actualAmount = info.lamports / LAMPORTS_PER_SOL;
+            sender = info.source || "";
+            recipient = info.destination || "";
+            actualAmount = (info.lamports || 0) / LAMPORTS_PER_SOL;
             break;
           }
         }
@@ -166,12 +193,12 @@ export async function verifySOLPayment(
         confirmed: true,
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       valid: false,
       currency: "SOL",
       expectedAmount,
-      error: error.message || "Verification failed",
+      error: getErrorMessage(error) || "Verification failed",
     };
   }
 }
@@ -219,7 +246,7 @@ export async function verifyCATHPayment(
 
     for (const instruction of transaction.transaction.message.instructions) {
       if ("parsed" in instruction && instruction.program === "spl-token") {
-        const parsed = instruction.parsed;
+        const parsed = instruction.parsed as ParsedTransferInstruction;
 
         if (parsed.type === "transferChecked" || parsed.type === "transfer") {
           const info = parsed.info;
@@ -233,11 +260,11 @@ export async function verifyCATHPayment(
           // Check recipient
           if (info.destination === expectedRecipient) {
             foundTransfer = true;
-            sender = info.source;
-            recipient = info.destination;
+            sender = info.source || "";
+            recipient = info.destination || "";
             actualAmount =
               parsed.type === "transferChecked"
-                ? parseFloat(info.tokenAmount?.uiAmount || "0")
+                ? parseFloat(String(info.tokenAmount?.uiAmount || "0"))
                 : parseFloat(info.amount || "0") / 1e9; // Assume 9 decimals for CATH
             break;
           }
@@ -279,12 +306,12 @@ export async function verifyCATHPayment(
         confirmed: true,
       },
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       valid: false,
       currency: "CATH",
       expectedAmount,
-      error: error.message || "Verification failed",
+      error: getErrorMessage(error) || "Verification failed",
     };
   }
 }
@@ -316,12 +343,12 @@ export async function verifyPaymentPhase1(
           error: `Unsupported currency: ${currency}`,
         };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       valid: false,
       currency: "UNKNOWN",
       expectedAmount: 0,
-      error: error.message || "Payment verification failed",
+      error: getErrorMessage(error) || "Payment verification failed",
     };
   }
 }

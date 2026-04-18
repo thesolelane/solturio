@@ -35,6 +35,7 @@ import {
 import { db } from "./db";
 import { eq, desc, and, or, gte, lt, sql } from "drizzle-orm";
 import crypto from "crypto";
+import { env } from "./env";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -45,6 +46,12 @@ export interface IStorage {
   updateUser(userId: string, updates: Partial<User>): Promise<User>;
   updateWalletAddress(userId: string, walletAddress: string): Promise<User>;
   updateEmailVerified(userId: string, verified: boolean): Promise<User>;
+  createUserEmailVerification(userId: string): Promise<{
+    user: User;
+    verificationToken: string;
+    verificationTokenExpiresAt: Date;
+  } | undefined>;
+  verifyUserEmail(token: string): Promise<User | undefined>;
   updateNotificationPreferences(
     userId: string,
     notifyPaymentsDue: boolean,
@@ -64,8 +71,15 @@ export interface IStorage {
   ): Promise<User>;
   createSolturioWallet(
     userId: string,
-    publicKey: string,
-    encryptedPrivateKey: string
+    wallet: {
+      publicKey: string;
+      encryptedPrivateKey: string;
+      encryptedRecoveryPhrase: string;
+      walletSalt: string;
+      walletType: "standard" | "premium";
+      walletName: string;
+      customName?: string;
+    }
   ): Promise<User>;
   markPrivateKeyExported(userId: string): Promise<User>;
   getAllUsers(): Promise<User[]>;
@@ -293,10 +307,68 @@ export class DatabaseStorage implements IStorage {
   async updateEmailVerified(userId: string, verified: boolean): Promise<User> {
     const [user] = await db
       .update(users)
-      .set({ emailVerified: verified, updatedAt: new Date() })
+      .set({
+        emailVerified: verified,
+        emailVerificationToken: verified ? null : undefined,
+        emailVerificationTokenExpiresAt: verified ? null : undefined,
+        updatedAt: new Date(),
+      })
       .where(eq(users.id, userId))
       .returning();
     return user;
+  }
+
+  async createUserEmailVerification(
+    userId: string
+  ): Promise<
+    | {
+        user: User;
+        verificationToken: string;
+        verificationTokenExpiresAt: Date;
+      }
+    | undefined
+  > {
+    const user = await this.getUser(userId);
+    if (!user) return undefined;
+
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationTokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        emailVerificationToken: verificationToken,
+        emailVerificationTokenExpiresAt: verificationTokenExpiresAt,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return {
+      user: updatedUser,
+      verificationToken,
+      verificationTokenExpiresAt,
+    };
+  }
+
+  async verifyUserEmail(token: string): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        emailVerified: true,
+        emailVerificationToken: null,
+        emailVerificationTokenExpiresAt: null,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(users.emailVerificationToken, token),
+          gte(users.emailVerificationTokenExpiresAt, new Date())
+        )
+      )
+      .returning();
+
+    return updatedUser;
   }
 
   async updateNotificationPreferences(
@@ -334,14 +406,32 @@ export class DatabaseStorage implements IStorage {
 
   async createSolturioWallet(
     userId: string,
-    publicKey: string,
-    encryptedPrivateKey: string
+    wallet: {
+      publicKey: string;
+      encryptedPrivateKey: string;
+      encryptedRecoveryPhrase: string;
+      walletSalt: string;
+      walletType: "standard" | "premium";
+      walletName: string;
+      customName?: string;
+    }
   ): Promise<User> {
     const [user] = await db
       .update(users)
       .set({
-        solanaPublicKey: publicKey,
-        solanaEncryptedPrivateKey: encryptedPrivateKey,
+        solanaPublicKey: wallet.publicKey,
+        solanaEncryptedPrivateKey: wallet.encryptedPrivateKey,
+        encryptedRecoveryPhrase: wallet.encryptedRecoveryPhrase,
+        walletSalt: wallet.walletSalt,
+        walletType: wallet.walletType,
+        walletName: wallet.walletName,
+        customName: wallet.customName ?? null,
+        ceremonyCompleted: false,
+        recoveryPhraseVerified: false,
+        verificationAttempts: 0,
+        recoveryPhraseShownAt: null,
+        termsAcceptedAt: null,
+        hasExportedPrivateKey: false,
         solanaWalletCreatedAt: new Date(),
         updatedAt: new Date(),
       })
@@ -691,7 +781,7 @@ export class DatabaseStorage implements IStorage {
       // Apply time-based multiplier for early adopters
       // Set SOLTURIO_LAUNCH_DATE env var when ready (format: YYYY-MM-DD)
       // If not set, multipliers are disabled (1x rewards)
-      const launchDateStr = process.env.SOLTURIO_LAUNCH_DATE;
+      const launchDateStr = env.solturioLaunchDate;
       let multiplier = 1.0;
       let multiplierLabel = "Standard";
 
@@ -759,7 +849,7 @@ export class DatabaseStorage implements IStorage {
 
     // Calculate current multiplier info for frontend display
     // Uses SOLTURIO_LAUNCH_DATE env var (format: YYYY-MM-DD)
-    const launchDateEnv = process.env.SOLTURIO_LAUNCH_DATE;
+      const launchDateEnv = env.solturioLaunchDate;
     let currentMultiplier = 1.0;
     let currentMultiplierLabel = "Standard";
     let daysRemaining = 0;
@@ -1304,7 +1394,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Apply time-based multiplier
-      const launchDateStr = process.env.SOLTURIO_LAUNCH_DATE;
+      const launchDateStr = env.solturioLaunchDate;
       let multiplier = 1.0;
 
       if (launchDateStr) {

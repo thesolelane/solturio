@@ -5,16 +5,31 @@
  */
 
 import { storage } from "./storage";
-import { isAdminEmail, getCurrentSubscriptionPricing, TOKEN_MINTS } from "@shared/pricing";
+import { getCurrentSubscriptionPricing, TOKEN_MINTS } from "@shared/pricing";
 import { calculateCathForSubscription } from "./price-oracle";
 import { awardReward, generateReferralCode, processReferralReward } from "./rewards-service";
-import { Connection, PublicKey, clusterApiUrl } from "@solana/web3.js";
+import { Connection, clusterApiUrl } from "@solana/web3.js";
+import { env } from "./env";
+import { hasAdminAccess } from "./admin-middleware";
+import { getErrorMessage } from "./http-types";
 
 const CATH_MINT = TOKEN_MINTS.CATH;
-const PLATFORM_CATH_WALLET = process.env.PLATFORM_REVENUE_WALLET || "";
+const PLATFORM_CATH_WALLET = env.platformRevenueWallet || "";
+
+interface DbResultRow {
+  rows: unknown[];
+}
+
+interface DbExecutor {
+  execute(query: { sql: string; args: unknown[] }): Promise<DbResultRow>;
+}
+
+function getStorageDb(): DbExecutor | undefined {
+  return (storage as unknown as { db?: DbExecutor }).db;
+}
 
 function getSolanaConnection(): Connection {
-  const rpcUrl = process.env.SOLANA_RPC_URL || clusterApiUrl("mainnet-beta");
+  const rpcUrl = env.solanaRpcUrl || clusterApiUrl("mainnet-beta");
   return new Connection(rpcUrl, "confirmed");
 }
 
@@ -34,7 +49,7 @@ export async function checkFreeAccess(userId: string): Promise<boolean> {
   if (!user) return false;
 
   // Admin emails get free access
-  if (isAdminEmail(user.email)) {
+  if (hasAdminAccess(user)) {
     // Auto-activate admin accounts
     if (user.accountStatus !== "admin") {
       await storage.updateUser(userId, {
@@ -45,7 +60,7 @@ export async function checkFreeAccess(userId: string): Promise<boolean> {
     return true;
   }
 
-  return user.isAdmin === true;
+  return false;
 }
 
 /**
@@ -67,7 +82,11 @@ export async function getSubscriptionPricing() {
  */
 async function isTransactionUsed(txHash: string): Promise<boolean> {
   try {
-    const db = (storage as any).db;
+    const db = getStorageDb();
+    if (!db) {
+      return true;
+    }
+
     const result = await db.execute({
       sql: `SELECT tx_hash FROM used_transactions WHERE tx_hash = $1`,
       args: [txHash],
@@ -90,7 +109,11 @@ async function markTransactionUsed(
   amount: string
 ): Promise<void> {
   try {
-    const db = (storage as any).db;
+    const db = getStorageDb();
+    if (!db) {
+      throw new Error("Database not available");
+    }
+
     await db.execute({
       sql: `INSERT INTO used_transactions (tx_hash, user_id, purpose, amount) VALUES ($1, $2, $3, $4)`,
       args: [txHash, userId, purpose, amount],
@@ -141,9 +164,21 @@ export async function verifyCathPayment(
     let foundValidTransfer = false;
     let actualAmount = 0;
 
+    interface ParsedTransferInstruction {
+      type?: string;
+      info?: {
+        mint?: string;
+        source?: string;
+        authority?: string;
+        destination?: string;
+        tokenAmount?: { uiAmount?: number };
+        amount?: string;
+      };
+    }
+
     for (const ix of instructions) {
       if ("parsed" in ix && ix.program === "spl-token") {
-        const parsed = ix.parsed as any;
+        const parsed = ix.parsed as ParsedTransferInstruction;
 
         if (parsed.type === "transferChecked" || parsed.type === "transfer") {
           // SECURITY: Verify it's CATH token
@@ -152,7 +187,6 @@ export async function verifyCathPayment(
           }
 
           // SECURITY: Verify sender is the user's wallet
-          const source = parsed.info?.source || parsed.info?.authority;
           // Note: In SPL transfers, source is token account, authority is wallet
           // We check authority matches user wallet
           if (senderWallet && parsed.info?.authority) {
@@ -193,9 +227,9 @@ export async function verifyCathPayment(
     }
 
     return { valid: true, actualAmount };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Payment verification error:", error);
-    return { valid: false, error: error.message };
+    return { valid: false, error: getErrorMessage(error) };
   }
 }
 
@@ -273,9 +307,9 @@ export async function activateAccount(
       subscriptionExpiresAt: expiresAt,
       rewardsEarned: totalRewards,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Activate account error:", error);
-    return { success: false, accountStatus: "error", error: error.message };
+    return { success: false, accountStatus: "error", error: getErrorMessage(error) };
   }
 }
 
@@ -294,7 +328,7 @@ export async function checkSubscriptionStatus(userId: string): Promise<{
   }
 
   // Admin always active
-  if (user.accountStatus === "admin" || user.isAdmin) {
+  if (hasAdminAccess(user) || user.accountStatus === "admin") {
     return { status: "admin", isActive: true };
   }
 
@@ -382,8 +416,8 @@ export async function renewSubscription(
       accountStatus: "active",
       subscriptionExpiresAt: expiresAt,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Renew subscription error:", error);
-    return { success: false, accountStatus: "error", error: error.message };
+    return { success: false, accountStatus: "error", error: getErrorMessage(error) };
   }
 }

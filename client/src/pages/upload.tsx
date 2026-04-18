@@ -160,12 +160,6 @@ export default function Upload() {
         "application/json",
         "application/zip",
         "application/x-zip-compressed",
-        "application/x-rar-compressed",
-        "application/postscript",
-        "image/vnd.adobe.photoshop",
-        "image/eps",
-        "application/eps",
-        "application/octet-stream",
       ];
 
       // Valid extensions as fallback when MIME type is empty or generic
@@ -182,10 +176,6 @@ export default function Upload() {
         "txt",
         "json",
         "zip",
-        "rar",
-        "ai",
-        "psd",
-        "eps",
       ];
 
       for (let i = 0; i < files.length; i++) {
@@ -426,7 +416,7 @@ export default function Upload() {
             <Input
               type="file"
               multiple
-              accept="image/png,image/jpeg,image/jpg,image/svg+xml,image/gif,image/webp,application/pdf,text/plain,.txt,application/zip,.ai,.psd,.eps"
+              accept="image/png,image/jpeg,image/jpg,image/svg+xml,image/gif,image/webp,application/pdf,text/plain,application/json,application/zip,.txt,.json,.zip"
               onChange={(e) => handleFiles(e.target.files)}
               className="hidden"
               id="file-upload"
@@ -466,7 +456,7 @@ export default function Upload() {
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-4">
-              Supports PNG, JPG, SVG, GIF, WebP, PDF, TXT, ZIP, AI, PSD, EPS • Max 50MB per file
+              Supports PNG, JPG, SVG, GIF, WebP, PDF, TXT, JSON, ZIP • Max 50MB per file
               {isPremium && (
                 <span className="block mt-1 text-primary">Premium: Folder upload enabled</span>
               )}

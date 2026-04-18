@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { ArrowLeft, Twitter, Send, Globe, Check, Image, Shield, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BrandLogo } from "@/components/brand-logo";
 import { VerificationBadge } from "@/components/verified-image";
 
 export default function HowToShare() {
@@ -21,16 +22,7 @@ export default function HowToShare() {
               className="flex items-center gap-3 hover-elevate"
               data-testid="link-home"
             >
-              <img
-                src="/solturio-logo-light-mode.png"
-                alt="Solturio Logo"
-                className="w-14 h-14 object-contain dark:hidden"
-              />
-              <img
-                src="/solturio-logo-dark-mode.png"
-                alt="Solturio Logo"
-                className="w-14 h-14 object-contain hidden dark:block"
-              />
+              <BrandLogo className="w-14 h-14 object-contain" />
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
                 Solturio
               </span>

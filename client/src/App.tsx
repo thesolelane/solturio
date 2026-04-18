@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
@@ -54,6 +53,7 @@ import ExtensionAuth from "@/pages/extension-auth";
 import BindContract from "@/pages/bind-contract";
 import LogoRegistry from "@/pages/logo-registry";
 import TrademarkAssistant from "@/pages/trademark-assistant";
+import LoginPage from "@/pages/login";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -111,6 +111,7 @@ function Router() {
       <Route path="/music/releases/:id" component={MusicReleaseDetail} />
       <Route path="/music/tracks/:id" component={MusicTrackDetail} />
       <Route path="/extension-auth" component={ExtensionAuth} />
+      <Route path="/login" component={LoginPage} />
       <Route component={NotFound} />
     </Switch>
   );

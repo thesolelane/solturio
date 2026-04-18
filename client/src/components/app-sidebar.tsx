@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/brand-logo";
 
 // Admin email whitelist - should match admin-dashboard.tsx
 const ADMIN_EMAILS = [
@@ -52,7 +53,7 @@ export function AppSidebar() {
   const isAdmin = isAuthenticated && user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
 
   // Fetch user's logos to determine if they have collections
-  const { data: logos } = useQuery<any[]>({
+  const { data: logos } = useQuery<unknown[]>({
     queryKey: ["/api/logos"],
     enabled: isAuthenticated, // Only fetch if authenticated
   });
@@ -66,7 +67,12 @@ export function AppSidebar() {
     { title: "My Collections", url: "/collections", icon: Package, show: true },
     { title: "Logo Registry", url: "/logo-registry", icon: ClipboardList, show: hasCollections },
     { title: "Artwork Licensing", url: "/artwork-licensing", icon: Award, show: hasCollections },
-    { title: "Trademark Assistant", url: "/trademark-assistant", icon: Scale, show: hasCollections },
+    {
+      title: "Trademark Assistant",
+      url: "/trademark-assistant",
+      icon: Scale,
+      show: hasCollections,
+    },
     { title: "Authorized Usage", url: "/authorized-usage", icon: CheckCircle, show: true },
     { title: "Contract Verification", url: "/contract-verification", icon: Shield, show: true },
   ].filter((item) => item.show !== false);
@@ -131,12 +137,7 @@ export function AppSidebar() {
       <SidebarHeader className="p-4 border-b">
         <Link href="/">
           <div className="flex items-center gap-2 cursor-pointer">
-            <img src="/solturio-logo-light.png" alt="Solturio" className="h-8 w-8 dark:hidden" />
-            <img
-              src="/solturio-logo-dark.png"
-              alt="Solturio"
-              className="h-8 w-8 hidden dark:block"
-            />
+            <BrandLogo alt="Solturio" className="h-8 w-8 object-contain" />
             <span className="font-bold text-lg">Solturio</span>
           </div>
         </Link>

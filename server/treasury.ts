@@ -6,44 +6,11 @@
  */
 
 import { Router } from "express";
-import { storage } from "./storage";
 import { isAuthenticated } from "./replitAuth";
-import { formatError, formatSuccess, ERROR_CODES } from "./error-handler";
-import { auditLogger } from "./audit-logger";
-import { validateRequest, multiSigSchema, treasuryTransferSchema } from "./validation";
-import { isAdminEmail } from "@shared/pricing";
+import { requireAdmin } from "./admin-middleware";
+import { getErrorMessage, type AppResponse, type AuthenticatedRequest } from "./http-types";
 
 export const treasuryRouter = Router();
-
-/**
- * Admin middleware for treasury routes
- * Verifies the user is in the admin email whitelist
- */
-async function requireAdmin(req: any, res: any, next: any) {
-  try {
-    const userId = req.user?.claims?.sub;
-    if (!userId) {
-      return res.status(401).json({ error: "Not authenticated" });
-    }
-
-    const user = await storage.getUser(userId);
-    if (!user || !isAdminEmail(user.email)) {
-      auditLogger.log({
-        action: "ADMIN_ACCESS_DENIED",
-        endpoint: req.path,
-        method: req.method,
-        statusCode: 403,
-        userId,
-        details: { email: user?.email, reason: "Not in admin whitelist" },
-      });
-      return res.status(403).json({ error: "Admin access required" });
-    }
-
-    next();
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-}
 
 /**
  * SETUP MULTI-SIG WALLET (Admin only)
@@ -53,9 +20,8 @@ treasuryRouter.post(
   "/treasury/setup-multisig",
   isAuthenticated,
   requireAdmin,
-  async (req: any, res) => {
+  async (req: AuthenticatedRequest, res: AppResponse) => {
     try {
-      const userId = req.user.claims.sub;
       const { signers, threshold } = req.body;
       if (!signers || !Array.isArray(signers) || signers.length === 0) {
         return res.status(400).json({ error: "Invalid signers array" });
@@ -72,9 +38,9 @@ treasuryRouter.post(
         threshold,
         message: "Multi-sig setup initialized",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error setting up multi-sig:", error);
-      res.status(500).json({ error: "Failed to setup multi-sig" });
+      res.status(500).json({ error: getErrorMessage(error) });
     }
   }
 );
@@ -87,9 +53,9 @@ treasuryRouter.post(
   "/treasury/propose-transfer",
   isAuthenticated,
   requireAdmin,
-  async (req: any, res) => {
+  async (req: AuthenticatedRequest, res: AppResponse) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user?.claims?.sub || "unknown";
       const { amount, description, recipient } = req.body;
 
       if (!amount || !description) {
@@ -110,9 +76,9 @@ treasuryRouter.post(
         threshold: 2,
         created_at: new Date().toISOString(),
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error proposing transfer:", error);
-      res.status(500).json({ error: "Failed to propose transfer" });
+      res.status(500).json({ error: getErrorMessage(error) });
     }
   }
 );
@@ -125,9 +91,9 @@ treasuryRouter.post(
   "/treasury/approve-transfer/:proposalId",
   isAuthenticated,
   requireAdmin,
-  async (req: any, res) => {
+  async (req: AuthenticatedRequest, res: AppResponse) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user?.claims?.sub || "unknown";
       const { proposalId } = req.params;
 
       return res.json({
@@ -137,9 +103,9 @@ treasuryRouter.post(
         status: "approved",
         timestamp: new Date().toISOString(),
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error approving transfer:", error);
-      res.status(500).json({ error: "Failed to approve transfer" });
+      res.status(500).json({ error: getErrorMessage(error) });
     }
   }
 );
@@ -152,7 +118,7 @@ treasuryRouter.post(
   "/treasury/execute-transfer/:proposalId",
   isAuthenticated,
   requireAdmin,
-  async (req: any, res) => {
+  async (req: AuthenticatedRequest, res: AppResponse) => {
     try {
       const { proposalId } = req.params;
 
@@ -163,9 +129,9 @@ treasuryRouter.post(
         blockchainTxHash: `tx_${Math.random().toString(36).substring(7)}`,
         timestamp: new Date().toISOString(),
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error executing transfer:", error);
-      res.status(500).json({ error: "Failed to execute transfer" });
+      res.status(500).json({ error: getErrorMessage(error) });
     }
   }
 );
@@ -178,7 +144,7 @@ treasuryRouter.post(
   "/treasury/cancel-transfer/:proposalId",
   isAuthenticated,
   requireAdmin,
-  async (req: any, res) => {
+  async (req: AuthenticatedRequest, res: AppResponse) => {
     try {
       const { proposalId } = req.params;
 
@@ -188,9 +154,9 @@ treasuryRouter.post(
         status: "cancelled",
         timestamp: new Date().toISOString(),
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error cancelling transfer:", error);
-      res.status(500).json({ error: "Failed to cancel transfer" });
+      res.status(500).json({ error: getErrorMessage(error) });
     }
   }
 );
@@ -199,40 +165,50 @@ treasuryRouter.post(
  * VIEW TREASURY STATUS
  * GET /api/treasury/status
  */
-treasuryRouter.get("/treasury/status", isAuthenticated, requireAdmin, async (req: any, res) => {
-  try {
-    return res.json({
-      balance: "10000",
-      transferred: "2500",
-      currency: "CATH",
-      schedule: "monthly",
-      nextTransfer: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      status: "active",
-    });
-  } catch (error: any) {
-    console.error("Error fetching treasury status:", error);
-    res.status(500).json({ error: "Failed to fetch treasury status" });
+treasuryRouter.get(
+  "/treasury/status",
+  isAuthenticated,
+  requireAdmin,
+  async (req: AuthenticatedRequest, res: AppResponse) => {
+    try {
+      return res.json({
+        balance: "10000",
+        transferred: "2500",
+        currency: "CATH",
+        schedule: "monthly",
+        nextTransfer: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        status: "active",
+      });
+    } catch (error: unknown) {
+      console.error("Error fetching treasury status:", error);
+      res.status(500).json({ error: getErrorMessage(error) });
+    }
   }
-});
+);
 
 /**
  * VIEW PROPOSALS
  * GET /api/treasury/proposals
  */
-treasuryRouter.get("/treasury/proposals", isAuthenticated, requireAdmin, async (req: any, res) => {
-  try {
-    return res.json([
-      {
-        id: "prop_001",
-        amount: "500",
-        proposer: "user_123",
-        approvals: 1,
-        status: "pending",
-        description: "Infrastructure costs",
-      },
-    ]);
-  } catch (error: any) {
-    console.error("Error fetching proposals:", error);
-    res.status(500).json({ error: "Failed to fetch proposals" });
+treasuryRouter.get(
+  "/treasury/proposals",
+  isAuthenticated,
+  requireAdmin,
+  async (req: AuthenticatedRequest, res: AppResponse) => {
+    try {
+      return res.json([
+        {
+          id: "prop_001",
+          amount: "500",
+          proposer: "user_123",
+          approvals: 1,
+          status: "pending",
+          description: "Infrastructure costs",
+        },
+      ]);
+    } catch (error: unknown) {
+      console.error("Error fetching proposals:", error);
+      res.status(500).json({ error: getErrorMessage(error) });
+    }
   }
-});
+);

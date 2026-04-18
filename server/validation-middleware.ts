@@ -2,43 +2,51 @@
  * Phase 3: Apply Validation Middleware to All Endpoints
  */
 
-import { Request, Response, NextFunction } from "express";
+import type { Application, NextFunction, RequestHandler } from "express";
 import { validateRequest, nonceTimestampSchema } from "./validation";
-import { formatError, ERROR_CODES } from "./error-handler";
+import { formatError } from "./error-handler";
 import { auditLogger } from "./audit-logger";
+import type { AppResponse, AuthenticatedRequest } from "./http-types";
 
-export interface ValidatedRequest extends Request {
+export interface ValidatedRequest extends AuthenticatedRequest {
   requestId: string;
   validationErrors?: Record<string, string>;
+}
+
+interface StatusCodeError {
+  statusCode?: number;
 }
 
 /**
  * Apply to all API routes
  */
-export const applyValidationToRoutes = (app: any) => {
+export const applyValidationToRoutes = (app: Application) => {
   // Request ID middleware
-  app.use((req: ValidatedRequest, res: Response, next: NextFunction) => {
-    req.requestId = `req_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+  const requestIdMiddleware: RequestHandler = (req, _res, next) => {
+    (req as ValidatedRequest).requestId =
+      `req_${Date.now()}_${Math.random().toString(36).substring(7)}`;
     next();
-  });
+  };
+  app.use(requestIdMiddleware);
 
   // Nonce validation middleware for payment endpoints
-  app.use("/api/licenses/:id/pay", (req: ValidatedRequest, res: Response, next: NextFunction) => {
+  const nonceValidationMiddleware: RequestHandler = (req, res, next) => {
+    const validatedReq = req as ValidatedRequest;
     const validation = validateRequest(nonceTimestampSchema, {
-      nonce: req.body?.nonce,
-      timestamp: req.body?.timestamp,
+      nonce: validatedReq.body?.nonce,
+      timestamp: validatedReq.body?.timestamp,
     });
 
     if (!validation.valid) {
       auditLogger.log({
         action: "INVALID_REQUEST",
-        endpoint: req.path,
-        method: req.method,
+        endpoint: validatedReq.path,
+        method: validatedReq.method,
         statusCode: 400,
-        requestId: req.requestId,
-        userId: (req as any).user?.claims?.sub,
+        requestId: validatedReq.requestId,
+        userId: validatedReq.user?.claims?.sub,
         details: validation.errors,
-        ipAddress: req.ip,
+        ipAddress: validatedReq.ip,
       });
 
       return res.status(400).json({
@@ -47,29 +55,31 @@ export const applyValidationToRoutes = (app: any) => {
         code: "INVALID_INPUT",
         details: validation.errors,
         timestamp: new Date().toISOString(),
-        requestId: req.requestId,
+        requestId: validatedReq.requestId,
       });
     }
 
     next();
-  });
+  };
+  app.use("/api/licenses/:id/pay", nonceValidationMiddleware);
 
   // Audit logging middleware
-  app.use((req: ValidatedRequest, res: Response, next: NextFunction) => {
+  const auditLoggingMiddleware: RequestHandler = (req, res, next) => {
+    const validatedReq = req as ValidatedRequest;
     const originalSend = res.json;
 
-    res.json = function (data: any) {
+    res.json = function (data: unknown) {
       // Log after response is sent
       setImmediate(() => {
         auditLogger.log({
-          action: req.method.toUpperCase(),
-          endpoint: req.path,
-          method: req.method,
+          action: validatedReq.method.toUpperCase(),
+          endpoint: validatedReq.path,
+          method: validatedReq.method,
           statusCode: res.statusCode,
-          requestId: req.requestId,
-          userId: (req as any).user?.claims?.sub,
-          ipAddress: req.ip,
-          userAgent: req.get("user-agent"),
+          requestId: validatedReq.requestId,
+          userId: validatedReq.user?.claims?.sub,
+          ipAddress: validatedReq.ip,
+          userAgent: validatedReq.get("user-agent"),
         });
       });
 
@@ -77,21 +87,29 @@ export const applyValidationToRoutes = (app: any) => {
     };
 
     next();
-  });
+  };
+  app.use(auditLoggingMiddleware);
 };
 
 /**
  * Wrap endpoints with error handler
  */
 export const withErrorHandler = (
-  handler: (req: ValidatedRequest, res: Response, next: NextFunction) => Promise<void> | void
+  handler: (req: ValidatedRequest, res: AppResponse, next: NextFunction) => Promise<void> | void
 ) => {
-  return async (req: ValidatedRequest, res: Response, next: NextFunction) => {
+  return async (req: ValidatedRequest, res: AppResponse, next: NextFunction) => {
     try {
       await handler(req, res, next);
-    } catch (error: any) {
+    } catch (error: unknown) {
       const formatted = formatError(error, req.requestId);
-      res.status(error.statusCode || 500).json(formatted);
+      const status =
+        typeof error === "object" &&
+        error !== null &&
+        "statusCode" in error &&
+        typeof (error as StatusCodeError).statusCode === "number"
+          ? (error as StatusCodeError).statusCode!
+          : 500;
+      res.status(status).json(formatted);
     }
   };
 };

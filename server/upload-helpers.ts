@@ -10,44 +10,252 @@ export const THUMBNAILS_DIR = path.join(UPLOAD_DIR, "thumbnails");
 fs.mkdir(UPLOAD_DIR, { recursive: true }).catch(console.error);
 fs.mkdir(THUMBNAILS_DIR, { recursive: true }).catch(console.error);
 
+const ALLOWED_MIME_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  "image/tiff",
+  "application/pdf",
+  "text/plain",
+  "audio/mpeg",
+  "audio/wav",
+  "audio/ogg",
+  "audio/flac",
+  "audio/aiff",
+  "audio/x-aiff",
+  "audio/mp4",
+  "audio/webm",
+  "video/mp4",
+  "video/webm",
+  "application/zip",
+  "application/x-zip-compressed",
+  "text/javascript",
+  "text/typescript",
+  "application/json",
+  "text/html",
+  "text/css",
+]);
+
+const EXTENSION_TO_MIME_TYPES: Record<string, string[]> = {
+  png: ["image/png"],
+  jpg: ["image/jpeg", "image/jpg"],
+  jpeg: ["image/jpeg", "image/jpg"],
+  gif: ["image/gif"],
+  webp: ["image/webp"],
+  svg: ["image/svg+xml"],
+  tif: ["image/tiff"],
+  tiff: ["image/tiff"],
+  pdf: ["application/pdf"],
+  txt: ["text/plain"],
+  mp3: ["audio/mpeg"],
+  wav: ["audio/wav"],
+  ogg: ["audio/ogg"],
+  flac: ["audio/flac"],
+  aif: ["audio/aiff", "audio/x-aiff"],
+  aiff: ["audio/aiff", "audio/x-aiff"],
+  m4a: ["audio/mp4"],
+  mp4: ["audio/mp4", "video/mp4"],
+  webm: ["audio/webm", "video/webm"],
+  zip: ["application/zip", "application/x-zip-compressed"],
+  js: ["text/javascript"],
+  ts: ["text/typescript"],
+  json: ["application/json"],
+  html: ["text/html"],
+  css: ["text/css"],
+};
+
+const SVG_DANGEROUS_PATTERN =
+  /<script\b|<foreignObject\b|\bonload\s*=|\bonerror\s*=|javascript:/i;
+
+export class InvalidUploadError extends Error {
+  status = 400;
+  statusCode = 400;
+
+  constructor(message: string) {
+    super(message);
+    this.name = "InvalidUploadError";
+  }
+}
+
+function getFileExtension(fileName: string): string {
+  const safeName = path.basename(fileName).trim();
+  const extension = safeName.split(".").pop();
+  return extension ? extension.toLowerCase() : "";
+}
+
+function ensureSafeFileName(fileName: string): string {
+  const safeName = path.basename(fileName).trim();
+
+  if (!safeName) {
+    throw new InvalidUploadError("Uploaded file must have a name.");
+  }
+
+  if (safeName !== fileName.trim()) {
+    throw new InvalidUploadError("Invalid file name.");
+  }
+
+  if (
+    safeName.startsWith(".") ||
+    safeName === "Thumbs.db" ||
+    safeName === "desktop.ini" ||
+    /[\u0000-\u001f]/.test(safeName)
+  ) {
+    throw new InvalidUploadError("Unsupported file name.");
+  }
+
+  return safeName;
+}
+
+function detectUploadCategory(file: Express.Multer.File):
+  | "image"
+  | "svg"
+  | "pdf"
+  | "text"
+  | "zip"
+  | "audio"
+  | "video" {
+  const extension = getFileExtension(file.originalname);
+  const allowedForExtension = EXTENSION_TO_MIME_TYPES[extension];
+
+  if (allowedForExtension && !allowedForExtension.includes(file.mimetype)) {
+    throw new InvalidUploadError(`File type does not match extension for ${file.originalname}.`);
+  }
+
+  if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
+    throw new InvalidUploadError(`Unsupported file type: ${file.mimetype || "unknown"}.`);
+  }
+
+  if (file.mimetype === "image/svg+xml") return "svg";
+  if (file.mimetype.startsWith("image/")) return "image";
+  if (file.mimetype === "application/pdf") return "pdf";
+  if (
+    file.mimetype === "text/plain" ||
+    file.mimetype === "text/javascript" ||
+    file.mimetype === "text/typescript" ||
+    file.mimetype === "application/json" ||
+    file.mimetype === "text/html" ||
+    file.mimetype === "text/css"
+  ) {
+    return "text";
+  }
+  if (file.mimetype === "application/zip" || file.mimetype === "application/x-zip-compressed") {
+    return "zip";
+  }
+  if (file.mimetype.startsWith("audio/")) return "audio";
+  if (file.mimetype.startsWith("video/")) return "video";
+
+  throw new InvalidUploadError(`Unsupported file type: ${file.mimetype || "unknown"}.`);
+}
+
+function ensureBufferHasNoNullBytes(buffer: Buffer, fileName: string) {
+  if (buffer.includes(0)) {
+    throw new InvalidUploadError(`${fileName} is not a valid text-based file.`);
+  }
+}
+
+function validateAudioBuffer(buffer: Buffer, mimetype: string, fileName: string) {
+  const isMp3 = buffer.subarray(0, 3).equals(Buffer.from("ID3")) || buffer[0] === 0xff;
+  const isWav =
+    buffer.subarray(0, 4).equals(Buffer.from("RIFF")) &&
+    buffer.subarray(8, 12).equals(Buffer.from("WAVE"));
+  const isOgg = buffer.subarray(0, 4).equals(Buffer.from("OggS"));
+  const isFlac = buffer.subarray(0, 4).equals(Buffer.from("fLaC"));
+  const isAiff =
+    buffer.subarray(0, 4).equals(Buffer.from("FORM")) &&
+    (buffer.subarray(8, 12).equals(Buffer.from("AIFF")) ||
+      buffer.subarray(8, 12).equals(Buffer.from("AIFC")));
+  const isMp4 = buffer.subarray(4, 8).equals(Buffer.from("ftyp"));
+  const isWebm = buffer.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]));
+
+  const valid =
+    (mimetype === "audio/mpeg" && isMp3) ||
+    (mimetype === "audio/wav" && isWav) ||
+    (mimetype === "audio/ogg" && isOgg) ||
+    (mimetype === "audio/flac" && isFlac) ||
+    ((mimetype === "audio/aiff" || mimetype === "audio/x-aiff") && isAiff) ||
+    (mimetype === "audio/mp4" && isMp4) ||
+    (mimetype === "audio/webm" && isWebm);
+
+  if (!valid) {
+    throw new InvalidUploadError(`${fileName} content does not match its audio type.`);
+  }
+}
+
+function validateVideoBuffer(buffer: Buffer, mimetype: string, fileName: string) {
+  const isMp4 = buffer.subarray(4, 8).equals(Buffer.from("ftyp"));
+  const isWebm = buffer.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]));
+
+  const valid =
+    (mimetype === "video/mp4" && isMp4) || (mimetype === "video/webm" && isWebm);
+
+  if (!valid) {
+    throw new InvalidUploadError(`${fileName} content does not match its video type.`);
+  }
+}
+
+export async function assertValidUploadFile(file: Express.Multer.File): Promise<Express.Multer.File> {
+  const safeName = ensureSafeFileName(file.originalname);
+
+  if (!file.buffer || file.buffer.length === 0 || file.size <= 0) {
+    throw new InvalidUploadError(`${safeName} is empty.`);
+  }
+
+  const category = detectUploadCategory(file);
+
+  switch (category) {
+    case "image": {
+      const metadata = await sharp(file.buffer).metadata();
+      if (!metadata.width || !metadata.height || !metadata.format) {
+        throw new InvalidUploadError(`${safeName} is not a valid image file.`);
+      }
+      break;
+    }
+    case "svg": {
+      const svgText = file.buffer.toString("utf8").trim();
+      if (!svgText.includes("<svg") || SVG_DANGEROUS_PATTERN.test(svgText)) {
+        throw new InvalidUploadError(`${safeName} contains unsafe or invalid SVG content.`);
+      }
+      break;
+    }
+    case "pdf":
+      if (!file.buffer.subarray(0, 5).equals(Buffer.from("%PDF-"))) {
+        throw new InvalidUploadError(`${safeName} is not a valid PDF file.`);
+      }
+      break;
+    case "text":
+      ensureBufferHasNoNullBytes(file.buffer, safeName);
+      break;
+    case "zip": {
+      const header = file.buffer.subarray(0, 4);
+      const isZip =
+        header.equals(Buffer.from([0x50, 0x4b, 0x03, 0x04])) ||
+        header.equals(Buffer.from([0x50, 0x4b, 0x05, 0x06])) ||
+        header.equals(Buffer.from([0x50, 0x4b, 0x07, 0x08]));
+      if (!isZip) {
+        throw new InvalidUploadError(`${safeName} is not a valid ZIP archive.`);
+      }
+      break;
+    }
+    case "audio":
+      validateAudioBuffer(file.buffer, file.mimetype, safeName);
+      break;
+    case "video":
+      validateVideoBuffer(file.buffer, file.mimetype, safeName);
+      break;
+  }
+
+  file.originalname = safeName;
+  return file;
+}
+
 export const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = [
-      "image/png",
-      "image/jpeg",
-      "image/jpg",
-      "image/gif",
-      "image/webp",
-      "image/svg+xml",
-      "image/tiff",
-      "application/pdf",
-      "text/plain",
-      "audio/mpeg",
-      "audio/wav",
-      "audio/ogg",
-      "audio/flac",
-      "audio/aiff",
-      "audio/x-aiff",
-      "audio/mp4",
-      "audio/webm",
-      "video/mp4",
-      "video/webm",
-      "application/zip",
-      "application/x-zip-compressed",
-      "text/javascript",
-      "text/typescript",
-      "application/json",
-      "text/html",
-      "text/css",
-    ];
-
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(null, true);
-    }
+    cb(null, true);
   },
 });
 

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { BrandLogo } from "@/components/brand-logo";
 import {
   FileText,
   Download,
@@ -108,7 +109,7 @@ export default function AdminPartnerships() {
         title: "Downloaded Successfully",
         description: "Solana Foundation proposal has been downloaded",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Download Failed",
         description: "Failed to generate the proposal document",
@@ -149,7 +150,7 @@ export default function AdminPartnerships() {
         title: "Downloaded Successfully",
         description: `Partnership proposal for ${dexName} has been downloaded`,
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Download Failed",
         description: "Failed to generate the proposal document",
@@ -167,18 +168,7 @@ export default function AdminPartnerships() {
         <div className="h-20 flex items-center px-6 lg:px-8">
           <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {/* Light Mode Logo - Dark colored logo for light backgrounds */}
-              <img
-                src="/solturio-logo-light-mode.png"
-                alt="Solturio Logo for Light Mode"
-                className="w-14 h-14 object-contain dark:hidden"
-              />
-              {/* Dark Mode Logo - White colored logo for dark backgrounds */}
-              <img
-                src="/solturio-logo-dark-mode.png"
-                alt="Solturio Logo for Dark Mode"
-                className="w-14 h-14 object-contain hidden dark:block"
-              />
+              <BrandLogo className="w-14 h-14 object-contain" />
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
                 Solturio
               </span>

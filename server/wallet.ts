@@ -3,6 +3,7 @@ import * as bip39 from "bip39";
 import { derivePath } from "ed25519-hd-key";
 import { randomBytes, createCipheriv, createDecipheriv, scrypt } from "crypto";
 import { promisify } from "util";
+import { env } from "./env";
 
 const scryptAsync = promisify(scrypt);
 
@@ -58,7 +59,7 @@ export async function generateSolanaWallet(config: WalletConfig): Promise<Wallet
 }
 
 function getMasterEncryptionKey(): string {
-  const masterKey = process.env.WALLET_ENCRYPTION_KEY;
+  const masterKey = env.walletEncryptionKey;
 
   if (!masterKey || masterKey.length < 32) {
     throw new Error(

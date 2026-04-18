@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { isAuthenticated } from "./replitAuth";
 import { storage } from "./storage";
+import { type AppResponse, type AuthenticatedRequest } from "./http-types";
 
 export const quizRouter = Router();
 
@@ -18,36 +19,52 @@ quizRouter.get("/quiz/questions", async (req, res) => {
   }
 });
 
-quizRouter.get("/quiz/stats", isAuthenticated, async (req: any, res) => {
-  try {
-    const userId = req.user.claims.sub;
-    const stats = await storage.getQuizStats(userId);
-    res.json(stats);
-  } catch (error) {
-    console.error("Error fetching quiz stats:", error);
-    res.status(500).json({ error: "Failed to fetch stats" });
+quizRouter.get(
+  "/quiz/stats",
+  isAuthenticated,
+  async (req: AuthenticatedRequest, res: AppResponse) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const stats = await storage.getQuizStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching quiz stats:", error);
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
   }
-});
+);
 
-quizRouter.post("/quiz/answer", isAuthenticated, async (req: any, res) => {
-  try {
-    const userId = req.user.claims.sub;
-    const { questionId, answer, timeToAnswer, hintUsed, originalPoints } = req.body;
+quizRouter.post(
+  "/quiz/answer",
+  isAuthenticated,
+  async (req: AuthenticatedRequest, res: AppResponse) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
 
-    const result = await storage.submitQuizAnswer(userId, {
-      questionId,
-      answer,
-      timeToAnswer,
-      hintUsed,
-      originalPoints,
-    });
+      const { questionId, answer, timeToAnswer, hintUsed, originalPoints } = req.body;
 
-    res.json(result);
-  } catch (error) {
-    console.error("Error submitting quiz answer:", error);
-    res.status(500).json({ error: "Failed to submit answer" });
+      const result = await storage.submitQuizAnswer(userId, {
+        questionId,
+        answer,
+        timeToAnswer,
+        hintUsed,
+        originalPoints,
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error submitting quiz answer:", error);
+      res.status(500).json({ error: "Failed to submit answer" });
+    }
   }
-});
+);
 
 quizRouter.post("/quiz/seed", async (req, res) => {
   try {
