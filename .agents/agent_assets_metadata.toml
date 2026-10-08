@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "rP2XoJXKNoibckisWdwXQ"
+uri = "file://DEVELOPER_HANDOFF.md"
+type = "text"
+title = "Solturio — Developer Handoff"
